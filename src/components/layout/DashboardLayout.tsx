@@ -1,8 +1,8 @@
 import { ReactNode, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "./AppSidebar";
+import { UserAvatar } from "./UserAvatar";
+import logo from "@/assets/logo.png";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -31,19 +31,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <main className="flex-1 flex flex-col">
-          <header className="h-14 border-b border-border flex items-center px-4 bg-background">
-            <SidebarTrigger className="mr-4" />
-            <h1 className="text-lg font-semibold text-foreground">SimpliFi</h1>
-          </header>
-          <div className="flex-1 p-6 bg-secondary/30">
-            {children}
-          </div>
-        </main>
-      </div>
-    </SidebarProvider>
+    <div className="min-h-screen flex flex-col w-full bg-background">
+      <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-background sticky top-0 z-50">
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <img src={logo} alt="SimpliFi" className="h-10 w-auto object-contain" />
+        </Link>
+        <UserAvatar />
+      </header>
+      <main className="flex-1 flex flex-col">
+        <div className="flex-1 p-6 bg-secondary/30">
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }

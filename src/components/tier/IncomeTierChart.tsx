@@ -44,9 +44,9 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const rm = (n: number) => `RM${Math.round(n).toLocaleString("en-MY")}`;
 
 export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIncome }) => {
-  const CHART_H = 480, MIN_BAR = 8, RADIUS = 14, LABEL_GAP = 6, VALUE_H = 18, CURRENT_TAG_H = 22;
+  const CHART_H = 340, MIN_BAR = 8, RADIUS = 14, LABEL_GAP = 6, VALUE_H = 18, CURRENT_TAG_H = 22;
   const [showTable, setShowTable] = useState(false);
-  const [tableKind, setTableKind] = useState<"household" | "employee">("household");
+  const [tableKind, setTableKind] = useState<"household income rank" | "employee salary rank">("household income rank");
 
   const maxMean = useMemo(() => Math.max(...INCOME_TIERS.map(t => t.meanIncome)), []);
   const currentTier = useMemo(() => determineIncomeTier(monthlyIncome), [monthlyIncome]);
@@ -56,13 +56,16 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
   const cols = useMemo(() => {
     return INCOME_TIERS.map(t => {
       const pct = clamp01(t.meanIncome / maxMean);
-      let h = Math.max(MIN_BAR, Math.round(CHART_H * pct));
+      // Reserve 60px at the top (CHART_H - 60) so "You" badge + value label fit
+      let h = Math.max(MIN_BAR, Math.round((CHART_H - 60) * pct));
       if (t.code === "T20 (T2)") h = Math.round(h * 0.88);
       const isCurrent = t.code === currentTier.code;
+
       const grad =
-        t.code.startsWith("B40") ? "from-rose-300 via-red-400 to-orange-400" :
-        t.code.startsWith("M40") ? "from-sky-300 via-sky-400 to-blue-500" :
-                                   "from-emerald-400 via-green-500 to-teal-600";
+        t.code.startsWith("B40") ? "from-red-400/80 to-rose-500/90" :
+          t.code.startsWith("M40") ? "from-blue-400/80 to-indigo-500/90" :
+            "from-emerald-400/80 to-teal-500/90";
+
       return { ...t, h, isCurrent, grad, v: rm(t.meanIncome) };
     });
   }, [currentTier, maxMean]);
@@ -83,92 +86,61 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
         </div>
       </div>
 
-      <div
-        className="relative overflow-hidden rounded-xl bg-gradient-to-b from-secondary to-card border border-border"
-        style={{ height: CHART_H + 36 }}
-      >
-        <div className="absolute top-2 left-2 z-10 space-y-3 w-[min(100%,420px)]">
-          {/* Household Rank card */}
-          <div className="flex items-start gap-2 rounded-2xl border shadow-lg bg-gradient-to-br from-primary/80 to-card text-primary-foreground p-3 pr-3.5 ring-1 ring-primary/20">
-            <div className="shrink-0 w-8 h-8 rounded-full bg-card grid place-items-center shadow">
-              <Medal className="w-5 h-5 text-primary" />
-            </div>
-            <div className="min-w-[180px]">
-              <div className="text-xs uppercase tracking-wide text-primary-foreground/80">Household Rank</div>
-              <div className="text-sm sm:text-base font-semibold leading-tight">
-                Top {Math.round(lo)}%–{Math.round(hi)}% in Malaysia
-              </div>
-              <div className="text-[11px] text-primary-foreground/80 mt-0.5">
-                Tier <span className="font-semibold">{currentTier.code}</span>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-primary text-primary-foreground">
-                  Income <strong className="ml-1">{rm(monthlyIncome)}</strong>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTableKind("household");
-                    setShowTable(v => !v);
-                  }}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-card text-primary font-semibold hover:bg-secondary border border-primary/20"
-                  aria-expanded={showTable}
-                  aria-controls="income-bands-table"
-                >
-                  View bands
-                </button>
-              </div>
+      <div className="flex flex-col md:flex-row gap-2 mb-4">
+        {/* Household Rank - Compact */}
+        <div className="flex-1 flex items-center gap-3 bg-secondary/20 border border-border/50 rounded-xl p-2 px-3 shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <Medal className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-none mb-1">Household Income Rank</div>
+            <div className="text-xs sm:text-sm font-bold text-foreground leading-tight truncate">
+              Top {Math.round(lo)}%–{Math.round(hi)}%
             </div>
           </div>
-
-          {/* Employee Salary Rank card */}
-          <div className="rounded-2xl border shadow bg-gradient-to-br from-accent to-card text-accent-foreground">
-            <div className="p-3 sm:p-4 flex items-start gap-3">
-              <div className="shrink-0 w-8 h-8 rounded-full bg-primary grid place-items-center">
-                <Medal className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs uppercase tracking-wide text-muted-foreground">Employee Salary Rank</div>
-                <div className="text-sm sm:text-base font-semibold">
-                  Top {Math.round(empLo)}%–{Math.round(empHi)}% among employees
-                </div>
-                <div className="mt-1 text-[11px] text-muted-foreground">
-                  Based on employee salary distribution bands (Jun 2025)
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-primary text-primary-foreground font-semibold">
-                    Income {rm(monthlyIncome)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTableKind("employee");
-                      setShowTable(v => !v);
-                    }}
-                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-card text-primary font-semibold border border-primary/20 hover:bg-secondary"
-                    aria-expanded={showTable}
-                    aria-controls="employee-bands-table"
-                  >
-                    View employee bands
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={() => { setTableKind("household"); setShowTable(v => !v); }}
+            className="ml-auto text-[9px] font-bold text-primary hover:underline px-2"
+          >
+            Details
+          </button>
         </div>
 
+        {/* Employee Rank - Compact */}
+        <div className="flex-1 flex items-center gap-3 bg-secondary/20 border border-border/50 rounded-xl p-2 px-3 shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0">
+            <Medal className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-none mb-1">Employee Income Rank</div>
+            <div className="text-xs sm:text-sm font-bold text-foreground leading-tight truncate">
+              Top {Math.round(empLo)}%–{Math.round(empHi)}%
+            </div>
+          </div>
+          <button
+            onClick={() => { setTableKind("employee"); setShowTable(v => !v); }}
+            className="ml-auto text-[9px] font-bold text-indigo-600 hover:underline px-2"
+          >
+            Details
+          </button>
+        </div>
+      </div>
+
+      <div
+        className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border"
+        style={{ height: CHART_H + 36 }}
+      >
         {/* Bars */}
         <div className="absolute left-0 right-0 top-0 bottom-9 grid grid-cols-10 gap-3 px-2 items-end">
           {cols.map(c => {
-            const valueBottom = Math.min(c.h + LABEL_GAP, CHART_H - VALUE_H - 4);
-            const youBottom = Math.min(
-              c.h + LABEL_GAP + VALUE_H + 6,
-              CHART_H - CURRENT_TAG_H - 6
-            );
+            // Stack labels directly above the bar without clamping
+            const valueBottom = c.h + LABEL_GAP;
+            const youBottom = valueBottom + VALUE_H + 2;
+
             return (
               <div key={c.code} className="relative flex items-end justify-center">
                 <div
-                  className="absolute left-1/2 -translate-x-1/2"
+                  className="absolute left-1/2 -translate-x-1/2 transition-all duration-500"
                   style={{ bottom: valueBottom }}
                 >
                   <span className="px-1.5 py-0.5 rounded border bg-card text-[10px] font-medium text-primary border-primary/20 shadow-sm">
@@ -177,7 +149,7 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
                 </div>
                 {c.isCurrent && (
                   <div
-                    className="absolute left-1/2 -translate-x-1/2"
+                    className="absolute left-1/2 -translate-x-1/2 transition-all duration-500"
                     style={{ bottom: youBottom }}
                   >
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-primary-foreground bg-primary shadow">
@@ -186,9 +158,8 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
                   </div>
                 )}
                 <div
-                  className={`w-full bg-gradient-to-t ${c.grad} shadow-sm ${
-                    c.isCurrent ? "ring-2 ring-primary" : ""
-                  }`}
+                  className={`w-full bg-gradient-to-t ${c.grad} shadow-sm border border-white/20 ${c.isCurrent ? "ring-2 ring-primary ring-offset-2 ring-offset-background z-20" : "opacity-80"
+                    }`}
                   style={{ height: c.h, borderRadius: RADIUS }}
                   title={`${c.code} • ${c.v}`}
                   aria-label={`${c.code} mean income ${c.v}`}
@@ -203,9 +174,8 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
           {cols.map(c => (
             <div
               key={c.code}
-              className={`text-[10px] sm:text-xs text-center font-semibold ${
-                c.isCurrent ? "text-primary" : "text-muted-foreground"
-              }`}
+              className={`text-[10px] sm:text-xs text-center font-semibold ${c.isCurrent ? "text-primary" : "text-muted-foreground"
+                }`}
             >
               {c.code}
             </div>

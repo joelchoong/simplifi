@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { IncomeCalculator } from "@/components/dashboard/IncomeCalculator";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -19,13 +20,13 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchProfile() {
       if (!user) return;
-      
+
       const { data, error } = await supabase
         .from("profiles")
         .select("monthly_income")
         .eq("user_id", user.id)
         .single();
-      
+
       if (error) {
         console.error("Error fetching profile:", error);
       } else if (data?.monthly_income) {
@@ -38,23 +39,13 @@ export default function Dashboard() {
     fetchProfile();
   }, [user]);
 
-  const handleSaveIncome = async () => {
+  const handleSaveIncome = async (newNettPay: number) => {
     if (!user) return;
-    
-    const income = parseFloat(inputIncome);
-    if (isNaN(income) || income < 0) {
-      toast({
-        title: "Invalid income",
-        description: "Please enter a valid income amount",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ monthly_income: income })
+      .update({ monthly_income: newNettPay })
       .eq("user_id", user.id);
 
     if (error) {
@@ -64,10 +55,10 @@ export default function Dashboard() {
         variant: "destructive",
       });
     } else {
-      setMonthlyIncome(income);
+      setMonthlyIncome(newNettPay);
       toast({
         title: "Income updated",
-        description: "Your monthly income has been saved",
+        description: "Your financial profile has been updated successfully",
       });
     }
     setSaving(false);
@@ -86,72 +77,34 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Financial Overview</h2>
-          <p className="text-muted-foreground">
-            Understand where you stand in Malaysia's income distribution
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Financial Overview</h2>
+            <p className="text-muted-foreground text-sm">
+              Understand where you stand in Malaysia's income distribution
+            </p>
+          </div>
         </div>
 
-        {monthlyIncome === 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Set Your Monthly Income</CardTitle>
-              <CardDescription>
-                Enter your monthly household income to see your financial standing
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 max-w-md">
-                <div className="flex-1">
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      RM
-                    </span>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      value={inputIncome}
-                      onChange={(e) => setInputIncome(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-                <Button onClick={handleSaveIncome} disabled={saving}>
-                  {saving ? "Saving..." : "Save"}
-                </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-7 xl:col-span-8">
+            {monthlyIncome > 0 ? (
+              <IncomeTierChart monthlyIncome={monthlyIncome} />
+            ) : (
+              <div className="h-[436px] bg-secondary/10 border border-dashed border-border rounded-2xl flex items-center justify-center">
+                <p className="text-muted-foreground">Setup your income to see the chart</p>
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <Card className="mb-4">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <span className="text-muted-foreground">Update your income:</span>
-                  <div className="flex gap-2">
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                        RM
-                      </span>
-                      <Input
-                        type="number"
-                        value={inputIncome}
-                        onChange={(e) => setInputIncome(e.target.value)}
-                        className="pl-10 w-40"
-                      />
-                    </div>
-                    <Button onClick={handleSaveIncome} disabled={saving} size="sm">
-                      {saving ? "Saving..." : "Update"}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <IncomeTierChart monthlyIncome={monthlyIncome} />
-          </>
-        )}
+            )}
+          </div>
+
+          <div className="lg:col-span-5 xl:col-span-4">
+            <IncomeCalculator
+              initialGross={monthlyIncome}
+              onSave={handleSaveIncome}
+              saving={saving}
+            />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

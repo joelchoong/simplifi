@@ -8,6 +8,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+import { z } from "zod";
+
+const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+
 interface Profile {
   full_name: string | null;
   email: string | null;
@@ -15,7 +19,7 @@ interface Profile {
 }
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, updatePassword } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,16 +29,21 @@ export default function Profile() {
     monthly_income: 0,
   });
 
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<{ password?: string; confirm?: string }>({});
+
   useEffect(() => {
     async function fetchProfile() {
       if (!user) return;
-      
+
       const { data, error } = await supabase
         .from("profiles")
         .select("full_name, email, monthly_income")
         .eq("user_id", user.id)
         .single();
-      
+
       if (error) {
         console.error("Error fetching profile:", error);
       } else if (data) {
@@ -52,7 +61,7 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user) return;
-    
+
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
@@ -77,6 +86,41 @@ export default function Profile() {
     setSaving(false);
   };
 
+  const handleChangePassword = async () => {
+    const newErrors: { password?: string; confirm?: string } = {};
+
+    const passwordResult = passwordSchema.safeParse(newPassword);
+    if (!passwordResult.success) {
+      newErrors.password = passwordResult.error.errors[0].message;
+    }
+
+    if (newPassword !== confirmPassword) {
+      newErrors.confirm = "Passwords do not match";
+    }
+
+    setPasswordErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    setChangingPassword(true);
+    const { error } = await updatePassword(newPassword);
+
+    if (error) {
+      toast({
+        title: "Error updating password",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Password updated",
+        description: "Your password has been changed successfully",
+      });
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+    setChangingPassword(false);
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -91,8 +135,8 @@ export default function Profile() {
     <DashboardLayout>
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-foreground">Profile</h2>
-          <p className="text-muted-foreground">Manage your personal information</p>
+          <h2 className="text-2xl font-bold text-foreground">Profile Management</h2>
+          <p className="text-muted-foreground">Manage your personal information and account security</p>
         </div>
 
         <Card>
@@ -137,6 +181,54 @@ export default function Profile() {
 
             <Button onClick={handleSave} disabled={saving} className="w-full">
               {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Account Security</CardTitle>
+            <CardDescription>Update your password to keep your account secure</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  setPasswordErrors((prev) => ({ ...prev, password: undefined }));
+                }}
+                placeholder="••••••••"
+                className={passwordErrors.password ? "border-destructive" : ""}
+              />
+              {passwordErrors.password && (
+                <p className="text-sm text-destructive">{passwordErrors.password}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setPasswordErrors((prev) => ({ ...prev, confirm: undefined }));
+                }}
+                placeholder="••••••••"
+                className={passwordErrors.confirm ? "border-destructive" : ""}
+              />
+              {passwordErrors.confirm && (
+                <p className="text-sm text-destructive">{passwordErrors.confirm}</p>
+              )}
+            </div>
+
+            <Button onClick={handleChangePassword} disabled={changingPassword}>
+              {changingPassword ? "Updating..." : "Update Password"}
             </Button>
           </CardContent>
         </Card>

@@ -46,7 +46,7 @@ const rm = (n: number) => `RM${Math.round(n).toLocaleString("en-MY")}`;
 export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIncome }) => {
   const CHART_H = 340, MIN_BAR = 8, RADIUS = 14, LABEL_GAP = 6, VALUE_H = 18, CURRENT_TAG_H = 22;
   const [showTable, setShowTable] = useState(false);
-  const [tableKind, setTableKind] = useState<"household income rank" | "employee salary rank">("household income rank");
+  const [tableKind, setTableKind] = useState<"household" | "employee">("household");
 
   const maxMean = useMemo(() => Math.max(...INCOME_TIERS.map(t => t.meanIncome)), []);
   const currentTier = useMemo(() => determineIncomeTier(monthlyIncome), [monthlyIncome]);
@@ -71,19 +71,9 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
   }, [currentTier, maxMean]);
 
   return (
-    <section className="bg-card border border-border rounded-2xl shadow-sm p-4 sm:p-5">
-      <div className="mb-3 flex items-center justify-between text-xs sm:text-sm">
-        <div className="inline-flex items-center gap-2 flex-wrap">
-          <span className="text-muted-foreground">Current Income</span>
-          <span className="font-semibold text-foreground">{rm(monthlyIncome)}</span>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-2">
-          <span className="text-muted-foreground">Tier</span>
-          <span className="px-2 py-0.5 rounded-full text-primary-foreground bg-primary font-semibold">
-            {currentTier.code}
-          </span>
-        </div>
+    <section className="bg-card border border-border rounded-2xl shadow-sm p-4">
+      <div className="mb-4">
+        <h2 className="text-xl font-bold text-foreground">Your income position in Malaysia</h2>
       </div>
 
       <div className="flex flex-col md:flex-row gap-2 mb-4">

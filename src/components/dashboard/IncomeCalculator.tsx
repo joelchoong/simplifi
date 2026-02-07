@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface IncomeCalculatorProps {
     initialGross?: number;
-    onSave: (nettPay: number) => void;
+    onSave: (grossIncome: number) => void;
     saving?: boolean;
 }
 
@@ -60,7 +60,76 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
         return deductions.age >= 60 ? 0 : eisBase * (deductions.eisRate / 100);
     }, [gross, deductions.age, deductions.eisRate]);
 
-    const computedPCB_MTD = useMemo(() => deductions.pcbAuto + deductions.pcbOnAR, [deductions.pcbAuto, deductions.pcbOnAR]);
+    // PCB Calculation Logic (Simplified for Single Individual)
+    const calculatePCB = (monthlyGross: number, monthlyEPF: number) => {
+        // Annualize income
+        const annualGross = monthlyGross * 12;
+
+        // Standard Reliefs (2024)
+        const RELIEF_INDIVIDUAL = 9000;
+        const RELIEF_EPF = Math.min(monthlyEPF * 12, 4000); // Max 4000 for EPF
+
+        // Taxable Income
+        const chargeableIncome = Math.max(0, annualGross - RELIEF_INDIVIDUAL - RELIEF_EPF);
+
+        // Tax Brackets 2024
+        const taxBrackets = [
+            { threshold: 5000, rate: 0, cumulative: 0 },
+            { threshold: 20000, rate: 0.01, cumulative: 0 },       // 5,001 - 20,000
+            { threshold: 35000, rate: 0.03, cumulative: 150 },     // 20,001 - 35,000
+            { threshold: 50000, rate: 0.06, cumulative: 600 },     // 35,001 - 50,000
+            { threshold: 70000, rate: 0.11, cumulative: 1500 },    // 50,001 - 70,000
+            { threshold: 100000, rate: 0.19, cumulative: 3700 },   // 70,001 - 100,000
+            { threshold: 400000, rate: 0.25, cumulative: 9400 },   // 100,001 - 400,000
+            { threshold: 600000, rate: 0.26, cumulative: 84400 },  // 400,001 - 600,000
+            { threshold: 2000000, rate: 0.28, cumulative: 136400 },// 600,001 - 2,000,000
+            { threshold: Infinity, rate: 0.30, cumulative: 528400 }// > 2,000,000
+        ];
+
+        let annualTax = 0;
+
+        // Find applicable bracket
+        for (let i = taxBrackets.length - 1; i >= 0; i--) {
+            if (chargeableIncome > taxBrackets[i].threshold) {
+                // Not lowest bracket logic; standard progressive calculation
+                // Actually simpler to iterate up
+                break;
+            }
+        }
+
+        // Re-implementing simplified loop
+        let remainingIncome = chargeableIncome;
+        let totalTax = 0;
+        let previousThreshold = 0;
+
+        // Correct logic:
+        // iterate through brackets. 
+        // 0-5000: 0%
+        // 5001-20000: 1%
+
+        // Let's use the cumulative table lookup method for simplicity and accuracy matching LHDN table logic
+        // But for code, iterating ranges is clearer.
+
+        if (chargeableIncome <= 5000) return 0;
+
+        // Bracket approach
+        if (chargeableIncome <= 20000) totalTax = (chargeableIncome - 5000) * 0.01;
+        else if (chargeableIncome <= 35000) totalTax = 150 + (chargeableIncome - 20000) * 0.03;
+        else if (chargeableIncome <= 50000) totalTax = 600 + (chargeableIncome - 35000) * 0.06;
+        else if (chargeableIncome <= 70000) totalTax = 1500 + (chargeableIncome - 50000) * 0.11;
+        else if (chargeableIncome <= 100000) totalTax = 3700 + (chargeableIncome - 70000) * 0.19;
+        else if (chargeableIncome <= 400000) totalTax = 9400 + (chargeableIncome - 100000) * 0.25;
+        else if (chargeableIncome <= 600000) totalTax = 84400 + (chargeableIncome - 400000) * 0.26;
+        else if (chargeableIncome <= 2000000) totalTax = 136400 + (chargeableIncome - 600000) * 0.28;
+        else totalTax = 528400 + (chargeableIncome - 2000000) * 0.30;
+
+        return Math.max(0, totalTax / 12);
+    };
+
+    const computedPCB_MTD = useMemo(() => {
+        return calculatePCB(gross, computedEPF) + deductions.pcbOnAR;
+    }, [gross, computedEPF, deductions.pcbOnAR]);
+
     const computedCP38 = useMemo(() => Number(deductions.cp38 || 0), [deductions.cp38]);
 
     // Applied values
@@ -87,7 +156,7 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
             });
             return;
         }
-        onSave(nettPay);
+        onSave(gross);
     };
 
     const formatRM = (val: number) => `RM ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

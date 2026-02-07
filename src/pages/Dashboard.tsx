@@ -39,13 +39,13 @@ export default function Dashboard() {
     fetchProfile();
   }, [user]);
 
-  const handleSaveIncome = async (newNettPay: number) => {
+  const handleSaveIncome = async (newGrossIncome: number) => {
     if (!user) return;
 
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ monthly_income: newNettPay })
+      .update({ monthly_income: newGrossIncome })
       .eq("user_id", user.id);
 
     if (error) {
@@ -55,7 +55,7 @@ export default function Dashboard() {
         variant: "destructive",
       });
     } else {
-      setMonthlyIncome(newNettPay);
+      setMonthlyIncome(newGrossIncome);
       toast({
         title: "Income updated",
         description: "Your financial profile has been updated successfully",
@@ -76,17 +76,8 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Financial Overview</h2>
-            <p className="text-muted-foreground text-sm">
-              Understand where you stand in Malaysia's income distribution
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
           <div className="lg:col-span-7 xl:col-span-8">
             {monthlyIncome > 0 ? (
               <IncomeTierChart monthlyIncome={monthlyIncome} />

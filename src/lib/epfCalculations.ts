@@ -1,0 +1,82 @@
+export interface EPFData {
+    age: number;
+    totalAmount: number;
+    totalContribution: number;
+    dividendEarned: number;
+}
+
+interface EPFProjectionParams {
+    currentAge: number;
+    retirementAge?: number;
+    monthlyIncome: number;
+    currentEPFAmount: number;
+    annualDividendRate?: number; // e.g., 0.055 for 5.5%
+}
+
+/**
+ * Calculate EPF projection from current age to retirement
+ * 
+ * Malaysian EPF contribution rates:
+ * - Employee: 11% of monthly salary
+ * - Employer: 12% (for salary ≤ RM5,000) or 13% (for salary > RM5,000)
+ * 
+ * @param params Projection parameters
+ * @returns Array of EPF data points by age
+ */
+export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
+    const {
+        currentAge,
+        retirementAge = 60,
+        monthlyIncome,
+        currentEPFAmount,
+        annualDividendRate = 0.055, // Default 5.5% based on recent EPF dividends
+    } = params;
+
+    const result: EPFData[] = [];
+
+    // Determine employer contribution rate
+    const employerRate = monthlyIncome <= 5000 ? 0.12 : 0.13;
+    const employeeRate = 0.11;
+
+    // Monthly contribution
+    const monthlyContribution = monthlyIncome * (employeeRate + employerRate);
+
+    let totalAmount = currentEPFAmount;
+    let totalContribution = 0;
+    let totalDividend = 0;
+
+    for (let age = currentAge; age <= retirementAge; age++) {
+        // Add this year's contributions (12 months)
+        const yearlyContribution = monthlyContribution * 12;
+        totalContribution += yearlyContribution;
+        totalAmount += yearlyContribution;
+
+        // Apply dividend at end of year (on the balance)
+        const yearlyDividend = totalAmount * annualDividendRate;
+        totalDividend += yearlyDividend;
+        totalAmount += yearlyDividend;
+
+        result.push({
+            age,
+            totalAmount: Math.round(totalAmount),
+            totalContribution: Math.round(totalContribution),
+            dividendEarned: Math.round(totalDividend),
+        });
+    }
+
+    return result;
+}
+
+/**
+ * Format currency for display
+ */
+export function formatCurrency(amount: number): string {
+    return `RM${amount.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+/**
+ * Format large amounts in millions
+ */
+export function formatMillions(amount: number): string {
+    return `RM${(amount / 1_000_000).toFixed(2)}M`;
+}

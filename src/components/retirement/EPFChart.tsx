@@ -14,7 +14,7 @@ interface EPFChartProps {
 const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState<number>(320);
-    const chartHeight = 320;
+    const chartHeight = 280;
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -26,9 +26,12 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
         return () => ro.disconnect();
     }, []);
 
+    // Sample data more aggressively for many data points
     const sampledData = useMemo(() => {
         if (!data?.length) return [];
-        return data.filter((_, i) => i % 2 === 0 || i === data.length - 1);
+        // For long projections, sample every 5 years
+        const step = data.length > 30 ? 5 : data.length > 15 ? 3 : 2;
+        return data.filter((_, i) => i % step === 0 || i === data.length - 1);
     }, [data]);
 
     const maxAmount = useMemo(
@@ -37,10 +40,10 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
     );
 
     const margin = {
-        top: 24,
-        right: width < 640 ? 16 : 28,
-        bottom: width < 640 ? 48 : 64,
-        left: width < 640 ? 60 : 100
+        top: 32,
+        right: width < 640 ? 24 : 36,
+        bottom: width < 640 ? 56 : 72,
+        left: width < 640 ? 72 : 110
     };
     const innerWidth = Math.max(0, width - margin.left - margin.right);
     const innerHeight = chartHeight;
@@ -75,9 +78,14 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
         return sampledData.findIndex(d => d.totalAmount >= 1_000_000);
     }, [sampledData]);
 
+    // Find retirement age (60) index for marking
+    const retirementIdx = useMemo(() => {
+        return sampledData.findIndex(d => d.age === 60);
+    }, [sampledData]);
+
     return (
         <div className="w-full" ref={containerRef}>
-            <div className="relative bg-gradient-to-t from-blue-50 to-white rounded-lg p-4 overflow-x-hidden">
+            <div className="relative bg-gradient-to-t from-blue-50 to-white rounded-lg p-4 overflow-hidden">
                 <svg width={width} height={chartHeight + margin.top + margin.bottom}>
                     {yGrid.map((ratio, i) => {
                         const y = margin.top + innerHeight * (1 - ratio);
@@ -139,10 +147,36 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
                         </>
                     )}
 
+                    {/* Retirement age marker */}
+                    {retirementIdx >= 0 && (
+                        <>
+                            <line
+                                x1={xForIndex(retirementIdx)}
+                                y1={margin.top}
+                                x2={xForIndex(retirementIdx)}
+                                y2={margin.top + innerHeight}
+                                stroke="#6366f1"
+                                strokeWidth={2}
+                                strokeDasharray="4,4"
+                            />
+                            <text
+                                x={xForIndex(retirementIdx)}
+                                y={margin.top - 8}
+                                textAnchor="middle"
+                                fontSize="11"
+                                fontWeight={600}
+                                fill="#4f46e5"
+                            >
+                                Retire (60)
+                            </text>
+                        </>
+                    )}
+
                     {sampledData.map((d, i) => {
                         const cx = xForIndex(i);
                         const cy = yForValue(d.totalAmount);
-                        const showX = i % 3 === 0;
+                        // Show age labels with proper spacing
+                        const showX = i === 0 || i === sampledData.length - 1 || (sampledData.length <= 10 ? true : i % 2 === 0);
                         return (
                             <g key={d.age}>
                                 <circle
@@ -155,12 +189,12 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
                                 {showX && (
                                     <text
                                         x={cx}
-                                        y={margin.top + innerHeight + 28}
+                                        y={margin.top + innerHeight + 20}
                                         textAnchor="middle"
-                                        fontSize="12"
+                                        fontSize="11"
                                         fill="#4b5563"
                                     >
-                                        Age {d.age}
+                                        {d.age}
                                     </text>
                                 )}
                             </g>
@@ -169,13 +203,13 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
 
                     <text
                         x={margin.left + innerWidth / 2}
-                        y={margin.top + innerHeight + 48}
+                        y={margin.top + innerHeight + 44}
                         textAnchor="middle"
-                        fontSize="14"
+                        fontSize="13"
                         fontWeight={600}
                         fill="#374151"
                     >
-                        Ages
+                        Age (Years)
                     </text>
 
                     <text
@@ -192,14 +226,18 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
                 </svg>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-center items-center mt-4 gap-3 sm:gap-6">
+            <div className="flex flex-wrap justify-center items-center mt-4 gap-3 sm:gap-5">
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-500 rounded" />
-                    <span className="text-sm text-gray-600">Total EPF Amount</span>
+                    <div className="w-3 h-3 bg-emerald-500 rounded" />
+                    <span className="text-xs text-muted-foreground">Total EPF</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-[4px] bg-yellow-500" />
-                    <span className="text-sm text-gray-600">RM1 Million Milestone</span>
+                    <div className="w-4 h-[3px] bg-amber-500" />
+                    <span className="text-xs text-muted-foreground">RM1M Milestone</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-[3px] bg-indigo-500" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #6366f1 0, #6366f1 4px, transparent 4px, transparent 8px)' }} />
+                    <span className="text-xs text-muted-foreground">Retirement (60)</span>
                 </div>
             </div>
         </div>

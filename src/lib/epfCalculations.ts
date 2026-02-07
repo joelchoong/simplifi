@@ -8,17 +8,20 @@ export interface EPFData {
 interface EPFProjectionParams {
     currentAge: number;
     retirementAge?: number;
+    targetAge?: number; // Age to project until (default 90)
     monthlyIncome: number;
     currentEPFAmount: number;
     annualDividendRate?: number; // e.g., 0.055 for 5.5%
 }
 
 /**
- * Calculate EPF projection from current age to retirement
+ * Calculate EPF projection from current age to target age
  * 
  * Malaysian EPF contribution rates:
  * - Employee: 11% of monthly salary
  * - Employer: 12% (for salary ≤ RM5,000) or 13% (for salary > RM5,000)
+ * 
+ * Contributions stop at retirement age, but dividends continue until target age.
  * 
  * @param params Projection parameters
  * @returns Array of EPF data points by age
@@ -27,6 +30,7 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
     const {
         currentAge,
         retirementAge = 60,
+        targetAge = 90,
         monthlyIncome,
         currentEPFAmount,
         annualDividendRate = 0.055, // Default 5.5% based on recent EPF dividends
@@ -38,20 +42,22 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
     const employerRate = monthlyIncome <= 5000 ? 0.12 : 0.13;
     const employeeRate = 0.11;
 
-    // Monthly contribution
+    // Monthly contribution (only until retirement)
     const monthlyContribution = monthlyIncome * (employeeRate + employerRate);
 
     let totalAmount = currentEPFAmount;
     let totalContribution = 0;
     let totalDividend = 0;
 
-    for (let age = currentAge; age <= retirementAge; age++) {
-        // Add this year's contributions (12 months)
-        const yearlyContribution = monthlyContribution * 12;
-        totalContribution += yearlyContribution;
-        totalAmount += yearlyContribution;
+    for (let age = currentAge; age <= targetAge; age++) {
+        // Add contributions only until retirement age
+        if (age <= retirementAge) {
+            const yearlyContribution = monthlyContribution * 12;
+            totalContribution += yearlyContribution;
+            totalAmount += yearlyContribution;
+        }
 
-        // Apply dividend at end of year (on the balance)
+        // Apply dividend at end of year (continues after retirement)
         const yearlyDividend = totalAmount * annualDividendRate;
         totalDividend += yearlyDividend;
         totalAmount += yearlyDividend;

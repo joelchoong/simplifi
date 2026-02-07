@@ -34,6 +34,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
             const projection = calculateEPFProjection({
                 currentAge: age,
                 retirementAge: 60,
+                targetAge: 90,
                 monthlyIncome,
                 currentEPFAmount: currentEPF,
             });

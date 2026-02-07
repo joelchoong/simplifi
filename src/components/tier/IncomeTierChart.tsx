@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import {
   HOUSEHOLD_INCOME_DISTRIBUTION_BANDS as INCOME_DISTRIBUTION_BANDS,
   getIncomePercentileRange,
@@ -9,7 +9,13 @@ import {
   getIncomePercentileRange as getEmployeePercentileRange,
   rmBand as rmBandEmployee,
 } from "@/lib/employeeSalaryBands";
-import { Medal } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info, Medal } from "lucide-react";
 
 export interface IncomeTier {
   code: string;
@@ -47,6 +53,19 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
   const CHART_H = 340, MIN_BAR = 8, RADIUS = 14, LABEL_GAP = 6, VALUE_H = 18, CURRENT_TAG_H = 22;
   const [showTable, setShowTable] = useState(false);
   const [tableKind, setTableKind] = useState<"household" | "employee">("household");
+  const tablesRef = useRef<HTMLDivElement>(null);
+
+  const handleDetailsClick = () => {
+    const newShowTable = !showTable;
+    setShowTable(newShowTable);
+
+    // Scroll to tables after state update
+    if (newShowTable) {
+      setTimeout(() => {
+        tablesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  };
 
   const maxMean = useMemo(() => Math.max(...INCOME_TIERS.map(t => t.meanIncome)), []);
   const currentTier = useMemo(() => determineIncomeTier(monthlyIncome), [monthlyIncome]);
@@ -71,204 +90,227 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
   }, [currentTier, maxMean]);
 
   return (
-    <section className="bg-card border border-border rounded-2xl shadow-sm p-4">
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-foreground">Your income position in Malaysia</h2>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-2 mb-4">
-        {/* Household Rank - Compact */}
-        <div className="flex-1 flex items-center gap-3 bg-secondary/20 border border-border/50 rounded-xl p-2 px-3 shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-            <Medal className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-none mb-1">Household Income Rank</div>
-            <div className="text-xs sm:text-sm font-bold text-foreground leading-tight truncate">
-              Top {Math.round(lo)}%–{Math.round(hi)}%
-            </div>
-          </div>
-          <button
-            onClick={() => { setTableKind("household"); setShowTable(v => !v); }}
-            className="ml-auto text-[9px] font-bold text-primary hover:underline px-2"
-          >
-            Details
-          </button>
+    <TooltipProvider>
+      <section className="bg-card border border-border rounded-2xl shadow-sm p-4">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-foreground">Your income position in Malaysia</h2>
         </div>
 
-        {/* Employee Rank - Compact */}
-        <div className="flex-1 flex items-center gap-3 bg-secondary/20 border border-border/50 rounded-xl p-2 px-3 shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0">
-            <Medal className="w-4 h-4" />
+        {/* Combined Ranking Card */}
+        <div className="bg-secondary/20 border border-border/50 rounded-xl p-4 shadow-sm relative group hover:border-border transition-colors mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <Medal className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-foreground leading-relaxed">
+                You earn more than{" "}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="underline decoration-dotted decoration-primary/50 cursor-help hover:decoration-primary transition-colors">
+                      {100 - Math.round(hi)}% of households
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>For self-employed or combined family income ranking.</p>
+                  </TooltipContent>
+                </Tooltip>
+                {" "}and{" "}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="underline decoration-dotted decoration-indigo-500/50 cursor-help hover:decoration-indigo-500 transition-colors">
+                      {100 - Math.round(empHi)}% of employees
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>For individual salaried employees ranking.</p>
+                  </TooltipContent>
+                </Tooltip>
+                .
+              </div>
+            </div>
+            <button
+              onClick={handleDetailsClick}
+              className="text-xs font-bold text-primary hover:underline px-3 py-1 rounded-md hover:bg-primary/5 transition-colors"
+            >
+              {showTable ? "Hide" : "Details"}
+            </button>
           </div>
-          <div className="min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-none mb-1">Employee Income Rank</div>
-            <div className="text-xs sm:text-sm font-bold text-foreground leading-tight truncate">
-              Top {Math.round(empLo)}%–{Math.round(empHi)}%
+        </div>
+
+        <div
+          className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border"
+          style={{ height: CHART_H + 36 }}
+        >
+          {/* Overlay Legend */}
+          <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 p-3 rounded-lg bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-orange-500 shadow-sm"></span>
+              <span className="font-medium">B40 (Bottom 40%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-sm"></span>
+              <span className="font-medium">M40 (Middle 40%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-sm"></span>
+              <span className="font-medium">T20 (Top 20%)</span>
             </div>
           </div>
-          <button
-            onClick={() => { setTableKind("employee"); setShowTable(v => !v); }}
-            className="ml-auto text-[9px] font-bold text-indigo-600 hover:underline px-2"
-          >
-            Details
-          </button>
-        </div>
-      </div>
+          <div className="absolute left-0 right-0 top-0 bottom-9 grid grid-cols-10 gap-3 px-2 items-end">
+            {cols.map(c => {
+              // Stack labels directly above the bar without clamping
+              const valueBottom = c.h + LABEL_GAP;
+              const youBottom = valueBottom + VALUE_H + 2;
 
-      <div
-        className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border"
-        style={{ height: CHART_H + 36 }}
-      >
-        {/* Bars */}
-        <div className="absolute left-0 right-0 top-0 bottom-9 grid grid-cols-10 gap-3 px-2 items-end">
-          {cols.map(c => {
-            // Stack labels directly above the bar without clamping
-            const valueBottom = c.h + LABEL_GAP;
-            const youBottom = valueBottom + VALUE_H + 2;
-
-            return (
-              <div key={c.code} className="relative flex items-end justify-center">
-                <div
-                  className="absolute left-1/2 -translate-x-1/2 transition-all duration-500"
-                  style={{ bottom: valueBottom }}
-                >
-                  <span className="px-1.5 py-0.5 rounded border bg-card text-[10px] font-medium text-primary border-primary/20 shadow-sm">
-                    {c.v}
-                  </span>
-                </div>
-                {c.isCurrent && (
+              return (
+                <div key={c.code} className="relative flex items-end justify-center">
                   <div
                     className="absolute left-1/2 -translate-x-1/2 transition-all duration-500"
-                    style={{ bottom: youBottom }}
+                    style={{ bottom: valueBottom }}
                   >
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-primary-foreground bg-primary shadow">
-                      You
+                    <span className="px-1.5 py-0.5 rounded border bg-card text-[10px] font-medium text-primary border-primary/20 shadow-sm">
+                      {c.v}
                     </span>
                   </div>
-                )}
-                <div
-                  className={`w-full bg-gradient-to-t ${c.grad} shadow-sm border border-white/20 ${c.isCurrent ? "ring-2 ring-primary ring-offset-2 ring-offset-background z-20" : "opacity-80"
-                    }`}
-                  style={{ height: c.h, borderRadius: RADIUS }}
-                  title={`${c.code} • ${c.v}`}
-                  aria-label={`${c.code} mean income ${c.v}`}
-                />
+                  {c.isCurrent && (
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2 transition-all duration-500"
+                      style={{ bottom: youBottom }}
+                    >
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-primary-foreground bg-primary shadow-md ring-2 ring-white">
+                        You
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className={`w-full bg-gradient-to-t ${c.grad} shadow-sm border border-white/20 ${c.isCurrent
+                      ? "ring-[3px] ring-primary/40 ring-offset-2 ring-offset-background z-20 shadow-[0_0_15px_rgba(16,185,129,0.3)] brightness-110"
+                      : "opacity-80"
+                      }`}
+                    style={{ height: c.h, borderRadius: RADIUS }}
+                    title={`${c.code} • ${c.v}`}
+                    aria-label={`${c.code} mean income ${c.v}`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="absolute left-0 right-0 bottom-9 h-px bg-border" />
+          <div className="absolute left-0 right-0 bottom-1 grid grid-cols-10 gap-3 px-2">
+            {cols.map(c => (
+              <div
+                key={c.code}
+                className={`text-[10px] sm:text-xs text-center font-semibold ${c.isCurrent ? "text-primary" : "text-muted-foreground"
+                  }`}
+              >
+                {c.code}
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
 
-        <div className="absolute left-0 right-0 bottom-9 h-px bg-border" />
-        <div className="absolute left-0 right-0 bottom-1 grid grid-cols-10 gap-3 px-2">
-          {cols.map(c => (
-            <div
-              key={c.code}
-              className={`text-[10px] sm:text-xs text-center font-semibold ${c.isCurrent ? "text-primary" : "text-muted-foreground"
-                }`}
-            >
-              {c.code}
+        {/* Tables Section */}
+        <div ref={tablesRef}>
+          {/* Household bands table */}
+          {showTable && tableKind === "household" && (
+            <div id="income-bands-table" className="mt-3 border border-border rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-xs sm:text-sm">
+                  <thead className="bg-secondary text-muted-foreground">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-medium">Income Class (RM)</th>
+                      <th className="text-right px-3 py-2 font-medium">Band Share</th>
+                      <th className="text-right px-3 py-2 font-medium">Cumulative Range</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {INCOME_DISTRIBUTION_BANDS.map((b, idx) => {
+                      const isCurrent = monthlyIncome >= b.min && monthlyIncome <= b.max;
+                      const bandShare = (b.cumHigh - b.cumLow).toFixed(1) + "%";
+                      const cumRange = `${b.cumLow.toFixed(1)}%–${b.cumHigh.toFixed(1)}%`;
+                      return (
+                        <tr
+                          key={idx}
+                          className={"border-t border-border " + (isCurrent ? "bg-primary/10" : "bg-card")}
+                        >
+                          <td className="px-3 py-2 text-foreground">
+                            {rmBand(b.min)} – {rmBand(b.max)}
+                            {isCurrent && (
+                              <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-semibold">
+                                You
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums text-foreground">
+                            {bandShare}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums text-foreground">
+                            {cumRange}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-3 py-2 text-[11px] text-muted-foreground bg-secondary border-t border-border">
+                Source: Department of Statistics Malaysia (DOSM), Household Income Survey Report, 2024.
+                Manual transcription from report figure.
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
+          )}
 
-      {/* Household bands table */}
-      {showTable && tableKind === "household" && (
-        <div id="income-bands-table" className="mt-3 border border-border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-xs sm:text-sm">
-              <thead className="bg-secondary text-muted-foreground">
-                <tr>
-                  <th className="text-left px-3 py-2 font-medium">Income Class (RM)</th>
-                  <th className="text-right px-3 py-2 font-medium">Band Share</th>
-                  <th className="text-right px-3 py-2 font-medium">Cumulative Range</th>
-                </tr>
-              </thead>
-              <tbody>
-                {INCOME_DISTRIBUTION_BANDS.map((b, idx) => {
-                  const isCurrent = monthlyIncome >= b.min && monthlyIncome <= b.max;
-                  const bandShare = (b.cumHigh - b.cumLow).toFixed(1) + "%";
-                  const cumRange = `${b.cumLow.toFixed(1)}%–${b.cumHigh.toFixed(1)}%`;
-                  return (
-                    <tr
-                      key={idx}
-                      className={"border-t border-border " + (isCurrent ? "bg-primary/10" : "bg-card")}
-                    >
-                      <td className="px-3 py-2 text-foreground">
-                        {rmBand(b.min)} – {rmBand(b.max)}
-                        {isCurrent && (
-                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-semibold">
-                            You
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-foreground">
-                        {bandShare}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-foreground">
-                        {cumRange}
-                      </td>
+          {/* Employee salary bands table */}
+          {showTable && (
+            <div id="employee-bands-table" className="mt-3 border border-border rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-xs sm:text-sm">
+                  <thead className="bg-secondary text-muted-foreground">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-medium">Employee Salary Band (RM)</th>
+                      <th className="text-right px-3 py-2 font-medium">Band Share</th>
+                      <th className="text-right px-3 py-2 font-medium">Cumulative Range</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-3 py-2 text-[11px] text-muted-foreground bg-secondary border-t border-border">
-            Source: Department of Statistics Malaysia (DOSM), Household Income Survey Report, 2024.
-            Manual transcription from report figure.
-          </div>
+                  </thead>
+                  <tbody>
+                    {EMPLOYEE_SALARY_DISTRIBUTION_BANDS.map((b, idx) => {
+                      const isCurrent = monthlyIncome >= b.min && monthlyIncome <= b.max;
+                      const bandShare = (b.cumHigh - b.cumLow).toFixed(1) + "%";
+                      const cumRange = `${b.cumLow.toFixed(1)}%–${b.cumHigh.toFixed(1)}%`;
+                      return (
+                        <tr
+                          key={idx}
+                          className={"border-t border-border " + (isCurrent ? "bg-accent" : "bg-card")}
+                        >
+                          <td className="px-3 py-2 text-foreground">
+                            {rmBandEmployee(b.min)} – {rmBandEmployee(b.max)}
+                            {isCurrent && (
+                              <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground font-semibold">
+                                You
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums text-foreground">
+                            {bandShare}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums text-foreground">
+                            {cumRange}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-3 py-2 text-[11px] text-muted-foreground bg-secondary border-t border-border">
+                Source: Department of Statistics Malaysia (DOSM), Employee Wages Statistics Report, Second Quarter 2025. Manual transcription from report figure.
+              </div>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Employee salary bands table */}
-      {showTable && tableKind === "employee" && (
-        <div id="employee-bands-table" className="mt-3 border border-border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-xs sm:text-sm">
-              <thead className="bg-secondary text-muted-foreground">
-                <tr>
-                  <th className="text-left px-3 py-2 font-medium">Employee Salary Band (RM)</th>
-                  <th className="text-right px-3 py-2 font-medium">Band Share</th>
-                  <th className="text-right px-3 py-2 font-medium">Cumulative Range</th>
-                </tr>
-              </thead>
-              <tbody>
-                {EMPLOYEE_SALARY_DISTRIBUTION_BANDS.map((b, idx) => {
-                  const isCurrent = monthlyIncome >= b.min && monthlyIncome <= b.max;
-                  const bandShare = (b.cumHigh - b.cumLow).toFixed(1) + "%";
-                  const cumRange = `${b.cumLow.toFixed(1)}%–${b.cumHigh.toFixed(1)}%`;
-                  return (
-                    <tr
-                      key={idx}
-                      className={"border-t border-border " + (isCurrent ? "bg-accent" : "bg-card")}
-                    >
-                      <td className="px-3 py-2 text-foreground">
-                        {rmBandEmployee(b.min)} – {rmBandEmployee(b.max)}
-                        {isCurrent && (
-                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground font-semibold">
-                            You
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-foreground">
-                        {bandShare}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-foreground">
-                        {cumRange}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-3 py-2 text-[11px] text-muted-foreground bg-secondary border-t border-border">
-            Source: Department of Statistics Malaysia (DOSM), Employee Wages Statistics Report, Second Quarter 2025. Manual transcription from report figure.
-          </div>
-        </div>
-      )}
-    </section>
+      </section>
+    </TooltipProvider>
   );
 };

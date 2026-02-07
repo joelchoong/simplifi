@@ -12,14 +12,16 @@ interface EPFProjectionParams {
     monthlyIncome: number;
     currentEPFAmount: number;
     annualDividendRate?: number; // e.g., 0.055 for 5.5%
+    employeeRate?: number; // Custom employee contribution rate (default 0.11 = 11%)
+    employerRate?: number; // Custom employer contribution rate (default auto-calculated)
 }
 
 /**
  * Calculate EPF projection from current age to target age
  * 
  * Malaysian EPF contribution rates:
- * - Employee: 11% of monthly salary
- * - Employer: 12% (for salary ≤ RM5,000) or 13% (for salary > RM5,000)
+ * - Employee: 11% of monthly salary (customizable)
+ * - Employer: 12% (for salary ≤ RM5,000) or 13% (for salary > RM5,000) (customizable)
  * 
  * Contributions stop at retirement age, but dividends continue until target age.
  * 
@@ -34,13 +36,15 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
         monthlyIncome,
         currentEPFAmount,
         annualDividendRate = 0.055, // Default 5.5% based on recent EPF dividends
+        employeeRate: customEmployeeRate,
+        employerRate: customEmployerRate,
     } = params;
 
     const result: EPFData[] = [];
 
-    // Determine employer contribution rate
-    const employerRate = monthlyIncome <= 5000 ? 0.12 : 0.13;
-    const employeeRate = 0.11;
+    // Determine employer contribution rate (use custom or default)
+    const employerRate = customEmployerRate ?? (monthlyIncome <= 5000 ? 0.12 : 0.13);
+    const employeeRate = customEmployeeRate ?? 0.11;
 
     // Monthly contribution (only until retirement)
     const monthlyContribution = monthlyIncome * (employeeRate + employerRate);

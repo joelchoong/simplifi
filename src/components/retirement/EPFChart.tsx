@@ -14,7 +14,7 @@ interface EPFChartProps {
 const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState<number>(320);
-    const chartHeight = 280;
+    const chartHeight = 240;
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -26,12 +26,19 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
         return () => ro.disconnect();
     }, []);
 
-    // Sample data more aggressively for many data points
+    // Sample data intelligently - always include ages ending in 0 or 5
     const sampledData = useMemo(() => {
         if (!data?.length) return [];
-        // For long projections, sample every 5 years
-        const step = data.length > 30 ? 5 : data.length > 15 ? 3 : 2;
-        return data.filter((_, i) => i % step === 0 || i === data.length - 1);
+
+        // For display purposes, include:
+        // 1. First age (starting age)
+        // 2. All ages ending in 0 or 5
+        // 3. Last age (target age)
+        return data.filter((d, i) =>
+            i === 0 ||
+            i === data.length - 1 ||
+            d.age % 5 === 0
+        );
     }, [data]);
 
     const maxAmount = useMemo(
@@ -85,7 +92,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
 
     return (
         <div className="w-full" ref={containerRef}>
-            <div className="relative bg-gradient-to-t from-blue-50 to-white rounded-lg p-4 overflow-hidden">
+            <div className="relative overflow-hidden">
                 <svg width={width} height={chartHeight + margin.top + margin.bottom}>
                     {yGrid.map((ratio, i) => {
                         const y = margin.top + innerHeight * (1 - ratio);
@@ -175,8 +182,16 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
                     {sampledData.map((d, i) => {
                         const cx = xForIndex(i);
                         const cy = yForValue(d.totalAmount);
-                        // Show age labels with proper spacing
-                        const showX = i === 0 || i === sampledData.length - 1 || (sampledData.length <= 10 ? true : i % 2 === 0);
+
+                        // Show X-axis labels:
+                        // - Always show the first age (starting age)
+                        // - Show ages ending in 0 or 5
+                        // - Always show the last age
+                        const isFirstAge = i === 0;
+                        const isLastAge = i === sampledData.length - 1;
+                        const endsIn0or5 = d.age % 5 === 0;
+                        const showX = isFirstAge || isLastAge || endsIn0or5;
+
                         return (
                             <g key={d.age}>
                                 <circle

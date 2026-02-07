@@ -99,7 +99,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
 
                 <div className="space-y-2">
                     <Label htmlFor="monthly-income" className="text-sm font-medium">
-                        Monthly Gross Income (RM)
+                        Gross Monthly Income (RM)
                     </Label>
                     <Input
                         id="monthly-income"

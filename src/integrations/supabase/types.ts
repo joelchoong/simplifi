@@ -16,8 +16,10 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          age: number | null
           avatar_url: string | null
           created_at: string
+          current_epf_amount: number | null
           email: string | null
           full_name: string | null
           id: string
@@ -26,8 +28,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          age?: number | null
           avatar_url?: string | null
           created_at?: string
+          current_epf_amount?: number | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -36,8 +40,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          age?: number | null
           avatar_url?: string | null
           created_at?: string
+          current_epf_amount?: number | null
           email?: string | null
           full_name?: string | null
           id?: string

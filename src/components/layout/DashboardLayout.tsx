@@ -42,8 +42,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       const { data, error } = await supabase
         .from('profiles')
         .select('monthly_income, current_epf_amount, age')
-        .eq('id', user.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -70,7 +70,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           current_epf_amount: data.currentEPF,
           age: data.age,
         })
-        .eq('id', user.id);
+        .eq('user_id', user.id);
 
       if (error) throw error;
 

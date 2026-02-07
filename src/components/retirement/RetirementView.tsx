@@ -21,6 +21,13 @@ const RetirementView: React.FC<RetirementViewProps> = ({
     const [currentEPF, setCurrentEPF] = useState(initialCurrentEPF);
     const [age, setAge] = useState(initialAge);
 
+    // Sync state with props when they change (e.g., after data loads)
+    useEffect(() => {
+        setMonthlyIncome(initialMonthlyIncome);
+        setCurrentEPF(initialCurrentEPF);
+        setAge(initialAge);
+    }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
+
     // Calculate projection whenever inputs change
     useEffect(() => {
         if (monthlyIncome > 0 && age >= 18 && age <= 60) {

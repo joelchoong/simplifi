@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
 
 interface RetirementInputsProps {
     initialMonthlyIncome?: number;
@@ -20,55 +18,43 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome.toString());
     const [currentEPF, setCurrentEPF] = useState(initialCurrentEPF.toString());
     const [age, setAge] = useState(initialAge.toString());
-    const [hasChanges, setHasChanges] = useState(false);
+    
+    // Track initial values to detect actual changes
+    const initialValuesRef = useRef({ monthlyIncome: initialMonthlyIncome, currentEPF: initialCurrentEPF, age: initialAge });
 
     useEffect(() => {
         setMonthlyIncome(initialMonthlyIncome.toString());
         setCurrentEPF(initialCurrentEPF.toString());
         setAge(initialAge.toString());
+        initialValuesRef.current = { monthlyIncome: initialMonthlyIncome, currentEPF: initialCurrentEPF, age: initialAge };
     }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
 
-    const handleSave = () => {
-        const income = parseFloat(monthlyIncome) || 0;
-        const epf = parseFloat(currentEPF) || 0;
-        const userAge = parseInt(age) || 25;
-
-        onSave({
-            monthlyIncome: income,
-            currentEPF: epf,
-            age: userAge,
-        });
-
-        setHasChanges(false);
-    };
-
-    const handleIncomeChange = (value: string) => {
-        setMonthlyIncome(value);
-        setHasChanges(true);
-    };
-
-    const handleEPFChange = (value: string) => {
-        setCurrentEPF(value);
-        setHasChanges(true);
-    };
-
-    const handleAgeChange = (value: string) => {
-        setAge(value);
-        setHasChanges(true);
+    const saveIfChanged = (income: number, epf: number, userAge: number) => {
+        const initial = initialValuesRef.current;
+        if (income !== initial.monthlyIncome || epf !== initial.currentEPF || userAge !== initial.age) {
+            onSave({ monthlyIncome: income, currentEPF: epf, age: userAge });
+            initialValuesRef.current = { monthlyIncome: income, currentEPF: epf, age: userAge };
+        }
     };
 
     const handleIncomeBlur = () => {
-        const num = parseFloat(monthlyIncome);
-        if (!isNaN(num)) {
-            setMonthlyIncome(num.toFixed(2));
-        }
+        const num = parseFloat(monthlyIncome) || 0;
+        const formatted = num.toFixed(2);
+        setMonthlyIncome(formatted);
+        saveIfChanged(num, parseFloat(currentEPF) || 0, parseInt(age) || 25);
     };
 
     const handleEPFBlur = () => {
-        const num = parseFloat(currentEPF);
-        if (!isNaN(num)) {
-            setCurrentEPF(num.toFixed(2));
-        }
+        const num = parseFloat(currentEPF) || 0;
+        const formatted = num.toFixed(2);
+        setCurrentEPF(formatted);
+        saveIfChanged(parseFloat(monthlyIncome) || 0, num, parseInt(age) || 25);
+    };
+
+    const handleAgeBlur = () => {
+        const userAge = parseInt(age) || 25;
+        setAge(userAge.toString());
+        saveIfChanged(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, userAge);
     };
 
     return (
@@ -91,7 +77,8 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                         min="18"
                         max="60"
                         value={age}
-                        onChange={(e) => handleAgeChange(e.target.value)}
+                        onChange={(e) => setAge(e.target.value)}
+                        onBlur={handleAgeBlur}
                         placeholder="25"
                         className="text-base"
                     />
@@ -107,7 +94,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                         min="0"
                         step="0.01"
                         value={monthlyIncome}
-                        onChange={(e) => handleIncomeChange(e.target.value)}
+                        onChange={(e) => setMonthlyIncome(e.target.value)}
                         onBlur={handleIncomeBlur}
                         placeholder="5000.00"
                         className="text-base"
@@ -127,7 +114,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                         min="0"
                         step="0.01"
                         value={currentEPF}
-                        onChange={(e) => handleEPFChange(e.target.value)}
+                        onChange={(e) => setCurrentEPF(e.target.value)}
                         onBlur={handleEPFBlur}
                         placeholder="50000.00"
                         className="text-base"
@@ -136,16 +123,6 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                         Your total EPF savings (Account 1 + Account 2)
                     </p>
                 </div>
-
-                <Button
-                    onClick={handleSave}
-                    disabled={!hasChanges}
-                    className="w-full"
-                    size="lg"
-                >
-                    <Save className="w-4 h-4 mr-2" />
-                    Update Projection
-                </Button>
             </div>
 
             <div className="pt-4 border-t border-border">

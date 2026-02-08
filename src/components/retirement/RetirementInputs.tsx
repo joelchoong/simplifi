@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Palmtree, ChevronDown, ChevronUp } from 'lucide-react';
@@ -134,16 +135,17 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     };
 
     return (
-        <div className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-6">
-            <div className="flex items-center gap-3">
-                <Palmtree className="w-6 h-6 text-emerald-600" />
-                <div>
-                    <h3 className="text-xl font-bold text-foreground">Retirement Planning</h3>
-                    <p className="text-sm text-muted-foreground">
-                        Auto-calculates your EPF growth until retirement.
-                    </p>
-                </div>
-            </div>
+        <Card className="w-full shadow-md border-border/60">
+            <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                    <Palmtree className="h-5 w-5 text-primary" />
+                    Retirement Planning
+                </CardTitle>
+                <CardDescription className="text-xs">
+                    Auto-calculates your EPF growth until retirement.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
 
             <div className="space-y-4">
                 <div className="space-y-2">
@@ -289,7 +291,8 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                     </p>
                 </CollapsibleContent>
             </Collapsible>
-        </div>
+            </CardContent>
+        </Card>
     );
 };
 

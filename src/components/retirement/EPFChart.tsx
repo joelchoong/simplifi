@@ -14,7 +14,7 @@ interface EPFChartProps {
 const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState<number>(320);
-    const chartHeight = 240;
+    const chartHeight = 300;
 
     useEffect(() => {
         if (!containerRef.current) return;

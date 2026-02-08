@@ -227,7 +227,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                 className="text-base pl-12"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Your total EPF savings (Account 1,2 & 3)</p>
+            <p className="text-xs text-muted-foreground">Your total EPF savings (Account 1, 2 & 3)</p>
           </div>
         </div>
 

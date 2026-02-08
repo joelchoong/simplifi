@@ -208,7 +208,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
             fill="#374151"
             transform={`rotate(-90, ${width < 640 ? 30 : 45}, ${margin.top + innerHeight / 2})`}
           >
-            {width < 640 ? "Total RM (M)" : "EPF Amount (RM Millions)"}
+            {width < 640 ? "Total RM" : "EPF Amount"}
           </text>
         </svg>
       </div>

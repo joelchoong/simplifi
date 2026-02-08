@@ -159,7 +159,7 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
         onSave(gross);
     };
 
-    const formatRM = (val: number) => `RM ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formatRM = (val: number) => `RM ${Math.round(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
     return (
         <Card className="w-full shadow-md border-border/60">
@@ -247,7 +247,7 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
                                         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground">RM</span>
                                         <Input
                                             type="number"
-                                            value={overrides.enable ? (item.value ?? item.computed).toString() : item.computed.toFixed(2)}
+                                            value={overrides.enable ? (item.value ?? item.computed).toString() : Math.round(item.computed).toString()}
                                             disabled={!overrides.enable}
                                             onChange={(e) => {
                                                 const val = parseFloat(e.target.value);

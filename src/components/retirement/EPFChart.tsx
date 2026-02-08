@@ -49,8 +49,8 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
     const margin = {
         top: 32,
         right: width < 640 ? 24 : 36,
-        bottom: width < 640 ? 56 : 72,
-        left: width < 640 ? 72 : 110
+        bottom: width < 640 ? 64 : 80,
+        left: width < 640 ? 100 : 160
     };
     const innerWidth = Math.max(0, width - margin.left - margin.right);
     const innerHeight = chartHeight;
@@ -143,7 +143,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
                             />
                             <text
                                 x={xForIndex(milestoneIdx)}
-                                y={margin.top - 6}
+                                y={margin.top - 22}
                                 textAnchor="middle"
                                 fontSize="12"
                                 fontWeight={700}
@@ -228,33 +228,19 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
                     </text>
 
                     <text
-                        x={width < 640 ? 10 : 14}
+                        x={width < 640 ? 30 : 45}
                         y={margin.top + innerHeight / 2}
                         textAnchor="middle"
                         fontSize={width < 640 ? "12" : "14"}
                         fontWeight={600}
                         fill="#374151"
-                        transform={`rotate(-90, ${width < 640 ? 10 : 14}, ${margin.top + innerHeight / 2})`}
+                        transform={`rotate(-90, ${width < 640 ? 30 : 45}, ${margin.top + innerHeight / 2})`}
                     >
                         {width < 640 ? "EPF (RM M)" : "EPF Amount (RM Millions)"}
                     </text>
                 </svg>
             </div>
 
-            <div className="flex flex-wrap justify-center items-center mt-4 gap-3 sm:gap-5">
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-emerald-500 rounded" />
-                    <span className="text-xs text-muted-foreground">Total EPF</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-4 h-[3px] bg-amber-500" />
-                    <span className="text-xs text-muted-foreground">RM1M Milestone</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-4 h-[3px] bg-indigo-500" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #6366f1 0, #6366f1 4px, transparent 4px, transparent 8px)' }} />
-                    <span className="text-xs text-muted-foreground">Retirement (60)</span>
-                </div>
-            </div>
         </div>
     );
 };

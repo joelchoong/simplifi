@@ -111,7 +111,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                                         <div className="text-sm text-foreground leading-relaxed">
                                             You'll have projected{" "}
                                             <span className="font-bold text-emerald-600">
-                                                RM {epfAtRetirement.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                RM {epfAtRetirement.toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                             </span>
                                             {" "}in your EPF at retirement (age 60).
                                             {ageToReach1M && ageToReach1M <= 90 && (
@@ -127,8 +127,22 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                             </div>
                         )}
 
-                        <div className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border p-4">
-                            <h3 className="text-sm font-semibold text-muted-foreground tracking-wide uppercase mb-4">EPF Projection</h3>
+                        <div className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border p-4 pb-0 h-[400px] flex flex-col justify-end">
+                            {/* Overlay Legend */}
+                            <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 p-3 rounded-lg bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm text-xs text-muted-foreground">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm animate-pulse"></span>
+                                    <span className="font-medium">Projected EPF Total</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-3 h-[2px] bg-amber-500 shadow-sm"></span>
+                                    <span className="font-medium">RM 1M Milestone</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-3 h-[2px] bg-indigo-500 shadow-sm" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #6366f1 0, #6366f1 3px, transparent 3px, transparent 6px)' }}></span>
+                                    <span className="font-medium">Retirement Age (60)</span>
+                                </div>
+                            </div>
                             {epfData.length > 0 ? (
                                 <EPFChart data={epfData} />
                             ) : (

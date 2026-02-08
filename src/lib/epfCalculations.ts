@@ -43,7 +43,8 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
     const result: EPFData[] = [];
 
     // Determine employer contribution rate (use custom or default)
-    const employerRate = customEmployerRate ?? (monthlyIncome <= 5000 ? 0.12 : 0.13);
+    // Rule: 13% for RM5,000 and below, 12% for above RM5,000
+    const employerRate = customEmployerRate ?? (monthlyIncome <= 5000 ? 0.13 : 0.12);
     const employeeRate = customEmployeeRate ?? 0.11;
 
     // Monthly contribution (only until retirement)
@@ -81,7 +82,7 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
  * Format currency for display
  */
 export function formatCurrency(amount: number): string {
-    return `RM${amount.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `RM${amount.toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 /**

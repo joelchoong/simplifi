@@ -53,7 +53,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
         initialValuesRef.current = { monthlyIncome: initialMonthlyIncome, currentEPF: initialCurrentEPF, age: initialAge };
 
         // Set default employer rate based on income
-        const defaultEmployerRate = initialMonthlyIncome <= 5000 ? '12' : '13';
+        const defaultEmployerRate = initialMonthlyIncome <= 5000 ? '13' : '12';
         setEmployerRate(defaultEmployerRate);
     }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
 
@@ -81,17 +81,17 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
 
     const getCurrentRates = () => ({
         employeeRate: parseFloat(employeeRate) / 100 || 0.11,
-        employerRate: parseFloat(employerRate) / 100 || (parseFloat(monthlyIncome) <= 5000 ? 0.12 : 0.13),
+        employerRate: parseFloat(employerRate) / 100 || (parseFloat(monthlyIncome) <= 5000 ? 0.13 : 0.12),
         dividendRate: parseFloat(dividendRate) / 100 || 0.055,
     });
 
     const handleIncomeBlur = () => {
         const num = parseFloat(monthlyIncome) || 0;
-        const formatted = num.toFixed(2);
+        const formatted = Math.round(num).toString();
         setMonthlyIncome(formatted);
 
         // Auto-update employer rate based on income
-        const defaultEmployerRate = num <= 5000 ? '12' : '13';
+        const defaultEmployerRate = num <= 5000 ? '13' : '12';
         if (!employerRate || employerRate === '12' || employerRate === '13') {
             setEmployerRate(defaultEmployerRate);
         }
@@ -102,7 +102,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
 
     const handleEPFBlur = () => {
         const num = parseFloat(currentEPF) || 0;
-        const formatted = num.toFixed(2);
+        const formatted = Math.round(num).toString();
         setCurrentEPF(formatted);
         const rates = getCurrentRates();
         saveIfChanged(parseFloat(monthlyIncome) || 0, num, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate);
@@ -130,7 +130,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     const monthlyContribution = () => {
         const income = parseFloat(monthlyIncome) || 0;
         const empRate = parseFloat(employeeRate) / 100 || 0.11;
-        const emplRate = parseFloat(employerRate) / 100 || (income <= 5000 ? 0.12 : 0.13);
+        const emplRate = parseFloat(employerRate) / 100 || (income <= 5000 ? 0.13 : 0.12);
         return income * (empRate + emplRate);
     };
 
@@ -147,150 +147,150 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
             </CardHeader>
             <CardContent className="space-y-6">
 
-            <div className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="age" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
-                        Current Age
-                    </Label>
-                    <Input
-                        id="age"
-                        type="number"
-                        min="18"
-                        max="60"
-                        value={age}
-                        onChange={(e) => setAge(e.target.value)}
-                        onBlur={handleAgeBlur}
-                        onKeyDown={(e) => e.key === 'Enter' && handleAgeBlur()}
-                        placeholder="25"
-                        className="text-base"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="monthly-income" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
-                        Gross Monthly Income
-                    </Label>
-                    <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                            RM
-                        </span>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="age" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
+                            Current Age
+                        </Label>
                         <Input
-                            id="monthly-income"
+                            id="age"
                             type="number"
-                            min="0"
-                            step="0.01"
-                            value={monthlyIncome}
-                            onChange={(e) => setMonthlyIncome(e.target.value)}
-                            onBlur={handleIncomeBlur}
-                            onKeyDown={(e) => e.key === 'Enter' && handleIncomeBlur()}
-                            placeholder="5000.00"
-                            className="text-base pl-12"
+                            min="18"
+                            max="60"
+                            value={age}
+                            onChange={(e) => setAge(e.target.value)}
+                            onBlur={handleAgeBlur}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAgeBlur()}
+                            placeholder="25"
+                            className="text-base"
                         />
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                        Your monthly salary before deductions
-                    </p>
-                </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="current-epf" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
-                        Current EPF Balance
-                    </Label>
-                    <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                            RM
-                        </span>
-                        <Input
-                            id="current-epf"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={currentEPF}
-                            onChange={(e) => setCurrentEPF(e.target.value)}
-                            onBlur={handleEPFBlur}
-                            onKeyDown={(e) => e.key === 'Enter' && handleEPFBlur()}
-                            placeholder="50000.00"
-                            className="text-base pl-12"
-                        />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                        Your total EPF savings (Account 1 + Account 2)
-                    </p>
-                </div>
-            </div>
-
-            {/* Editable EPF Rates Dropdown */}
-            <Collapsible open={isRatesOpen} onOpenChange={setIsRatesOpen} className="border border-border rounded-xl">
-                <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors rounded-xl">
-                    <div className="text-left">
-                        <h4 className="text-sm font-semibold text-foreground">EPF Contribution Rates</h4>
+                    <div className="space-y-2">
+                        <Label htmlFor="monthly-income" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
+                            Gross Monthly Income
+                        </Label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                                RM
+                            </span>
+                            <Input
+                                id="monthly-income"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={monthlyIncome}
+                                onChange={(e) => setMonthlyIncome(e.target.value)}
+                                onBlur={handleIncomeBlur}
+                                onKeyDown={(e) => e.key === 'Enter' && handleIncomeBlur()}
+                                placeholder="5000.00"
+                                className="text-base pl-12"
+                            />
+                        </div>
                         <p className="text-xs text-muted-foreground">
-                            Monthly contribution: RM {monthlyContribution().toFixed(2)}
+                            Your monthly salary before deductions
                         </p>
                     </div>
-                    {isRatesOpen ? (
-                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                    ) : (
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                    )}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="px-4 pb-4 space-y-3">
+
                     <div className="space-y-2">
-                        <Label htmlFor="employee-rate" className="text-xs font-medium">
-                            Employee Contribution (%)
+                        <Label htmlFor="current-epf" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
+                            Current EPF Balance
                         </Label>
-                        <Input
-                            id="employee-rate"
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.1"
-                            value={employeeRate}
-                            onChange={(e) => setEmployeeRate(e.target.value)}
-                            onBlur={handleRateChange}
-                            onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
-                            className="text-sm"
-                        />
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                                RM
+                            </span>
+                            <Input
+                                id="current-epf"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={currentEPF}
+                                onChange={(e) => setCurrentEPF(e.target.value)}
+                                onBlur={handleEPFBlur}
+                                onKeyDown={(e) => e.key === 'Enter' && handleEPFBlur()}
+                                placeholder="50000.00"
+                                className="text-base pl-12"
+                            />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Your total EPF savings (Account 1 + Account 2)
+                        </p>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="employer-rate" className="text-xs font-medium">
-                            Employer Contribution (%)
-                        </Label>
-                        <Input
-                            id="employer-rate"
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.1"
-                            value={employerRate}
-                            onChange={(e) => setEmployerRate(e.target.value)}
-                            onBlur={handleRateChange}
-                            onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
-                            className="text-sm"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="dividend-rate" className="text-xs font-medium">
-                            Annual Dividend Rate (%)
-                        </Label>
-                        <Input
-                            id="dividend-rate"
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.1"
-                            value={dividendRate}
-                            onChange={(e) => setDividendRate(e.target.value)}
-                            onBlur={handleRateChange}
-                            onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
-                            className="text-sm"
-                        />
-                    </div>
-                    <p className="text-xs text-muted-foreground pt-2 border-t border-border">
-                        Default: Employee 11%, Employer 12-13% (based on salary), Dividend 5.5%
-                    </p>
-                </CollapsibleContent>
-            </Collapsible>
+                </div>
+
+                {/* Editable EPF Rates Dropdown */}
+                <Collapsible open={isRatesOpen} onOpenChange={setIsRatesOpen} className="border border-border rounded-xl">
+                    <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors rounded-xl">
+                        <div className="text-left">
+                            <h4 className="text-sm font-semibold text-foreground">EPF Contribution Rates</h4>
+                            <p className="text-xs text-muted-foreground">
+                                Monthly contribution: RM {Math.round(monthlyContribution()).toLocaleString()}
+                            </p>
+                        </div>
+                        {isRatesOpen ? (
+                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-4 pb-4 space-y-3">
+                        <div className="space-y-2">
+                            <Label htmlFor="employee-rate" className="text-xs font-medium">
+                                Employee Contribution (%)
+                            </Label>
+                            <Input
+                                id="employee-rate"
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                value={employeeRate}
+                                onChange={(e) => setEmployeeRate(e.target.value)}
+                                onBlur={handleRateChange}
+                                onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
+                                className="text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="employer-rate" className="text-xs font-medium">
+                                Employer Contribution (%)
+                            </Label>
+                            <Input
+                                id="employer-rate"
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                value={employerRate}
+                                onChange={(e) => setEmployerRate(e.target.value)}
+                                onBlur={handleRateChange}
+                                onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
+                                className="text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="dividend-rate" className="text-xs font-medium">
+                                Annual Dividend Rate (%)
+                            </Label>
+                            <Input
+                                id="dividend-rate"
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                value={dividendRate}
+                                onChange={(e) => setDividendRate(e.target.value)}
+                                onBlur={handleRateChange}
+                                onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
+                                className="text-sm"
+                            />
+                        </div>
+                        <p className="text-xs text-muted-foreground pt-2 border-t border-border">
+                            Default: Employee 11%, Employer 13-12% (based on salary), Dividend 5.5%
+                        </p>
+                    </CollapsibleContent>
+                </Collapsible>
             </CardContent>
         </Card>
     );

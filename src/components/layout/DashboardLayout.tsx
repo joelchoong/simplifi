@@ -162,7 +162,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <main className="flex-1 flex flex-col">
         <div className="flex-1 p-4 bg-secondary/30">
           {isDashboard && (
-            <div className="mx-auto max-w-7xl mb-4">
+            <div className="mx-auto max-w-6xl mb-4">
               <div className="flex justify-start">
                 <div className="flex items-center gap-2 p-1 bg-secondary/20 rounded-full">
                   <button
@@ -189,7 +189,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
           )}
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-6xl">
             {isDashboard ? (
               <>
                 {currentView === 'classification' && enhancedChildren}

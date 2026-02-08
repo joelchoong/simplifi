@@ -30,12 +30,10 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
           name={fullName}
           isActive={["settings", "billing"].includes(currentView)}
           onSettings={() => {
-            setCurrentView("settings");
-            navigate("/financial-journey?tab=settings");
+            navigate("/profile");
           }}
           onBilling={() => {
-            setCurrentView("billing");
-            navigate("/financial-journey?tab=billing");
+            navigate("/billing");
           }}
         />
       </div>
@@ -67,9 +65,8 @@ const HeaderTab: React.FC<{
 }> = ({ label, icon, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-      active ? "bg-green-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-    }`}
+    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${active ? "bg-green-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+      }`}
     aria-current={active ? "page" : undefined}
   >
     {icon}

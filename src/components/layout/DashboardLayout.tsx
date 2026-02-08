@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState, cloneElement, isValidElement } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { HeaderBar, View } from "@/components/navigation/HeaderBar";
 import { LayoutGrid, Palmtree } from "lucide-react";
@@ -14,6 +14,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [currentView, setCurrentView] = useState<View>('classification');
   const [profileData, setProfileData] = useState({
@@ -22,6 +23,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     age: 25,
   });
   const [dataLoading, setDataLoading] = useState(true);
+
+  const isDashboard = location.pathname === "/dashboard";
 
   useEffect(() => {
     if (!loading && !user) {
@@ -38,10 +41,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Refetch data when switching views to ensure sync
   useEffect(() => {
-    if (user && !dataLoading) {
+    if (user && !dataLoading && isDashboard) {
       fetchProfileData();
     }
-  }, [currentView]);
+  }, [currentView, isDashboard]);
 
   const fetchProfileData = async () => {
     if (!user) return;
@@ -143,9 +146,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Clone children and inject the shared income state
   const enhancedChildren = isValidElement(children)
     ? cloneElement(children as React.ReactElement<any>, {
-        monthlyIncome: profileData.monthlyIncome,
-        onSaveIncome: handleIncomeUpdate,
-      })
+      monthlyIncome: profileData.monthlyIncome,
+      onSaveIncome: handleIncomeUpdate,
+    })
     : children;
 
   return (
@@ -158,41 +161,49 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       />
       <main className="flex-1 flex flex-col">
         <div className="flex-1 p-4 bg-secondary/30">
-          <div className="mx-auto max-w-7xl mb-4">
-            <div className="flex justify-start">
-              <div className="flex items-center gap-2 p-1 bg-secondary/20 rounded-full">
-                <button
-                  onClick={() => setCurrentView('classification')}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'classification'
-                    ? 'bg-emerald-500 text-white shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                    }`}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                  Classification
-                </button>
-                <button
-                  onClick={() => setCurrentView('retirement')}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'retirement'
-                    ? 'bg-emerald-500 text-white shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                    }`}
-                >
-                  <Palmtree className="w-4 h-4" />
-                  Retirement
-                </button>
+          {isDashboard && (
+            <div className="mx-auto max-w-7xl mb-4">
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 p-1 bg-secondary/20 rounded-full">
+                  <button
+                    onClick={() => setCurrentView('classification')}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'classification'
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                      }`}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    Classification
+                  </button>
+                  <button
+                    onClick={() => setCurrentView('retirement')}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'retirement'
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                      }`}
+                  >
+                    <Palmtree className="w-4 h-4" />
+                    Retirement
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           <div className="mx-auto max-w-7xl">
-            {currentView === 'classification' && enhancedChildren}
-            {currentView === 'retirement' && (
-              <RetirementView
-                initialMonthlyIncome={profileData.monthlyIncome}
-                initialCurrentEPF={profileData.currentEPF}
-                initialAge={profileData.age}
-                onSave={handleRetirementSave}
-              />
+            {isDashboard ? (
+              <>
+                {currentView === 'classification' && enhancedChildren}
+                {currentView === 'retirement' && (
+                  <RetirementView
+                    initialMonthlyIncome={profileData.monthlyIncome}
+                    initialCurrentEPF={profileData.currentEPF}
+                    initialAge={profileData.age}
+                    onSave={handleRetirementSave}
+                  />
+                )}
+              </>
+            ) : (
+              enhancedChildren
             )}
           </div>
         </div>

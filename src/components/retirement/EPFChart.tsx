@@ -134,7 +134,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
                         <>
                             <line
                                 x1={xForIndex(milestoneIdx)}
-                                y1={margin.top}
+                                y1={margin.top - 12}
                                 x2={xForIndex(milestoneIdx)}
                                 y2={margin.top + innerHeight}
                                 stroke="#f59e0b"

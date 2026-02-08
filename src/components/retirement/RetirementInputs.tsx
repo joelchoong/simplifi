@@ -158,6 +158,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                         value={age}
                         onChange={(e) => setAge(e.target.value)}
                         onBlur={handleAgeBlur}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAgeBlur()}
                         placeholder="25"
                         className="text-base"
                     />
@@ -179,6 +180,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                             value={monthlyIncome}
                             onChange={(e) => setMonthlyIncome(e.target.value)}
                             onBlur={handleIncomeBlur}
+                            onKeyDown={(e) => e.key === 'Enter' && handleIncomeBlur()}
                             placeholder="5000.00"
                             className="text-base pl-12"
                         />
@@ -204,6 +206,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                             value={currentEPF}
                             onChange={(e) => setCurrentEPF(e.target.value)}
                             onBlur={handleEPFBlur}
+                            onKeyDown={(e) => e.key === 'Enter' && handleEPFBlur()}
                             placeholder="50000.00"
                             className="text-base pl-12"
                         />
@@ -243,6 +246,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                             value={employeeRate}
                             onChange={(e) => setEmployeeRate(e.target.value)}
                             onBlur={handleRateChange}
+                            onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
                             className="text-sm"
                         />
                     </div>
@@ -259,6 +263,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                             value={employerRate}
                             onChange={(e) => setEmployerRate(e.target.value)}
                             onBlur={handleRateChange}
+                            onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
                             className="text-sm"
                         />
                     </div>
@@ -275,6 +280,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                             value={dividendRate}
                             onChange={(e) => setDividendRate(e.target.value)}
                             onBlur={handleRateChange}
+                            onKeyDown={(e) => e.key === 'Enter' && handleRateChange()}
                             className="text-sm"
                         />
                     </div>

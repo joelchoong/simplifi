@@ -201,9 +201,6 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                 placeholder="5000.00"
                 className="text-base pl-12"
               />
-            </div>
-            <p className="text-xs text-muted-foreground">Your monthly salary before deductions</p>
-          </div>
 
           <div className="space-y-2">
             <Label

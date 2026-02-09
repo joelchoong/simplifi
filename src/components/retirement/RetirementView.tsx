@@ -21,6 +21,8 @@ const RetirementView: React.FC<RetirementViewProps> = ({
     const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome);
     const [currentEPF, setCurrentEPF] = useState(initialCurrentEPF);
     const [age, setAge] = useState(initialAge);
+    const [retirementAge, setRetirementAge] = useState(60);
+    const [monthlyExpenses, setMonthlyExpenses] = useState(Math.round(initialMonthlyIncome * 0.7));
 
     // Custom rates state
     const [customRates, setCustomRates] = useState<{
@@ -41,7 +43,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         if (monthlyIncome > 0 && age >= 18 && age <= 60) {
             const projection = calculateEPFProjection({
                 currentAge: age,
-                retirementAge: 60,
+                retirementAge,
                 targetAge: 90,
                 monthlyIncome,
                 currentEPFAmount: currentEPF,
@@ -53,13 +55,13 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         } else {
             setEpfData([]);
         }
-    }, [monthlyIncome, currentEPF, age, customRates]);
+    }, [monthlyIncome, currentEPF, age, retirementAge, customRates]);
 
     // Calculate key metrics for green highlights
     const epfAtRetirement = useMemo(() => {
-        const retirementData = epfData.find(d => d.age === 60);
+        const retirementData = epfData.find(d => d.age === retirementAge);
         return retirementData?.totalAmount || 0;
-    }, [epfData]);
+    }, [epfData, retirementAge]);
 
     const ageToReach1M = useMemo(() => {
         const milestone = epfData.find(d => d.totalAmount >= 1_000_000);
@@ -70,6 +72,8 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         monthlyIncome: number;
         currentEPF: number;
         age: number;
+        retirementAge?: number;
+        monthlyExpenses?: number;
         employeeRate?: number;
         employerRate?: number;
         dividendRate?: number;
@@ -77,6 +81,8 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         setMonthlyIncome(data.monthlyIncome);
         setCurrentEPF(data.currentEPF);
         setAge(data.age);
+        if (data.retirementAge !== undefined) setRetirementAge(data.retirementAge);
+        if (data.monthlyExpenses !== undefined) setMonthlyExpenses(data.monthlyExpenses);
 
         // Update custom rates if provided
         if (data.employeeRate !== undefined || data.employerRate !== undefined || data.dividendRate !== undefined) {
@@ -113,7 +119,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                                             <span className="font-bold text-emerald-600">
                                                 RM {epfAtRetirement.toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                             </span>
-                                            {" "}in your EPF at retirement (age 60).
+                                            {" "}in your EPF at retirement (age {retirementAge}).
                                             {ageToReach1M && ageToReach1M <= 90 && (
                                                 <>
                                                     {" "}You'll reach the{" "}
@@ -140,11 +146,11 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="w-3 h-[2px] bg-indigo-500 shadow-sm" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #6366f1 0, #6366f1 3px, transparent 3px, transparent 6px)' }}></span>
-                                    <span className="font-medium">Retirement Age (60)</span>
+                                    <span className="font-medium">Retirement Age ({retirementAge})</span>
                                 </div>
                             </div>
                             {epfData.length > 0 ? (
-                                <EPFChart data={epfData} />
+                                <EPFChart data={epfData} retirementAge={retirementAge} />
                             ) : (
                                 <div className="flex items-center justify-center h-64 text-muted-foreground">
                                     <p>Enter your details to see your EPF projection</p>

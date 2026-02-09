@@ -201,6 +201,8 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                 placeholder="5000.00"
                 className="text-base pl-12"
               />
+            </div>
+          </div>
 
           <div className="space-y-2">
             <Label

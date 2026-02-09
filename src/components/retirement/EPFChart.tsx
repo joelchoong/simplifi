@@ -9,9 +9,10 @@ interface EPFData {
 
 interface EPFChartProps {
   data: EPFData[];
+  retirementAge?: number;
 }
 
-const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
+const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(320);
   const chartHeight = 240;
@@ -77,8 +78,8 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
 
   // Find retirement age (60) index for marking
   const retirementIdx = useMemo(() => {
-    return sampledData.findIndex((d) => d.age === 60);
-  }, [sampledData]);
+    return sampledData.findIndex((d) => d.age === retirementAge);
+  }, [sampledData, retirementAge]);
 
   return (
     <div className="w-full" ref={containerRef}>
@@ -158,7 +159,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data }) => {
                 fontWeight={600}
                 fill="#4f46e5"
               >
-                Retire (60)
+                Retire ({retirementAge})
               </text>
             </>
           )}

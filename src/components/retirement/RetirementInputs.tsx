@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palmtree, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Palmtree, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface RetirementInputsProps {
@@ -13,6 +14,8 @@ interface RetirementInputsProps {
     monthlyIncome: number;
     currentEPF: number;
     age: number;
+    retirementAge?: number;
+    monthlyExpenses?: number;
     employeeRate?: number;
     employerRate?: number;
     dividendRate?: number;
@@ -28,6 +31,9 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
   const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome.toString());
   const [currentEPF, setCurrentEPF] = useState(initialCurrentEPF.toString());
   const [age, setAge] = useState(initialAge.toString());
+  const [retirementAge, setRetirementAge] = useState("60");
+  const [monthlyExpenses, setMonthlyExpenses] = useState("");
+  const [isExpensesCustom, setIsExpensesCustom] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
 
   // Custom rates state
@@ -51,28 +57,34 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     // Set default employer rate based on income
     const defaultEmployerRate = initialMonthlyIncome <= 5000 ? "13" : "12";
     setEmployerRate(defaultEmployerRate);
+
+    // Set default expenses (70% of income) if not custom
+    if (!isExpensesCustom) {
+      setMonthlyExpenses(Math.round(initialMonthlyIncome * 0.7).toString());
+    }
   }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
 
-  const saveIfChanged = (
+  const triggerSave = (
     income: number,
     epf: number,
     userAge: number,
     empRate?: number,
     emplRate?: number,
     divRate?: number,
+    retAge?: number,
+    expenses?: number,
   ) => {
-    const initial = initialValuesRef.current;
-    if (income !== initial.monthlyIncome || epf !== initial.currentEPF || userAge !== initial.age) {
-      onSave({
-        monthlyIncome: income,
-        currentEPF: epf,
-        age: userAge,
-        employeeRate: empRate,
-        employerRate: emplRate,
-        dividendRate: divRate,
-      });
-      initialValuesRef.current = { monthlyIncome: income, currentEPF: epf, age: userAge };
-    }
+    onSave({
+      monthlyIncome: income,
+      currentEPF: epf,
+      age: userAge,
+      retirementAge: retAge !== undefined ? retAge : (parseInt(retirementAge) || 60),
+      monthlyExpenses: expenses !== undefined ? expenses : (parseFloat(monthlyExpenses) || Math.round(income * 0.7)),
+      employeeRate: empRate,
+      employerRate: emplRate,
+      dividendRate: divRate,
+    });
+    initialValuesRef.current = { monthlyIncome: income, currentEPF: epf, age: userAge };
   };
 
   const getCurrentRates = () => ({
@@ -92,56 +104,55 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
       setEmployerRate(defaultEmployerRate);
     }
 
+    // Auto-update expenses if not custom
+    if (!isExpensesCustom) {
+      setMonthlyExpenses(Math.round(num * 0.7).toString());
+    }
+
     const rates = getCurrentRates();
-    saveIfChanged(
-      num,
-      parseFloat(currentEPF) || 0,
-      parseInt(age) || 25,
-      rates.employeeRate,
-      rates.employerRate,
-      rates.dividendRate,
-    );
+    triggerSave(num, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate);
   };
 
   const handleEPFBlur = () => {
     const num = parseFloat(currentEPF) || 0;
-    const formatted = Math.round(num).toString();
-    setCurrentEPF(formatted);
+    setCurrentEPF(Math.round(num).toString());
     const rates = getCurrentRates();
-    saveIfChanged(
-      parseFloat(monthlyIncome) || 0,
-      num,
-      parseInt(age) || 25,
-      rates.employeeRate,
-      rates.employerRate,
-      rates.dividendRate,
-    );
+    triggerSave(parseFloat(monthlyIncome) || 0, num, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate);
   };
 
   const handleAgeBlur = () => {
     const userAge = parseInt(age) || 25;
     setAge(userAge.toString());
     const rates = getCurrentRates();
-    saveIfChanged(
-      parseFloat(monthlyIncome) || 0,
-      parseFloat(currentEPF) || 0,
-      userAge,
-      rates.employeeRate,
-      rates.employerRate,
-      rates.dividendRate,
-    );
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, userAge, rates.employeeRate, rates.employerRate, rates.dividendRate);
+  };
+
+  const handleRetirementAgeBlur = () => {
+    const retAge = parseInt(retirementAge) || 60;
+    setRetirementAge(retAge.toString());
+    const rates = getCurrentRates();
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, retAge);
+  };
+
+  const handleExpensesBlur = () => {
+    const num = parseFloat(monthlyExpenses) || 0;
+    setMonthlyExpenses(Math.round(num).toString());
+    setIsExpensesCustom(true);
+    const rates = getCurrentRates();
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, num);
+  };
+
+  const handleResetExpenses = () => {
+    const defaultExpenses = Math.round((parseFloat(monthlyIncome) || 0) * 0.7);
+    setMonthlyExpenses(defaultExpenses.toString());
+    setIsExpensesCustom(false);
+    const rates = getCurrentRates();
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, defaultExpenses);
   };
 
   const handleRateChange = () => {
     const rates = getCurrentRates();
-    saveIfChanged(
-      parseFloat(monthlyIncome) || 0,
-      parseFloat(currentEPF) || 0,
-      parseInt(age) || 25,
-      rates.employeeRate,
-      rates.employerRate,
-      rates.dividendRate,
-    );
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate);
   };
 
   const monthlyContribution = () => {
@@ -227,6 +238,58 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
               />
             </div>
             <p className="text-xs text-muted-foreground">Your total EPF savings (Account 1, 2 & 3)</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="retirement-age" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
+              Retirement Age
+            </Label>
+            <Input
+              id="retirement-age"
+              type="number"
+              min={parseInt(age) || 18}
+              max="80"
+              value={retirementAge}
+              onChange={(e) => setRetirementAge(e.target.value)}
+              onBlur={handleRetirementAgeBlur}
+              onKeyDown={(e) => e.key === "Enter" && handleRetirementAgeBlur()}
+              placeholder="60"
+              className="text-base"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="monthly-expenses" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
+                Post-Retirement Expenses
+              </Label>
+              {isExpensesCustom && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetExpenses}
+                  className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Reset to 70%
+                </Button>
+              )}
+            </div>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">RM</span>
+              <Input
+                id="monthly-expenses"
+                type="number"
+                min="0"
+                step="100"
+                value={monthlyExpenses}
+                onChange={(e) => { setMonthlyExpenses(e.target.value); setIsExpensesCustom(true); }}
+                onBlur={handleExpensesBlur}
+                onKeyDown={(e) => e.key === "Enter" && handleExpensesBlur()}
+                placeholder="3500"
+                className="text-base pl-12"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Default: 70% of gross monthly income (RM {Math.round((parseFloat(monthlyIncome) || 0) * 0.7).toLocaleString()}/mo)</p>
           </div>
         </div>
 

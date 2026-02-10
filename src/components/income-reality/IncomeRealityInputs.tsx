@@ -1,34 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Scale, Minus, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Scale, Minus, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface IncomeRealityInputsProps {
   initialMonthlyIncome?: number;
 }
 
-type HouseholdType = 'alone' | 'couple' | 'family';
-type Location = 'kl' | 'urban' | 'non-urban';
+type HouseholdType = "alone" | "couple" | "family";
+type Location = "kl" | "urban" | "non-urban";
 
-const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
-  initialMonthlyIncome = 0,
-}) => {
+const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthlyIncome = 0 }) => {
   const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome);
   const [inputIncome, setInputIncome] = useState(initialMonthlyIncome.toString());
   const [housingCost, setHousingCost] = useState(0);
-  const [inputHousing, setInputHousing] = useState('');
-  const [householdType, setHouseholdType] = useState<HouseholdType>('alone');
+  const [inputHousing, setInputHousing] = useState("");
+  const [householdType, setHouseholdType] = useState<HouseholdType>("alone");
   const [dependants, setDependants] = useState(1);
-  const [location, setLocation] = useState<Location>('kl');
+  const [location, setLocation] = useState<Location>("kl");
 
   // Sync income from props
   useEffect(() => {
     setMonthlyIncome(initialMonthlyIncome);
-    setInputIncome(initialMonthlyIncome > 0 ? initialMonthlyIncome.toString() : '');
+    setInputIncome(initialMonthlyIncome > 0 ? initialMonthlyIncome.toString() : "");
   }, [initialMonthlyIncome]);
 
   return (
@@ -49,7 +47,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
             Monthly Income
           </Label>
           <div className="relative group">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">
+              RM
+            </span>
             <Input
               id="realityIncome"
               type="number"
@@ -60,7 +60,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                 if (!isNaN(val)) setMonthlyIncome(val);
               }}
               onBlur={() => {}}
-              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
               className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
             />
           </div>
@@ -72,11 +74,12 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
             Housing / Rental Cost
           </Label>
           <div className="relative group">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">
+              RM
+            </span>
             <Input
               id="housingCost"
               type="number"
-              placeholder="Enter your monthly rent or mortgage"
               value={inputHousing}
               onChange={(e) => {
                 setInputHousing(e.target.value);
@@ -84,7 +87,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                 if (!isNaN(val)) setHousingCost(val);
               }}
               onBlur={() => {}}
-              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
               className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
             />
           </div>
@@ -92,9 +97,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
 
         {/* Household Type */}
         <div className="space-y-3">
-          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Household Type
-          </Label>
+          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Household Type</Label>
           <RadioGroup
             value={householdType}
             onValueChange={(v) => setHouseholdType(v as HouseholdType)}
@@ -103,7 +106,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
             <label
               htmlFor="ht-alone"
               className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
-                householdType === 'alone' ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
+                householdType === "alone" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
               }`}
             >
               <RadioGroupItem value="alone" id="ht-alone" />
@@ -112,7 +115,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
             <label
               htmlFor="ht-couple"
               className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
-                householdType === 'couple' ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
+                householdType === "couple" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
               }`}
             >
               <RadioGroupItem value="couple" id="ht-couple" />
@@ -121,7 +124,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
             <label
               htmlFor="ht-family"
               className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
-                householdType === 'family' ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
+                householdType === "family" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
               }`}
             >
               <RadioGroupItem value="family" id="ht-family" />
@@ -130,7 +133,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
           </RadioGroup>
 
           {/* Dependants counter */}
-          {householdType === 'family' && (
+          {householdType === "family" && (
             <div className="flex items-center justify-between bg-secondary/20 border border-border/50 rounded-xl px-4 py-3 mt-1">
               <span className="text-sm font-medium text-foreground">Number of dependants</span>
               <div className="flex items-center gap-3">
@@ -160,9 +163,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
 
         {/* Location */}
         <div className="space-y-2">
-          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Location
-          </Label>
+          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Location</Label>
           <Select value={location} onValueChange={(v) => setLocation(v as Location)}>
             <SelectTrigger className="h-12 text-sm font-medium border-2">
               <SelectValue />

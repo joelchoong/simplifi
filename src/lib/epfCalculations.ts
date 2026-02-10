@@ -14,6 +14,7 @@ interface EPFProjectionParams {
     annualDividendRate?: number; // e.g., 0.055 for 5.5%
     employeeRate?: number; // Custom employee contribution rate (default 0.11 = 11%)
     employerRate?: number; // Custom employer contribution rate (default auto-calculated)
+    monthlyExpenses?: number; // Post-retirement monthly expenses (deducted after retirement)
 }
 
 /**
@@ -38,6 +39,7 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
         annualDividendRate = 0.055, // Default 5.5% based on recent EPF dividends
         employeeRate: customEmployeeRate,
         employerRate: customEmployerRate,
+        monthlyExpenses = 0,
     } = params;
 
     const result: EPFData[] = [];
@@ -60,6 +62,12 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
             const yearlyContribution = monthlyContribution * 12;
             totalContribution += yearlyContribution;
             totalAmount += yearlyContribution;
+        }
+
+        // Deduct post-retirement expenses (before dividend, so expenses come out first)
+        if (age > retirementAge && monthlyExpenses > 0) {
+            const yearlyExpenses = monthlyExpenses * 12;
+            totalAmount = Math.max(0, totalAmount - yearlyExpenses);
         }
 
         // Apply dividend at end of year (continues after retirement)

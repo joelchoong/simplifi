@@ -50,12 +50,13 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                 employeeRate: customRates.employeeRate,
                 employerRate: customRates.employerRate,
                 annualDividendRate: customRates.dividendRate,
+                monthlyExpenses,
             });
             setEpfData(projection);
         } else {
             setEpfData([]);
         }
-    }, [monthlyIncome, currentEPF, age, retirementAge, customRates]);
+    }, [monthlyIncome, currentEPF, age, retirementAge, monthlyExpenses, customRates]);
 
     // Calculate key metrics for green highlights
     const epfAtRetirement = useMemo(() => {

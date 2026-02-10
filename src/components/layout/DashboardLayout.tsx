@@ -2,8 +2,9 @@ import { ReactNode, useEffect, useState, cloneElement, isValidElement } from "re
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { HeaderBar, View } from "@/components/navigation/HeaderBar";
-import { LayoutGrid, Palmtree } from "lucide-react";
+import { LayoutGrid, Palmtree, Scale } from "lucide-react";
 import RetirementView from "@/components/retirement/RetirementView";
+import IncomeRealityView from "@/components/income-reality/IncomeRealityView";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -185,6 +186,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Palmtree className="w-4 h-4" />
                     Retirement
                   </button>
+                  <button
+                    onClick={() => setCurrentView('income-reality')}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'income-reality'
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                      }`}
+                  >
+                    <Scale className="w-4 h-4" />
+                    Income Reality
+                  </button>
                 </div>
               </div>
             </div>
@@ -199,6 +210,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     initialCurrentEPF={profileData.currentEPF}
                     initialAge={profileData.age}
                     onSave={handleRetirementSave}
+                  />
+                )}
+                {currentView === 'income-reality' && (
+                  <IncomeRealityView
+                    initialMonthlyIncome={profileData.monthlyIncome}
                   />
                 )}
               </>

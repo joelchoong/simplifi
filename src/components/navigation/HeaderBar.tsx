@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { Input } from "@/components/ui/input";
 
-export type View = "classification" | "retirement" | "settings" | "billing";
+export type View = "classification" | "retirement" | "income-reality" | "settings" | "billing";
 
 interface HeaderBarProps {
   currentView: View;

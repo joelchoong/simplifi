@@ -6,6 +6,9 @@ interface EPFData {
   totalAmount: number;
   totalContribution: number;
   dividendEarned: number;
+  yearlyDividend: number;
+  yearlyExpenses: number;
+  isPostRetirement: boolean;
 }
 
 interface EPFChartProps {
@@ -205,12 +208,10 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
             const d = sampledData[hoveredIndex];
             const cx = xForIndex(hoveredIndex);
             const cy = yForValue(d.totalAmount);
-            const tooltipW = 180;
-            const tooltipH = 76;
-            // Flip tooltip left if near right edge
+            const tooltipW = 200;
+            const tooltipH = d.isPostRetirement ? 88 : 76;
             const flipX = cx + tooltipW + 12 > width;
             const tx = flipX ? cx - tooltipW - 12 : cx + 12;
-            // Keep tooltip within vertical bounds
             const ty = Math.max(margin.top, Math.min(cy - tooltipH / 2, margin.top + innerHeight - tooltipH));
 
             return (
@@ -220,15 +221,34 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
                 <text x={tx + 10} y={ty + 18} fontSize="12" fontWeight={700} fill="#111827">
                   Age {d.age} · {formatCurrency(d.totalAmount)}
                 </text>
-                <text x={tx + 10} y={ty + 36} fontSize="11" fill="#6b7280">
-                  Contributed: {formatCurrency(d.totalContribution)}
-                </text>
-                <text x={tx + 10} y={ty + 52} fontSize="11" fill="#6b7280">
-                  Dividends: {formatCurrency(d.dividendEarned)}
-                </text>
-                <text x={tx + 10} y={ty + 68} fontSize="10" fill="#9ca3af">
-                  Dividend %: {d.totalAmount > 0 ? ((d.dividendEarned / d.totalAmount) * 100).toFixed(1) : 0}%
-                </text>
+                {d.isPostRetirement ? (
+                  <>
+                    <text x={tx + 10} y={ty + 36} fontSize="11" fill="#10b981">
+                      + {formatCurrency(d.yearlyDividend)} dividends
+                    </text>
+                    <text x={tx + 10} y={ty + 52} fontSize="11" fill="#ef4444">
+                      − {formatCurrency(d.yearlyExpenses)} expenses
+                    </text>
+                    <text x={tx + 10} y={ty + 68} fontSize="11" fill="#6b7280">
+                      Net: {formatCurrency(d.yearlyDividend - d.yearlyExpenses)}/yr
+                    </text>
+                    <text x={tx + 10} y={ty + 82} fontSize="10" fill="#9ca3af">
+                      Cumulative dividends: {formatCurrency(d.dividendEarned)}
+                    </text>
+                  </>
+                ) : (
+                  <>
+                    <text x={tx + 10} y={ty + 36} fontSize="11" fill="#6b7280">
+                      Contributed: {formatCurrency(d.totalContribution)}
+                    </text>
+                    <text x={tx + 10} y={ty + 52} fontSize="11" fill="#6b7280">
+                      Dividends: {formatCurrency(d.dividendEarned)}
+                    </text>
+                    <text x={tx + 10} y={ty + 68} fontSize="10" fill="#9ca3af">
+                      Dividend %: {d.totalAmount > 0 ? ((d.dividendEarned / d.totalAmount) * 100).toFixed(1) : 0}%
+                    </text>
+                  </>
+                )}
               </g>
             );
           })()}

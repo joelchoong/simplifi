@@ -3,6 +3,9 @@ export interface EPFData {
     totalAmount: number;
     totalContribution: number;
     dividendEarned: number;
+    yearlyDividend: number;
+    yearlyExpenses: number;
+    isPostRetirement: boolean;
 }
 
 interface EPFProjectionParams {
@@ -65,9 +68,10 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
         }
 
         // Deduct post-retirement expenses (before dividend, so expenses come out first)
+        let currentYearExpenses = 0;
         if (age > retirementAge && monthlyExpenses > 0) {
-            const yearlyExpenses = monthlyExpenses * 12;
-            totalAmount = Math.max(0, totalAmount - yearlyExpenses);
+            currentYearExpenses = monthlyExpenses * 12;
+            totalAmount = Math.max(0, totalAmount - currentYearExpenses);
         }
 
         // Apply dividend at end of year (continues after retirement)
@@ -80,6 +84,9 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
             totalAmount: Math.round(totalAmount),
             totalContribution: Math.round(totalContribution),
             dividendEarned: Math.round(totalDividend),
+            yearlyDividend: Math.round(yearlyDividend),
+            yearlyExpenses: Math.round(currentYearExpenses),
+            isPostRetirement: age > retirementAge,
         });
     }
 

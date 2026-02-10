@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { formatCurrency } from "@/lib/epfCalculations";
 
 interface EPFData {
   age: number;
@@ -15,6 +16,7 @@ interface EPFChartProps {
 const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(320);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const chartHeight = 240;
 
   useEffect(() => {
@@ -177,9 +179,18 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
             const endsIn0or5 = d.age % 5 === 0;
             const showX = isFirstAge || isLastAge || endsIn0or5;
 
+            const isHovered = hoveredIndex === i;
+
             return (
-              <g key={d.age}>
-                <circle cx={cx} cy={cy} r={4} fill="#10b981" className="hover:r-6 transition-all cursor-pointer" />
+              <g
+                key={d.age}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                className="cursor-pointer"
+              >
+                {/* Larger invisible hit area */}
+                <circle cx={cx} cy={cy} r={14} fill="transparent" />
+                <circle cx={cx} cy={cy} r={isHovered ? 6 : 4} fill="#10b981" className="transition-all" />
                 {showX && (
                   <text x={cx} y={margin.top + innerHeight + 20} textAnchor="middle" fontSize="11" fill="#4b5563">
                     {d.age}
@@ -188,6 +199,39 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
               </g>
             );
           })}
+
+          {/* Hover tooltip */}
+          {hoveredIndex !== null && sampledData[hoveredIndex] && (() => {
+            const d = sampledData[hoveredIndex];
+            const cx = xForIndex(hoveredIndex);
+            const cy = yForValue(d.totalAmount);
+            const tooltipW = 180;
+            const tooltipH = 76;
+            // Flip tooltip left if near right edge
+            const flipX = cx + tooltipW + 12 > width;
+            const tx = flipX ? cx - tooltipW - 12 : cx + 12;
+            // Keep tooltip within vertical bounds
+            const ty = Math.max(margin.top, Math.min(cy - tooltipH / 2, margin.top + innerHeight - tooltipH));
+
+            return (
+              <g>
+                <line x1={cx} y1={margin.top} x2={cx} y2={margin.top + innerHeight} stroke="#10b981" strokeWidth={1} strokeOpacity={0.4} strokeDasharray="3,3" />
+                <rect x={tx} y={ty} width={tooltipW} height={tooltipH} rx={8} fill="white" stroke="#e5e7eb" strokeWidth={1} filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+                <text x={tx + 10} y={ty + 18} fontSize="12" fontWeight={700} fill="#111827">
+                  Age {d.age} · {formatCurrency(d.totalAmount)}
+                </text>
+                <text x={tx + 10} y={ty + 36} fontSize="11" fill="#6b7280">
+                  Contributed: {formatCurrency(d.totalContribution)}
+                </text>
+                <text x={tx + 10} y={ty + 52} fontSize="11" fill="#6b7280">
+                  Dividends: {formatCurrency(d.dividendEarned)}
+                </text>
+                <text x={tx + 10} y={ty + 68} fontSize="10" fill="#9ca3af">
+                  Dividend %: {d.totalAmount > 0 ? ((d.dividendEarned / d.totalAmount) * 100).toFixed(1) : 0}%
+                </text>
+              </g>
+            );
+          })()}
 
           <text
             x={margin.left + innerWidth / 2}

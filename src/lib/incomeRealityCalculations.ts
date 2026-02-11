@@ -1,9 +1,19 @@
-// Base monthly essentials for a single adult in KL (no housing)
-const BASE_FOOD = 1000;
-const BASE_TRANSPORT = 500;
-const BASE_UTILITIES = 300;
-const BASE_ESSENTIALS = BASE_FOOD + BASE_TRANSPORT + BASE_UTILITIES; // RM1,800
+// Default monthly essentials for a single adult in KL (no housing)
+export const DEFAULT_EXPENSES = {
+  food: 1000,
+  transport: 500,
+  utilities: 300,
+};
 
+export interface ExpenseAssumptions {
+  food: number;
+  transport: number;
+  utilities: number;
+}
+
+export function getBaseEssentials(expenses: ExpenseAssumptions): number {
+  return expenses.food + expenses.transport + expenses.utilities;
+}
 // Household multipliers
 const HOUSEHOLD_MULTIPLIERS: Record<string, number> = {
   alone: 1.0,
@@ -55,12 +65,14 @@ export function calculateIncomeReality(
   housingCost: number,
   householdType: HouseholdType,
   dependants: number,
-  location: Location
+  location: Location,
+  expenses: ExpenseAssumptions = DEFAULT_EXPENSES
 ): IncomeRealityResult {
+  const baseEssentials = getBaseEssentials(expenses);
   const householdMultiplier = getHouseholdMultiplier(householdType, dependants);
   const locationMultiplier = getLocationMultiplier(location);
 
-  const adjustedEssentials = BASE_ESSENTIALS * householdMultiplier;
+  const adjustedEssentials = baseEssentials * householdMultiplier;
   const locationAdjusted = adjustedEssentials * locationMultiplier;
   const baselineLifeCost = locationAdjusted + housingCost;
 
@@ -68,7 +80,7 @@ export function calculateIncomeReality(
   const surplus = monthlyIncome - baselineLifeCost;
 
   return {
-    baseEssentials: BASE_ESSENTIALS,
+    baseEssentials,
     householdMultiplier,
     adjustedEssentials,
     locationMultiplier,

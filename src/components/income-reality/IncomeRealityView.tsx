@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import IncomeRealityInputs from './IncomeRealityInputs';
 import IncomeRealityChart from './IncomeRealityChart';
-import { calculateIncomeReality, HouseholdType, Location, IncomeRealityResult } from '@/lib/incomeRealityCalculations';
+import { calculateIncomeReality, HouseholdType, Location, IncomeRealityResult, ExpenseAssumptions, DEFAULT_EXPENSES } from '@/lib/incomeRealityCalculations';
 
 interface IncomeRealityViewProps {
   initialMonthlyIncome?: number;
@@ -16,6 +16,7 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
     householdType: "alone" as HouseholdType,
     dependants: 1,
     location: "kl" as Location,
+    expenses: { ...DEFAULT_EXPENSES } as ExpenseAssumptions,
   });
 
   const result: IncomeRealityResult | null = useMemo(() => {
@@ -25,7 +26,8 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
       inputs.housingCost,
       inputs.householdType,
       inputs.dependants,
-      inputs.location
+      inputs.location,
+      inputs.expenses
     );
   }, [inputs]);
 

@@ -6,17 +6,22 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Scale, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HouseholdType, Location } from "@/lib/incomeRealityCalculations";
 
 interface IncomeRealityInputsProps {
   initialMonthlyIncome?: number;
+  onChanged: (data: {
+    monthlyIncome: number;
+    housingCost: number;
+    householdType: HouseholdType;
+    dependants: number;
+    location: Location;
+  }) => void;
 }
 
-type HouseholdType = "alone" | "couple" | "family";
-type Location = "kl" | "urban" | "non-urban";
-
-const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthlyIncome = 0 }) => {
+const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthlyIncome = 0, onChanged }) => {
   const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome);
-  const [inputIncome, setInputIncome] = useState(initialMonthlyIncome.toString());
+  const [inputIncome, setInputIncome] = useState(initialMonthlyIncome > 0 ? initialMonthlyIncome.toString() : "");
   const [housingCost, setHousingCost] = useState(0);
   const [inputHousing, setInputHousing] = useState("");
   const [householdType, setHouseholdType] = useState<HouseholdType>("alone");
@@ -28,6 +33,11 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
     setMonthlyIncome(initialMonthlyIncome);
     setInputIncome(initialMonthlyIncome > 0 ? initialMonthlyIncome.toString() : "");
   }, [initialMonthlyIncome]);
+
+  // Notify parent on any change
+  useEffect(() => {
+    onChanged({ monthlyIncome, housingCost, householdType, dependants, location });
+  }, [monthlyIncome, housingCost, householdType, dependants, location]);
 
   return (
     <Card className="w-full shadow-md border-border/60">
@@ -80,11 +90,13 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
             <Input
               id="housingCost"
               type="number"
+              placeholder="Enter your monthly rent or mortgage"
               value={inputHousing}
               onChange={(e) => {
                 setInputHousing(e.target.value);
                 const val = parseFloat(e.target.value);
                 if (!isNaN(val)) setHousingCost(val);
+                else if (e.target.value === "") setHousingCost(0);
               }}
               onBlur={() => {}}
               onKeyDown={(e) => {

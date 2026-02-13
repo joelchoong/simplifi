@@ -34,18 +34,21 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
   const [inputFood, setInputFood] = useState(DEFAULT_EXPENSES.food.toString());
   const [inputTransport, setInputTransport] = useState(DEFAULT_EXPENSES.transport.toString());
   const [inputUtilities, setInputUtilities] = useState(DEFAULT_EXPENSES.utilities.toString());
+  const [inputOthers, setInputOthers] = useState(DEFAULT_EXPENSES.others.toString());
   const [expensesOpen, setExpensesOpen] = useState(false);
 
   const isCustomExpenses =
     expenses.food !== DEFAULT_EXPENSES.food ||
     expenses.transport !== DEFAULT_EXPENSES.transport ||
-    expenses.utilities !== DEFAULT_EXPENSES.utilities;
+    expenses.utilities !== DEFAULT_EXPENSES.utilities ||
+    expenses.others !== DEFAULT_EXPENSES.others;
 
   const resetExpenses = () => {
     setExpenses({ ...DEFAULT_EXPENSES });
     setInputFood(DEFAULT_EXPENSES.food.toString());
     setInputTransport(DEFAULT_EXPENSES.transport.toString());
     setInputUtilities(DEFAULT_EXPENSES.utilities.toString());
+    setInputOthers(DEFAULT_EXPENSES.others.toString());
   };
 
   useEffect(() => {
@@ -123,7 +126,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
             <div className="text-left">
               <h4 className="text-sm font-semibold text-foreground">Expense Assumptions</h4>
               <p className="text-xs text-muted-foreground">
-                RM {(expenses.food + expenses.transport + expenses.utilities).toLocaleString("en-MY")}/mo base{isCustomExpenses ? " · Edited" : ""}
+                RM {(expenses.food + expenses.transport + expenses.utilities + expenses.others).toLocaleString("en-MY")}/mo base{isCustomExpenses ? " · Edited" : ""}
               </p>
             </div>
             <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expensesOpen ? "rotate-180" : ""}`} />
@@ -169,6 +172,20 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
                   type="number"
                   value={inputUtilities}
                   onChange={(e) => handleNumericInput(e.target.value, setInputUtilities, (v) => setExpenses(prev => ({ ...prev, utilities: v })))}
+                  onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  className="pl-12 text-sm"
+                />
+              </div>
+            </div>
+            {/* Others */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Others</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
+                <Input
+                  type="number"
+                  value={inputOthers}
+                  onChange={(e) => handleNumericInput(e.target.value, setInputOthers, (v) => setExpenses(prev => ({ ...prev, others: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   className="pl-12 text-sm"
                 />

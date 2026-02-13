@@ -20,16 +20,17 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result }) => {
   const { monthlyIncome, baselineLifeCost, surplus, coveragePercent, locationAdjusted, housingCost } = result;
   const isSurplus = surplus >= 0;
 
-  // Fill percentages relative to income (capped at 100% each for the bar)
-  const essentialsPct = Math.min((locationAdjusted / monthlyIncome) * 100, 100);
-  const housingPct = Math.min((housingCost / monthlyIncome) * 100, 100 - essentialsPct);
-  const totalFillPct = Math.min(((locationAdjusted + housingCost) / monthlyIncome) * 100, 100);
-  const overBudget = baselineLifeCost > monthlyIncome;
+  const maxVal = Math.max(monthlyIncome, baselineLifeCost) * 1.15;
+
+  const incomeHeight = (monthlyIncome / maxVal) * 100;
+  const essentialsHeight = (locationAdjusted / maxVal) * 100;
+  const housingHeight = (housingCost / maxVal) * 100;
+  const totalCostHeight = essentialsHeight + housingHeight;
 
   return (
     <div className="h-full flex flex-col">
       {/* Coverage badge */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-bold ${
@@ -46,78 +47,48 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result }) => {
         </div>
       </div>
 
-      {/* Horizontal fill bars */}
-      <div className="flex-1 flex flex-col justify-center gap-6">
-        {/* Essentials bar */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground">Essentials</span>
-            <span className="text-muted-foreground">{formatRM(locationAdjusted)}</span>
-          </div>
-          <div className="w-full h-10 rounded-lg bg-muted/60 overflow-hidden">
-            <div
-              className="h-full rounded-lg bg-red-400/80 dark:bg-red-400/70 transition-all duration-500 flex items-center px-3"
-              style={{ width: `${Math.max(essentialsPct, 2)}%` }}
-            >
-              {essentialsPct > 15 && (
-                <span className="text-xs font-bold text-white/90">{essentialsPct.toFixed(0)}%</span>
-              )}
-            </div>
-          </div>
+      {/* Bar chart */}
+      <div className="flex items-end justify-center gap-8 pb-8 pt-2" style={{ height: 260 }}>
+        {/* Income bar */}
+        <div className="flex flex-col items-center gap-2 w-28 h-full justify-end">
+          <span className="text-sm font-bold text-foreground">{formatRM(monthlyIncome)}</span>
+          <div
+            className="w-full rounded-t-xl bg-emerald-500/80 dark:bg-emerald-500/70"
+            style={{ height: `${Math.max(incomeHeight, 4)}%` }}
+          />
+          <span className="text-xs font-medium text-muted-foreground">Income</span>
         </div>
 
-        {/* Housing bar */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground">Housing</span>
-            <span className="text-muted-foreground">{formatRM(housingCost)}</span>
-          </div>
-          <div className="w-full h-10 rounded-lg bg-muted/60 overflow-hidden">
+        {/* Baseline cost bar (stacked: essentials + housing) */}
+        <div className="flex flex-col items-center gap-2 w-28 h-full justify-end">
+          <span className="text-sm font-bold text-foreground">{formatRM(baselineLifeCost)}</span>
+          <div
+            className="w-full rounded-t-xl overflow-hidden flex flex-col justify-end"
+            style={{ height: `${Math.max(totalCostHeight, 4)}%` }}
+          >
+            {housingCost > 0 && (
+              <div
+                className="w-full bg-orange-400/80 dark:bg-orange-400/70 flex items-center justify-center"
+                style={{ height: `${(housingHeight / totalCostHeight) * 100}%` }}
+              >
+                {housingHeight > 8 && <span className="text-[10px] font-bold text-white/90">Housing</span>}
+              </div>
+            )}
             <div
-              className="h-full rounded-lg bg-orange-400/80 dark:bg-orange-400/70 transition-all duration-500 flex items-center px-3"
-              style={{ width: `${Math.max(housingCost > 0 ? (housingCost / monthlyIncome) * 100 : 0, housingCost > 0 ? 2 : 0)}%` }}
+              className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center"
+              style={{ height: `${(essentialsHeight / totalCostHeight) * 100}%` }}
             >
-              {(housingCost / monthlyIncome) * 100 > 15 && (
-                <span className="text-xs font-bold text-white/90">{((housingCost / monthlyIncome) * 100).toFixed(0)}%</span>
-              )}
+              {essentialsHeight > 8 && <span className="text-[10px] font-bold text-white/90">Essentials</span>}
             </div>
           </div>
-        </div>
-
-        {/* Total life cost bar */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-foreground">Total Life Cost</span>
-            <span className={`font-semibold ${overBudget ? "text-red-500" : "text-foreground"}`}>
-              {formatRM(baselineLifeCost)}
-            </span>
-          </div>
-          <div className="w-full h-12 rounded-lg bg-muted/60 overflow-hidden">
-            <div
-              className={`h-full rounded-lg transition-all duration-500 flex items-center px-3 ${
-                overBudget
-                  ? "bg-red-500/80 dark:bg-red-500/70"
-                  : "bg-emerald-500/80 dark:bg-emerald-500/70"
-              }`}
-              style={{ width: `${Math.max(Math.min(totalFillPct, 100), 2)}%` }}
-            >
-              {totalFillPct > 15 && (
-                <span className="text-xs font-bold text-white/90">
-                  {totalFillPct.toFixed(0)}% of income
-                </span>
-              )}
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Grey area = your monthly income ({formatRM(monthlyIncome)})
-          </p>
+          <span className="text-xs font-medium text-muted-foreground">Life Cost</span>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 justify-center pt-4 border-t border-border mt-4">
+      <div className="flex flex-wrap gap-4 justify-center pt-2 border-t border-border">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-muted/60" />
+          <div className="w-3 h-3 rounded-sm bg-emerald-500/80" />
           <span className="text-xs text-muted-foreground">Income</span>
         </div>
         <div className="flex items-center gap-1.5">

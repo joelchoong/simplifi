@@ -1,18 +1,20 @@
 // Default monthly essentials for a single adult in KL (no housing)
 export const DEFAULT_EXPENSES = {
-  food: 1000,
-  transport: 500,
+  food: 1500,
+  transport: 600,
   utilities: 300,
+  others: 100,
 };
 
 export interface ExpenseAssumptions {
   food: number;
   transport: number;
   utilities: number;
+  others: number;
 }
 
 export function getBaseEssentials(expenses: ExpenseAssumptions): number {
-  return expenses.food + expenses.transport + expenses.utilities;
+  return expenses.food + expenses.transport + expenses.utilities + expenses.others;
 }
 // Household multipliers
 const HOUSEHOLD_MULTIPLIERS: Record<string, number> = {
@@ -66,7 +68,7 @@ export function calculateIncomeReality(
   householdType: HouseholdType,
   dependants: number,
   location: Location,
-  expenses: ExpenseAssumptions = DEFAULT_EXPENSES
+  expenses: ExpenseAssumptions = DEFAULT_EXPENSES,
 ): IncomeRealityResult {
   const baseEssentials = getBaseEssentials(expenses);
   const householdMultiplier = getHouseholdMultiplier(householdType, dependants);

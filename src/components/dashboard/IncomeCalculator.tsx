@@ -9,8 +9,13 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Calculator } from "lucide-react";
+import { Info, ChevronDown, ChevronUp, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface IncomeCalculatorProps {
     initialGross?: number;
@@ -72,46 +77,9 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
         // Taxable Income
         const chargeableIncome = Math.max(0, annualGross - RELIEF_INDIVIDUAL - RELIEF_EPF);
 
-        // Tax Brackets 2024
-        const taxBrackets = [
-            { threshold: 5000, rate: 0, cumulative: 0 },
-            { threshold: 20000, rate: 0.01, cumulative: 0 },       // 5,001 - 20,000
-            { threshold: 35000, rate: 0.03, cumulative: 150 },     // 20,001 - 35,000
-            { threshold: 50000, rate: 0.06, cumulative: 600 },     // 35,001 - 50,000
-            { threshold: 70000, rate: 0.11, cumulative: 1500 },    // 50,001 - 70,000
-            { threshold: 100000, rate: 0.19, cumulative: 3700 },   // 70,001 - 100,000
-            { threshold: 400000, rate: 0.25, cumulative: 9400 },   // 100,001 - 400,000
-            { threshold: 600000, rate: 0.26, cumulative: 84400 },  // 400,001 - 600,000
-            { threshold: 2000000, rate: 0.28, cumulative: 136400 },// 600,001 - 2,000,000
-            { threshold: Infinity, rate: 0.30, cumulative: 528400 }// > 2,000,000
-        ];
+        if (chargeableIncome <= 5000) return { monthly: 0, annual: 0 };
 
-        let annualTax = 0;
-
-        // Find applicable bracket
-        for (let i = taxBrackets.length - 1; i >= 0; i--) {
-            if (chargeableIncome > taxBrackets[i].threshold) {
-                // Not lowest bracket logic; standard progressive calculation
-                // Actually simpler to iterate up
-                break;
-            }
-        }
-
-        // Re-implementing simplified loop
-        let remainingIncome = chargeableIncome;
         let totalTax = 0;
-        let previousThreshold = 0;
-
-        // Correct logic:
-        // iterate through brackets. 
-        // 0-5000: 0%
-        // 5001-20000: 1%
-
-        // Let's use the cumulative table lookup method for simplicity and accuracy matching LHDN table logic
-        // But for code, iterating ranges is clearer.
-
-        if (chargeableIncome <= 5000) return 0;
-
         // Bracket approach
         if (chargeableIncome <= 20000) totalTax = (chargeableIncome - 5000) * 0.01;
         else if (chargeableIncome <= 35000) totalTax = 150 + (chargeableIncome - 20000) * 0.03;
@@ -123,12 +91,23 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
         else if (chargeableIncome <= 2000000) totalTax = 136400 + (chargeableIncome - 600000) * 0.28;
         else totalTax = 528400 + (chargeableIncome - 2000000) * 0.30;
 
-        return Math.max(0, totalTax / 12);
+        return {
+            monthly: Math.max(0, totalTax / 12),
+            annual: Math.max(0, totalTax)
+        };
     };
 
+    const taxResults = useMemo(() => {
+        return calculatePCB(gross, computedEPF);
+    }, [gross, computedEPF]);
+
     const computedPCB_MTD = useMemo(() => {
-        return calculatePCB(gross, computedEPF) + deductions.pcbOnAR;
-    }, [gross, computedEPF, deductions.pcbOnAR]);
+        return taxResults.monthly + deductions.pcbOnAR;
+    }, [taxResults, deductions.pcbOnAR]);
+
+    const computedAnnualTax = useMemo(() => {
+        return taxResults.annual + (deductions.pcbOnAR * 12);
+    }, [taxResults, deductions.pcbOnAR]);
 
     const computedCP38 = useMemo(() => Number(deductions.cp38 || 0), [deductions.cp38]);
 
@@ -259,6 +238,53 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
                                     </div>
                                 </div>
                             ))}
+                        </div>
+
+                        <div className="pt-2 border-t border-border/50">
+                            <div className="flex justify-between items-center px-0.5">
+                                <div className="flex items-center gap-1.5">
+                                    <Label className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">Est. Annual Income Tax</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button className="text-muted-foreground/60 hover:text-primary transition-colors">
+                                                <Info className="h-3 w-3" />
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80 p-0 overflow-hidden" side="right">
+                                            <div className="bg-primary px-3 py-2">
+                                                <span className="text-xs font-bold text-primary-foreground">Malaysia Tax Brackets (2024)</span>
+                                            </div>
+                                            <div className="p-2 bg-background">
+                                                <table className="w-full text-[10px]">
+                                                    <thead>
+                                                        <tr className="border-b border-border">
+                                                            <th className="text-left py-1 font-bold">Taxable Income (RM)</th>
+                                                            <th className="text-right py-1 font-bold">Rate</th>
+                                                            <th className="text-right py-1 font-bold">Tax (RM)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-border/50">
+                                                        <tr><td className="py-1">0 - 5,000</td><td className="text-right">0%</td><td className="text-right">0</td></tr>
+                                                        <tr><td className="py-1">5,001 - 20,000</td><td className="text-right">1%</td><td className="text-right">150</td></tr>
+                                                        <tr><td className="py-1">20,001 - 35,000</td><td className="text-right">3%</td><td className="text-right">450</td></tr>
+                                                        <tr><td className="py-1">35,001 - 50,000</td><td className="text-right">6%</td><td className="text-right">900</td></tr>
+                                                        <tr><td className="py-1">50,001 - 70,000</td><td className="text-right">11%</td><td className="text-right">2,200</td></tr>
+                                                        <tr><td className="py-1">70,001 - 100,000</td><td className="text-right">19%</td><td className="text-right">5,700</td></tr>
+                                                        <tr><td className="py-1">100,001 - 400,000</td><td className="text-right">25%</td><td className="text-right">75,000</td></tr>
+                                                        <tr><td className="py-1">400,001 - 600,000</td><td className="text-right">26%</td><td className="text-right">52,000</td></tr>
+                                                        <tr><td className="py-1">600,001 - 2,000,000</td><td className="text-right">28%</td><td className="text-right">392,000</td></tr>
+                                                        <tr><td className="py-1">&gt; 2,000,000</td><td className="text-right">30%</td><td className="text-right">-</td></tr>
+                                                    </tbody>
+                                                </table>
+                                                <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
+                                                    * Calculations include Standard Relief (9,000) and EPF Relief (up to 4,000).
+                                                </div>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <span className="text-xs font-bold text-foreground">{formatRM(computedAnnualTax)}</span>
+                            </div>
                         </div>
                     </CollapsibleContent>
                 </Collapsible>

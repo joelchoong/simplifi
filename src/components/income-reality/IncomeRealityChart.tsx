@@ -49,7 +49,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result }) => {
       </div>
 
       {/* Bar chart */}
-      <div className="flex-1 flex items-end justify-center gap-8 pb-8 pt-2 min-h-[260px]">
+      <div className="flex-1 flex items-end justify-center gap-8 pb-8 pt-2 h-[260px]">
         {/* Income bar */}
         <div className="flex flex-col items-center gap-2 w-28">
           <span className="text-sm font-bold text-foreground">{formatRM(monthlyIncome)}</span>

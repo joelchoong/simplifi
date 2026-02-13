@@ -5,18 +5,39 @@ import { calculateIncomeReality, HouseholdType, Location, IncomeRealityResult, E
 
 interface IncomeRealityViewProps {
   initialMonthlyIncome?: number;
+  initialHousingCost?: number;
+  initialHouseholdType?: string;
+  initialDependants?: number;
+  initialLocation?: string;
+  initialExpenses?: ExpenseAssumptions;
+  onSave?: (data: {
+    housingCost: number;
+    householdType: string;
+    dependants: number;
+    location: string;
+    expenseFood: number;
+    expenseTransport: number;
+    expenseUtilities: number;
+    expenseOthers: number;
+  }) => void;
 }
 
 const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
   initialMonthlyIncome = 0,
+  initialHousingCost = 0,
+  initialHouseholdType = 'alone',
+  initialDependants = 1,
+  initialLocation = 'kl',
+  initialExpenses,
+  onSave,
 }) => {
   const [inputs, setInputs] = useState({
     monthlyIncome: initialMonthlyIncome,
-    housingCost: 0,
-    householdType: "alone" as HouseholdType,
-    dependants: 1,
-    location: "kl" as Location,
-    expenses: { ...DEFAULT_EXPENSES } as ExpenseAssumptions,
+    housingCost: initialHousingCost,
+    householdType: initialHouseholdType as HouseholdType,
+    dependants: initialDependants,
+    location: initialLocation as Location,
+    expenses: initialExpenses ? { ...initialExpenses } : { ...DEFAULT_EXPENSES } as ExpenseAssumptions,
   });
 
   const result: IncomeRealityResult | null = useMemo(() => {
@@ -30,6 +51,25 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
       inputs.expenses
     );
   }, [inputs]);
+
+  const handleChanged = (data: typeof inputs) => {
+    setInputs(data);
+  };
+
+  const handleSave = (data: typeof inputs) => {
+    if (onSave) {
+      onSave({
+        housingCost: data.housingCost,
+        householdType: data.householdType,
+        dependants: data.dependants,
+        location: data.location,
+        expenseFood: data.expenses.food,
+        expenseTransport: data.expenses.transport,
+        expenseUtilities: data.expenses.utilities,
+        expenseOthers: data.expenses.others,
+      });
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-4">
@@ -50,7 +90,13 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
         <div className="lg:col-span-5 xl:col-span-4">
           <IncomeRealityInputs
             initialMonthlyIncome={initialMonthlyIncome}
-            onChanged={setInputs}
+            initialHousingCost={initialHousingCost}
+            initialHouseholdType={initialHouseholdType}
+            initialDependants={initialDependants}
+            initialLocation={initialLocation}
+            initialExpenses={initialExpenses}
+            onChanged={handleChanged}
+            onSave={handleSave}
           />
         </div>
       </div>

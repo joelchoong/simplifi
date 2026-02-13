@@ -2,15 +2,19 @@ import React, { useState, useMemo } from 'react';
 import IncomeRealityInputs from './IncomeRealityInputs';
 import IncomeRealityChart from './IncomeRealityChart';
 import { calculateIncomeReality, HouseholdType, Location, IncomeRealityResult, ExpenseAssumptions, DEFAULT_EXPENSES } from '@/lib/incomeRealityCalculations';
+import { calculateSustainableWithdrawal, calculateEPFProjection } from '@/lib/epfCalculations';
 
 interface IncomeRealityViewProps {
   initialMonthlyIncome?: number;
   initialHousingCost?: number;
+  initialCurrentEPF?: number;
+  initialAge?: number;
   initialHouseholdType?: string;
   initialDependants?: number;
   initialLocation?: string;
   initialExpenses?: ExpenseAssumptions;
   onSave?: (data: {
+    monthlyIncome: number;
     housingCost: number;
     householdType: string;
     dependants: number;
@@ -25,6 +29,8 @@ interface IncomeRealityViewProps {
 const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
   initialMonthlyIncome = 0,
   initialHousingCost = 0,
+  initialCurrentEPF = 0,
+  initialAge = 25,
   initialHouseholdType = 'alone',
   initialDependants = 1,
   initialLocation = 'kl',
@@ -52,6 +58,40 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
     );
   }, [inputs]);
 
+  const { sustainableWithdrawal, retirementDividends } = useMemo(() => {
+    if (!initialAge || initialAge < 18 || initialAge > 60 || !inputs.monthlyIncome) {
+      return { sustainableWithdrawal: 0, retirementDividends: 0 };
+    }
+
+    console.log('IncomeReality Calculation Inputs:', { age: initialAge, income: inputs.monthlyIncome, epf: initialCurrentEPF });
+
+    const sustainable = calculateSustainableWithdrawal({
+      currentAge: initialAge,
+      retirementAge: 60,
+      targetAge: 90,
+      monthlyIncome: inputs.monthlyIncome,
+      currentEPFAmount: initialCurrentEPF,
+    });
+
+    // To get retirement dividends, we look at the dividend at age 60 from a "no-expense" projection
+    const projection = calculateEPFProjection({
+      currentAge: initialAge,
+      retirementAge: 60,
+      targetAge: 90,
+      monthlyIncome: inputs.monthlyIncome,
+      currentEPFAmount: initialCurrentEPF,
+      monthlyExpenses: 0,
+    });
+
+    console.log('IncomeReality Sustainable:', sustainable);
+    console.log('IncomeReality Projection at 60:', projection.find(d => d.age === 60));
+
+    const retirementData = projection.find(d => d.age === 60);
+    const monthlyDividend = retirementData ? Math.round(retirementData.yearlyDividend / 12) : 0;
+
+    return { sustainableWithdrawal: sustainable, retirementDividends: monthlyDividend };
+  }, [initialAge, inputs.monthlyIncome, initialCurrentEPF]);
+
   const handleChanged = (data: typeof inputs) => {
     setInputs(data);
   };
@@ -59,6 +99,7 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
   const handleSave = (data: typeof inputs) => {
     if (onSave) {
       onSave({
+        monthlyIncome: data.monthlyIncome,
         housingCost: data.housingCost,
         householdType: data.householdType,
         dependants: data.dependants,
@@ -81,7 +122,11 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
               <h2 className="text-xl font-bold text-foreground">Can your income support your life?</h2>
             </div>
             <div className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border p-4 h-[400px]">
-              <IncomeRealityChart result={result} />
+              <IncomeRealityChart
+                result={result}
+                sustainableWithdrawal={sustainableWithdrawal}
+                retirementDividends={retirementDividends}
+              />
             </div>
           </section>
         </div>

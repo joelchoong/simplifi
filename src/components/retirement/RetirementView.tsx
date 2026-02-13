@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import EPFChart from './EPFChart';
 import RetirementInputs from './RetirementInputs';
-import { calculateEPFProjection, EPFData } from '@/lib/epfCalculations';
+import { calculateEPFProjection, EPFData, calculateSustainableWithdrawal } from '@/lib/epfCalculations';
 import { Palmtree } from 'lucide-react';
 
 interface RetirementViewProps {
@@ -22,7 +22,20 @@ const RetirementView: React.FC<RetirementViewProps> = ({
     const [currentEPF, setCurrentEPF] = useState(initialCurrentEPF);
     const [age, setAge] = useState(initialAge);
     const [retirementAge, setRetirementAge] = useState(60);
-    const [monthlyExpenses, setMonthlyExpenses] = useState(Math.round(initialMonthlyIncome * 0.7));
+
+    // Calculate sustainable expenses once initial data is available
+    const initialSustainableExpenses = useMemo(() => {
+        if (!initialAge || initialAge < 18 || initialAge > 60 || !initialMonthlyIncome) return 0;
+        return calculateSustainableWithdrawal({
+            currentAge: initialAge,
+            retirementAge: 60,
+            targetAge: 90,
+            monthlyIncome: initialMonthlyIncome,
+            currentEPFAmount: initialCurrentEPF,
+        });
+    }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
+
+    const [monthlyExpenses, setMonthlyExpenses] = useState(initialSustainableExpenses);
 
     // Custom rates state
     const [customRates, setCustomRates] = useState<{
@@ -151,7 +164,10 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                                 </div>
                             </div>
                             {epfData.length > 0 ? (
-                                <EPFChart data={epfData} retirementAge={retirementAge} />
+                                <EPFChart
+                                    data={epfData}
+                                    retirementAge={retirementAge}
+                                />
                             ) : (
                                 <div className="flex items-center justify-center h-64 text-muted-foreground">
                                     <p>Enter your details to see your EPF projection</p>

@@ -149,6 +149,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const handleIncomeRealitySave = async (data: {
+    monthlyIncome: number;
     housingCost: number;
     householdType: string;
     dependants: number;
@@ -164,6 +165,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       const { error } = await supabase
         .from('profiles')
         .update({
+          monthly_income: data.monthlyIncome,
           housing_cost: data.housingCost,
           household_type: data.householdType,
           dependants: data.dependants,
@@ -272,6 +274,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <IncomeRealityView
                     initialMonthlyIncome={profileData.monthlyIncome}
                     initialHousingCost={profileData.housingCost}
+                    initialCurrentEPF={profileData.currentEPF}
+                    initialAge={profileData.age}
                     initialHouseholdType={profileData.householdType}
                     initialDependants={profileData.dependants}
                     initialLocation={profileData.location}

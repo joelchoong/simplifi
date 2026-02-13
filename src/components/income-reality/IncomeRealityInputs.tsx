@@ -12,6 +12,8 @@ import { HouseholdType, Location, ExpenseAssumptions, DEFAULT_EXPENSES } from "@
 interface IncomeRealityInputsProps {
   initialMonthlyIncome?: number;
   initialHousingCost?: number;
+  initialCurrentEPF?: number;
+  initialAge?: number;
   initialHouseholdType?: string;
   initialDependants?: number;
   initialLocation?: string;
@@ -118,41 +120,42 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        {/* Monthly Income */}
-        <div className="space-y-2">
-          <Label htmlFor="realityIncome" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Monthly Income
-          </Label>
-          <div className="relative group">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
-            <Input
-              id="realityIncome"
-              type="number"
-              value={inputIncome}
-              onChange={(e) => handleNumericInput(e.target.value, setInputIncome, setMonthlyIncome)}
-              onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-              className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
-            />
+        {/* Monthly Income and Housing */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="realityIncome" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Monthly Income
+            </Label>
+            <div className="relative group">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
+              <Input
+                id="realityIncome"
+                type="number"
+                value={inputIncome}
+                onChange={(e) => handleNumericInput(e.target.value, setInputIncome, setMonthlyIncome)}
+                onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                onBlur={() => triggerSave({ monthlyIncome })}
+                className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
+              />
+            </div>
           </div>
-        </div>
-
-        {/* Housing / Rental Cost */}
-        <div className="space-y-2">
-          <Label htmlFor="housingCost" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Housing / Rental Cost
-          </Label>
-          <div className="relative group">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
-            <Input
-              id="housingCost"
-              type="number"
-              placeholder="Enter your monthly rent or mortgage"
-              value={inputHousing}
-              onChange={(e) => handleNumericInput(e.target.value, setInputHousing, setHousingCost)}
-              onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-              onBlur={() => triggerSave({ housingCost })}
-              className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
-            />
+          <div className="space-y-2">
+            <Label htmlFor="housingCost" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Housing / Rental
+            </Label>
+            <div className="relative group">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
+              <Input
+                id="housingCost"
+                type="number"
+                value={inputHousing}
+                onChange={(e) => handleNumericInput(e.target.value, setInputHousing, setHousingCost)}
+                onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                onBlur={() => triggerSave({ housingCost })}
+                className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
+                placeholder="0"
+              />
+            </div>
           </div>
         </div>
 
@@ -257,27 +260,24 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
           >
             <label
               htmlFor="ht-alone"
-              className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
-                householdType === "alone" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
-              }`}
+              className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${householdType === "alone" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
+                }`}
             >
               <RadioGroupItem value="alone" id="ht-alone" />
               <span className="text-sm font-medium">Living alone</span>
             </label>
             <label
               htmlFor="ht-couple"
-              className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
-                householdType === "couple" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
-              }`}
+              className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${householdType === "couple" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
+                }`}
             >
               <RadioGroupItem value="couple" id="ht-couple" />
               <span className="text-sm font-medium">Couple</span>
             </label>
             <label
               htmlFor="ht-family"
-              className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
-                householdType === "family" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
-              }`}
+              className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${householdType === "family" ? "border-primary bg-primary/5" : "border-border hover:border-border/80"
+                }`}
             >
               <RadioGroupItem value="family" id="ht-family" />
               <span className="text-sm font-medium">Family with dependants</span>

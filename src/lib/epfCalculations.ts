@@ -94,6 +94,37 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
 }
 
 /**
+ * Calculate the maximum sustainable monthly withdrawal from retirement age until target age
+ * ensuring a remaining balance of at least RM 1.
+ */
+export function calculateSustainableWithdrawal(params: Omit<EPFProjectionParams, 'monthlyExpenses'>): number {
+    let min = 0;
+    let max = 1000000; // Start with a high upper bound
+    let result = 0;
+    const tolerance = 1; // Tolerance for balance search
+
+    // Binary search for the maximum sustainable monthly withdrawal
+    for (let i = 0; i < 20; i++) { // 20 iterations gives ~RM1 precision for 1M range
+        const mid = (min + max) / 2;
+        const projection = calculateEPFProjection({ ...params, monthlyExpenses: mid });
+
+        // Safety check: if projection is empty, something is wrong with inputs (e.g. currentAge > targetAge)
+        if (!projection.length) break;
+
+        const finalAmount = projection[projection.length - 1].totalAmount;
+
+        if (finalAmount >= 1) {
+            result = mid;
+            min = mid;
+        } else {
+            max = mid;
+        }
+    }
+
+    return Math.floor(result);
+}
+
+/**
  * Format currency for display
  */
 export function formatCurrency(amount: number): string {

@@ -117,84 +117,76 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
           </div>
         </div>
 
-        {/* Expense Assumptions - Collapsible */}
-        <Collapsible open={expensesOpen} onOpenChange={setExpensesOpen}>
-          <div className="flex items-center justify-between">
-            <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors">
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expensesOpen ? "rotate-180" : ""}`} />
-                Expense Assumptions
-                {isCustomExpenses && (
-                  <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full normal-case tracking-normal">
-                    Edited
-                  </span>
-                )}
-              </button>
-            </CollapsibleTrigger>
-            {isCustomExpenses && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
-                onClick={resetExpenses}
-              >
-                <RotateCcw className="h-3 w-3" />
-                Reset
-              </Button>
-            )}
-          </div>
-          <CollapsibleContent className="mt-3 space-y-3">
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
+        {/* Expense Assumptions - Collapsible (matches Retirement Assumptions UX) */}
+        <Collapsible open={expensesOpen} onOpenChange={setExpensesOpen} className="border border-border rounded-xl">
+          <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors rounded-xl">
+            <div className="text-left">
+              <h4 className="text-sm font-semibold text-foreground">Expense Assumptions</h4>
+              <p className="text-xs text-muted-foreground">
+                RM {(expenses.food + expenses.transport + expenses.utilities).toLocaleString("en-MY")}/mo base{isCustomExpenses ? " · Edited" : ""}
+              </p>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expensesOpen ? "rotate-180" : ""}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="px-4 pb-4 space-y-3">
+            <p className="text-xs text-muted-foreground">
               Average monthly costs for a single adult in KL. Adjust to match your situation.
             </p>
             {/* Food */}
-            <div className="flex items-center gap-3">
-              <Label className="text-xs font-medium text-muted-foreground w-20 shrink-0">Food</Label>
-              <div className="relative group flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold group-focus-within:text-primary transition-colors">RM</span>
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Food</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
                 <Input
                   type="number"
                   value={inputFood}
                   onChange={(e) => handleNumericInput(e.target.value, setInputFood, (v) => setExpenses(prev => ({ ...prev, food: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-                  className="pl-10 h-9 text-sm font-bold border-2 focus-visible:ring-primary/20"
+                  className="pl-12 text-sm"
                 />
               </div>
             </div>
             {/* Transport */}
-            <div className="flex items-center gap-3">
-              <Label className="text-xs font-medium text-muted-foreground w-20 shrink-0">Transport</Label>
-              <div className="relative group flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold group-focus-within:text-primary transition-colors">RM</span>
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Transport</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
                 <Input
                   type="number"
                   value={inputTransport}
                   onChange={(e) => handleNumericInput(e.target.value, setInputTransport, (v) => setExpenses(prev => ({ ...prev, transport: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-                  className="pl-10 h-9 text-sm font-bold border-2 focus-visible:ring-primary/20"
+                  className="pl-12 text-sm"
                 />
               </div>
             </div>
             {/* Utilities */}
-            <div className="flex items-center gap-3">
-              <Label className="text-xs font-medium text-muted-foreground w-20 shrink-0">Utilities</Label>
-              <div className="relative group flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold group-focus-within:text-primary transition-colors">RM</span>
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Utilities</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
                 <Input
                   type="number"
                   value={inputUtilities}
                   onChange={(e) => handleNumericInput(e.target.value, setInputUtilities, (v) => setExpenses(prev => ({ ...prev, utilities: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-                  className="pl-10 h-9 text-sm font-bold border-2 focus-visible:ring-primary/20"
+                  className="pl-12 text-sm"
                 />
               </div>
             </div>
-            <div className="flex justify-between items-center pt-1 border-t border-border/50">
-              <span className="text-xs font-medium text-muted-foreground">Base total</span>
-              <span className="text-sm font-bold text-foreground">
-                RM {(expenses.food + expenses.transport + expenses.utilities).toLocaleString("en-MY")}
-              </span>
-            </div>
+            {isCustomExpenses && (
+              <div className="pt-2 border-t border-border">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetExpenses}
+                  className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Reset to defaults
+                </Button>
+              </div>
+            )}
           </CollapsibleContent>
         </Collapsible>
 

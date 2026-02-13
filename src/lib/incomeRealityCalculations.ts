@@ -44,6 +44,7 @@ export interface IncomeRealityResult {
   adjustedEssentials: number;
   locationMultiplier: number;
   locationAdjusted: number;
+  othersCost: number;
   housingCost: number;
   baselineLifeCost: number;
   monthlyIncome: number;
@@ -76,6 +77,7 @@ export function calculateIncomeReality(
 
   const adjustedEssentials = baseEssentials * householdMultiplier;
   const locationAdjusted = adjustedEssentials * locationMultiplier;
+  const othersCost = expenses.others * householdMultiplier * locationMultiplier;
   const baselineLifeCost = locationAdjusted + housingCost;
 
   const coveragePercent = baselineLifeCost > 0 ? (monthlyIncome / baselineLifeCost) * 100 : 0;
@@ -87,6 +89,7 @@ export function calculateIncomeReality(
     adjustedEssentials,
     locationMultiplier,
     locationAdjusted,
+    othersCost,
     housingCost,
     baselineLifeCost,
     monthlyIncome,

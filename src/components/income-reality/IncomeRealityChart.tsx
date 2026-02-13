@@ -22,19 +22,38 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
 
   const { monthlyIncome, baselineLifeCost, surplus, coveragePercent, locationAdjusted, othersCost, housingCost } = result;
 
-  // Calculate max value with some headroom (15%)
-  // Ensure we don't divide by zero if all values are 0
-  const maxVal = Math.max(monthlyIncome, baselineLifeCost, sustainableWithdrawal, retirementDividends, 1000) * 1.15;
+  // Recommended Breakdown Logic
+  // 1. Target total is Max Spend rounded down to nearest 1000
+  const recommendedTotal = Math.floor(sustainableWithdrawal / 1000) * 1000;
+
+  // 2. Fixed costs (Housing + Essentials)
+  const essentialsOnly = locationAdjusted - othersCost; // This is redundant with line 34, so remove line 34-37 block below and consolidate here
+
+  // 3. Calculate "Others" as the remainder
+  // If basics exceed recommended, Others is 0 (and total will exceed recommended)
+  const recommendedOthers = Math.max(0, recommendedTotal - housingCost - essentialsOnly);
+
+  // 4. Actual height of the recommended bar
+  const recommendedBarTotal = housingCost + essentialsOnly + recommendedOthers;
+
+  // Calculate max value with headroom
+  const maxVal = Math.max(monthlyIncome, baselineLifeCost, sustainableWithdrawal, retirementDividends, recommendedBarTotal, 1000) * 1.15;
 
   const incomeHeight = (monthlyIncome / maxVal) * 100;
   const retirementIncomeHeight = (retirementDividends / maxVal) * 100;
   const sustainableSpendHeight = (sustainableWithdrawal / maxVal) * 100;
 
-  const essentialsOnly = locationAdjusted - othersCost;
+  // Breakdown heights for Today
   const essentialsHeight = (essentialsOnly / maxVal) * 100;
   const othersHeight = (othersCost / maxVal) * 100;
   const housingHeight = (housingCost / maxVal) * 100;
   const totalCostHeight = essentialsHeight + othersHeight + housingHeight;
+
+  // Breakdown heights for Recommended
+  const recHousingHeight = (housingCost / maxVal) * 100;
+  const recEssentialsHeight = (essentialsOnly / maxVal) * 100;
+  const recOthersHeight = (recommendedOthers / maxVal) * 100;
+  const recTotalHeight = recHousingHeight + recEssentialsHeight + recOthersHeight;
 
   return (
     <div className="h-full flex flex-col">
@@ -51,16 +70,18 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
 
       {/* Bar chart */}
       <TooltipProvider delayDuration={0}>
-        <div className="flex items-end justify-center gap-4 pb-8 pt-2" style={{ height: 240 }}>
+        <div className="flex items-end justify-center gap-2 pb-2 h-full flex-1 w-full">
           {/* GROUP: TODAY */}
-          <div className="flex items-end gap-3 px-2 py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 h-full">
+          <div className="flex items-end justify-center gap-3 px-2 py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 h-full flex-1">
             {/* 1. Current Income */}
             <div className="flex flex-col items-center gap-1.5 w-20 h-full justify-end">
               <span className="text-[10px] font-bold text-foreground">{formatRM(monthlyIncome)}</span>
               <div
-                className="w-full rounded-t-lg bg-emerald-500/80 dark:bg-emerald-500/70 shadow-sm"
+                className="w-full rounded-t-lg bg-emerald-500/80 dark:bg-emerald-500/70 shadow-sm flex items-center justify-center"
                 style={{ height: `${Math.max(incomeHeight, 4)}%` }}
-              />
+              >
+                {Math.max(incomeHeight, 4) > 15 && <span className="text-[9px] font-bold text-white/90">Salary</span>}
+              </div>
               <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight">Income</span>
             </div>
 
@@ -102,63 +123,68 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
           <div className="w-2" />
 
           {/* GROUP: RETIREMENT */}
-          <div className="flex items-end gap-3 px-2 py-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 h-full">
-            {/* 3. Retirement Income (Dividends) */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex flex-col items-center gap-1.5 w-20 h-full justify-end cursor-help group">
-                  <span className="text-[10px] font-bold text-foreground">{formatRM(retirementDividends)}</span>
-                  <div
-                    className="w-full rounded-t-lg bg-violet-400/80 dark:bg-violet-400/70 shadow-sm transition-opacity group-hover:opacity-80"
-                    style={{ height: `${Math.max(retirementIncomeHeight, 4)}%` }}
-                  />
-                  <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight border-b border-dashed border-muted-foreground/30">Passive Div</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[200px] text-xs">
-                <p>Projected monthly passive income from EPF dividends at retirement.</p>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* 4. Sustainable Spend (New Life Cost) */}
+          <div className="flex items-end justify-center gap-3 px-2 py-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 h-full flex-1">
+            {/* 3. Sustainable Spend (Max Spend) */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex flex-col items-center gap-1.5 w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(sustainableWithdrawal)}</span>
                   <div
-                    className="w-full rounded-t-lg bg-indigo-600/80 dark:bg-indigo-600/70 shadow-sm transition-opacity group-hover:opacity-80"
+                    className="w-full rounded-t-lg bg-indigo-600/80 dark:bg-indigo-600/70 shadow-sm transition-opacity group-hover:opacity-80 flex items-center justify-center"
                     style={{ height: `${Math.max(sustainableSpendHeight, 4)}%` }}
-                  />
+                  >
+                    {Math.max(sustainableSpendHeight, 4) > 15 && <span className="text-[8px] font-bold text-white/90 text-center px-1 leading-tight">Post Retirement Income</span>}
+                  </div>
                   <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight border-b border-dashed border-muted-foreground/30">Max Spend</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent className="max-w-[200px] text-xs">
-                <p>The maximum safe monthly withdrawal amount that ensures your funds last until age 90.</p>
+                <p>The maximum monthly amount you can safely spend in retirement while ensuring your funds last until age 90.</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* 4. Recommended Breakdown */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex flex-col items-center gap-1.5 w-20 h-full justify-end cursor-help group">
+                  <span className="text-[10px] font-bold text-foreground">{formatRM(recommendedBarTotal)}</span>
+                  <div
+                    className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm transition-opacity group-hover:opacity-80"
+                    style={{ height: `${Math.max(recTotalHeight, 4)}%` }}
+                  >
+                    {housingCost > 0 && (
+                      <div
+                        className="w-full bg-orange-400/80 dark:bg-orange-400/70 flex items-center justify-center border-b border-white/10"
+                        style={{ height: `${(recHousingHeight / recTotalHeight) * 100}%` }}
+                      >
+                        {recHousingHeight / recTotalHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Housing</span>}
+                      </div>
+                    )}
+                    {recommendedOthers > 0 && (
+                      <div
+                        className="w-full bg-amber-500/80 dark:bg-amber-500/70 flex items-center justify-center border-b border-white/10"
+                        style={{ height: `${(recOthersHeight / recTotalHeight) * 100}%` }}
+                      >
+                        {recOthersHeight / recTotalHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Others</span>}
+                      </div>
+                    )}
+                    <div
+                      className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center"
+                      style={{ height: `${(recEssentialsHeight / recTotalHeight) * 100}%` }}
+                    >
+                      {recEssentialsHeight / recTotalHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Life Cost</span>}
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight border-b border-dashed border-muted-foreground/30">Recommended</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[200px] text-xs">
+                <p>Based on your Max Spend of {formatRM(recommendedTotal)}, here is a sustainable breakdown: {formatRM(essentialsOnly)} for basics, {formatRM(housingCost)} for housing, leaving {formatRM(recommendedOthers)} for other expenses.</p>
               </TooltipContent>
             </Tooltip>
           </div>
         </div>
       </TooltipProvider>
-
-      {/* Simplified Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center pt-3 border-t border-border/50 text-[9px] uppercase tracking-wider font-bold">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/80" />
-          <span className="text-muted-foreground">Salary</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-red-400/80" />
-          <span className="text-muted-foreground">Life Costs</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-violet-400/80" />
-          <span className="text-muted-foreground">Dividends</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-indigo-600/80" />
-          <span className="text-muted-foreground">Total Spend (90yo)</span>
-        </div>
-      </div>
     </div>
   );
 };

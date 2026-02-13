@@ -17,15 +17,17 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result }) => {
     );
   }
 
-  const { monthlyIncome, baselineLifeCost, surplus, coveragePercent, locationAdjusted, housingCost } = result;
+  const { monthlyIncome, baselineLifeCost, surplus, coveragePercent, locationAdjusted, othersCost, housingCost } = result;
   const isSurplus = surplus >= 0;
+  const essentialsOnly = locationAdjusted - othersCost;
 
   const maxVal = Math.max(monthlyIncome, baselineLifeCost) * 1.15;
 
   const incomeHeight = (monthlyIncome / maxVal) * 100;
-  const essentialsHeight = (locationAdjusted / maxVal) * 100;
+  const essentialsHeight = (essentialsOnly / maxVal) * 100;
+  const othersHeight = (othersCost / maxVal) * 100;
   const housingHeight = (housingCost / maxVal) * 100;
-  const totalCostHeight = essentialsHeight + housingHeight;
+  const totalCostHeight = essentialsHeight + othersHeight + housingHeight;
 
   return (
     <div className="h-full flex flex-col">
@@ -71,14 +73,22 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result }) => {
                 className="w-full bg-orange-400/80 dark:bg-orange-400/70 flex items-center justify-center"
                 style={{ height: `${(housingHeight / totalCostHeight) * 100}%` }}
               >
-                {housingHeight > 8 && <span className="text-[10px] font-bold text-white/90">Housing</span>}
+                {housingHeight / totalCostHeight > 0.08 && <span className="text-[10px] font-bold text-white/90">Housing</span>}
+              </div>
+            )}
+            {othersCost > 0 && (
+              <div
+                className="w-full bg-amber-500/80 dark:bg-amber-500/70 flex items-center justify-center"
+                style={{ height: `${(othersHeight / totalCostHeight) * 100}%` }}
+              >
+                {othersHeight / totalCostHeight > 0.08 && <span className="text-[10px] font-bold text-white/90">Others</span>}
               </div>
             )}
             <div
               className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center"
               style={{ height: `${(essentialsHeight / totalCostHeight) * 100}%` }}
             >
-              {essentialsHeight > 8 && <span className="text-[10px] font-bold text-white/90">Essentials</span>}
+              {essentialsHeight / totalCostHeight > 0.08 && <span className="text-[10px] font-bold text-white/90">Essentials</span>}
             </div>
           </div>
           <span className="text-xs font-medium text-muted-foreground">Life Cost</span>
@@ -94,6 +104,10 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result }) => {
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm bg-red-400/80" />
           <span className="text-xs text-muted-foreground">Essentials</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-amber-500/80" />
+          <span className="text-xs text-muted-foreground">Others</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm bg-orange-400/80" />

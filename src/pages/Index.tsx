@@ -10,7 +10,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate("/dashboard");
+      navigate("/money-health");
     }
   }, [user, loading, navigate]);
 

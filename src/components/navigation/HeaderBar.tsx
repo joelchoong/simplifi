@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles } from "lucide-react";
+import { Activity } from "lucide-react";
 import AvatarMenu from "./AvatarMenu";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
@@ -18,13 +18,24 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-10 w-full bg-background">
-      <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
-        {/* Row 1: Header (Logo & Avatar) */}
-        <Link to="/dashboard" className="flex items-center">
-          <img src={logo} alt="SimpliFi Logo" className="w-16 h-16 object-contain" />
+    <header className="sticky top-0 z-10 w-full bg-background border-b border-border/40">
+      <div className="w-full px-6 h-16 flex items-center justify-between relative">
+        {/* Far Left: Logo */}
+        <Link to="/money-health" className="flex items-center group">
+          <img
+            src={logo}
+            alt="SimpliFi Logo"
+            className="w-10 h-10 object-contain transition-transform group-hover:scale-110"
+          />
         </Link>
 
+        {/* Center: Page Title */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+          <Activity className="h-5 w-5 text-primary" />
+          <h1 className="text-lg font-bold tracking-tight text-foreground">Money Health</h1>
+        </div>
+
+        {/* Far Right: Avatar Menu */}
         <AvatarMenu
           src={avatarUrl}
           name={fullName}

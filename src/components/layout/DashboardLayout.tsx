@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState, cloneElement, isValidElement } from "re
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { HeaderBar, View } from "@/components/navigation/HeaderBar";
-import { LayoutGrid, Palmtree, Scale } from "lucide-react";
+import { Activity, LayoutGrid, Palmtree, Scale } from "lucide-react";
 import RetirementView from "@/components/retirement/RetirementView";
 import IncomeRealityView from "@/components/income-reality/IncomeRealityView";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +33,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   });
   const [dataLoading, setDataLoading] = useState(true);
 
-  const isDashboard = location.pathname === "/dashboard";
+  const isDashboard = location.pathname === "/money-health";
 
   useEffect(() => {
     if (!loading && !user) {

@@ -17,7 +17,7 @@ type AuthMode = "signin" | "signup" | "reset" | "update-password";
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const modeParam = searchParams.get("mode");
-  
+
   const [mode, setMode] = useState<AuthMode>(
     modeParam === "update-password" ? "update-password" : "signin"
   );
@@ -34,13 +34,13 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && mode !== "update-password") {
-      navigate("/dashboard");
+      navigate("/money-health");
     }
   }, [user, navigate, mode]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string; confirmPassword?: string } = {};
-    
+
     if (mode !== "update-password") {
       const emailResult = emailSchema.safeParse(email);
       if (!emailResult.success) {
@@ -65,9 +65,9 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setLoading(true);
 
     try {
@@ -76,7 +76,7 @@ export default function Auth() {
         if (error) {
           toast({
             title: "Sign in failed",
-            description: error.message === "Invalid login credentials" 
+            description: error.message === "Invalid login credentials"
               ? "Invalid email or password. Please try again."
               : error.message,
             variant: "destructive",
@@ -126,7 +126,7 @@ export default function Auth() {
             title: "Password updated",
             description: "Your password has been updated successfully.",
           });
-          navigate("/dashboard");
+          navigate("/money-health");
         }
       }
     } finally {

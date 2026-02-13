@@ -11,7 +11,20 @@ import { HouseholdType, Location, ExpenseAssumptions, DEFAULT_EXPENSES } from "@
 
 interface IncomeRealityInputsProps {
   initialMonthlyIncome?: number;
+  initialHousingCost?: number;
+  initialHouseholdType?: string;
+  initialDependants?: number;
+  initialLocation?: string;
+  initialExpenses?: ExpenseAssumptions;
   onChanged: (data: {
+    monthlyIncome: number;
+    housingCost: number;
+    householdType: HouseholdType;
+    dependants: number;
+    location: Location;
+    expenses: ExpenseAssumptions;
+  }) => void;
+  onSave?: (data: {
     monthlyIncome: number;
     housingCost: number;
     householdType: HouseholdType;
@@ -21,20 +34,30 @@ interface IncomeRealityInputsProps {
   }) => void;
 }
 
-const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthlyIncome = 0, onChanged }) => {
+const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
+  initialMonthlyIncome = 0,
+  initialHousingCost = 0,
+  initialHouseholdType = 'alone',
+  initialDependants = 1,
+  initialLocation = 'kl',
+  initialExpenses,
+  onChanged,
+  onSave,
+}) => {
   const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome);
   const [inputIncome, setInputIncome] = useState(initialMonthlyIncome > 0 ? initialMonthlyIncome.toString() : "");
-  const [housingCost, setHousingCost] = useState(0);
-  const [inputHousing, setInputHousing] = useState("");
-  const [householdType, setHouseholdType] = useState<HouseholdType>("alone");
-  const [dependants, setDependants] = useState(1);
-  const [location, setLocation] = useState<Location>("kl");
+  const [housingCost, setHousingCost] = useState(initialHousingCost);
+  const [inputHousing, setInputHousing] = useState(initialHousingCost > 0 ? initialHousingCost.toString() : "");
+  const [householdType, setHouseholdType] = useState<HouseholdType>(initialHouseholdType as HouseholdType);
+  const [dependants, setDependants] = useState(initialDependants);
+  const [location, setLocation] = useState<Location>(initialLocation as Location);
 
-  const [expenses, setExpenses] = useState<ExpenseAssumptions>({ ...DEFAULT_EXPENSES });
-  const [inputFood, setInputFood] = useState(DEFAULT_EXPENSES.food.toString());
-  const [inputTransport, setInputTransport] = useState(DEFAULT_EXPENSES.transport.toString());
-  const [inputUtilities, setInputUtilities] = useState(DEFAULT_EXPENSES.utilities.toString());
-  const [inputOthers, setInputOthers] = useState(DEFAULT_EXPENSES.others.toString());
+  const initExp = initialExpenses || DEFAULT_EXPENSES;
+  const [expenses, setExpenses] = useState<ExpenseAssumptions>({ ...initExp });
+  const [inputFood, setInputFood] = useState(initExp.food.toString());
+  const [inputTransport, setInputTransport] = useState(initExp.transport.toString());
+  const [inputUtilities, setInputUtilities] = useState(initExp.utilities.toString());
+  const [inputOthers, setInputOthers] = useState(initExp.others.toString());
   const [expensesOpen, setExpensesOpen] = useState(false);
 
   const isCustomExpenses =
@@ -44,11 +67,16 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
     expenses.others !== DEFAULT_EXPENSES.others;
 
   const resetExpenses = () => {
-    setExpenses({ ...DEFAULT_EXPENSES });
+    const reset = { ...DEFAULT_EXPENSES };
+    setExpenses(reset);
     setInputFood(DEFAULT_EXPENSES.food.toString());
     setInputTransport(DEFAULT_EXPENSES.transport.toString());
     setInputUtilities(DEFAULT_EXPENSES.utilities.toString());
     setInputOthers(DEFAULT_EXPENSES.others.toString());
+    // Auto-save reset
+    if (onSave) {
+      onSave({ monthlyIncome, housingCost, householdType, dependants, location, expenses: reset });
+    }
   };
 
   useEffect(() => {
@@ -59,6 +87,13 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
   useEffect(() => {
     onChanged({ monthlyIncome, housingCost, householdType, dependants, location, expenses });
   }, [monthlyIncome, housingCost, householdType, dependants, location, expenses]);
+
+  // Auto-save on selection changes (household type, location, dependants)
+  const triggerSave = (overrides?: Partial<{ monthlyIncome: number; housingCost: number; householdType: HouseholdType; dependants: number; location: Location; expenses: ExpenseAssumptions }>) => {
+    if (onSave) {
+      onSave({ monthlyIncome, housingCost, householdType, dependants, location, expenses, ...overrides });
+    }
+  };
 
   const handleNumericInput = (
     value: string,
@@ -115,6 +150,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
               value={inputHousing}
               onChange={(e) => handleNumericInput(e.target.value, setInputHousing, setHousingCost)}
               onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+              onBlur={() => triggerSave({ housingCost })}
               className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
             />
           </div>
@@ -145,6 +181,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
                   value={inputFood}
                   onChange={(e) => handleNumericInput(e.target.value, setInputFood, (v) => setExpenses(prev => ({ ...prev, food: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  onBlur={() => triggerSave()}
                   className="pl-12 text-sm"
                 />
               </div>
@@ -159,6 +196,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
                   value={inputTransport}
                   onChange={(e) => handleNumericInput(e.target.value, setInputTransport, (v) => setExpenses(prev => ({ ...prev, transport: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  onBlur={() => triggerSave()}
                   className="pl-12 text-sm"
                 />
               </div>
@@ -173,6 +211,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
                   value={inputUtilities}
                   onChange={(e) => handleNumericInput(e.target.value, setInputUtilities, (v) => setExpenses(prev => ({ ...prev, utilities: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  onBlur={() => triggerSave()}
                   className="pl-12 text-sm"
                 />
               </div>
@@ -187,6 +226,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
                   value={inputOthers}
                   onChange={(e) => handleNumericInput(e.target.value, setInputOthers, (v) => setExpenses(prev => ({ ...prev, others: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  onBlur={() => triggerSave()}
                   className="pl-12 text-sm"
                 />
               </div>
@@ -212,7 +252,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Household Type</Label>
           <RadioGroup
             value={householdType}
-            onValueChange={(v) => setHouseholdType(v as HouseholdType)}
+            onValueChange={(v) => { setHouseholdType(v as HouseholdType); triggerSave({ householdType: v as HouseholdType }); }}
             className="grid gap-2"
           >
             <label
@@ -248,11 +288,11 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
             <div className="flex items-center justify-between bg-secondary/20 border border-border/50 rounded-xl px-4 py-3 mt-1">
               <span className="text-sm font-medium text-foreground">Number of dependants</span>
               <div className="flex items-center gap-3">
-                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => setDependants(Math.max(1, dependants - 1))} disabled={dependants <= 1}>
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => { const d = Math.max(1, dependants - 1); setDependants(d); triggerSave({ dependants: d }); }} disabled={dependants <= 1}>
                   <Minus className="h-3.5 w-3.5" />
                 </Button>
                 <span className="text-lg font-bold tabular-nums w-6 text-center">{dependants}</span>
-                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => setDependants(Math.min(10, dependants + 1))} disabled={dependants >= 10}>
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => { const d = Math.min(10, dependants + 1); setDependants(d); triggerSave({ dependants: d }); }} disabled={dependants >= 10}>
                   <Plus className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -263,7 +303,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({ initialMonthl
         {/* Location */}
         <div className="space-y-2">
           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Location</Label>
-          <Select value={location} onValueChange={(v) => setLocation(v as Location)}>
+          <Select value={location} onValueChange={(v) => { setLocation(v as Location); triggerSave({ location: v as Location }); }}>
             <SelectTrigger className="h-12 text-sm font-medium border-2">
               <SelectValue />
             </SelectTrigger>

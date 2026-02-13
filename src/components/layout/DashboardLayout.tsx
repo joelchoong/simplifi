@@ -22,6 +22,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     monthlyIncome: 0,
     currentEPF: 0,
     age: 25,
+    housingCost: 0,
+    householdType: 'alone' as string,
+    dependants: 1,
+    location: 'kl' as string,
+    expenseFood: 1500,
+    expenseTransport: 600,
+    expenseUtilities: 300,
+    expenseOthers: 100,
   });
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -53,16 +61,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('monthly_income, current_epf_amount, age')
+        .select('monthly_income, current_epf_amount, age, housing_cost, household_type, dependants, location, expense_food, expense_transport, expense_utilities, expense_others')
         .eq('user_id', user.id);
 
       if (error) throw error;
 
       if (data && data.length > 0) {
+        const d = data[0];
         setProfileData({
-          monthlyIncome: data[0].monthly_income || 0,
-          currentEPF: data[0].current_epf_amount || 0,
-          age: data[0].age || 25,
+          monthlyIncome: d.monthly_income || 0,
+          currentEPF: d.current_epf_amount || 0,
+          age: d.age || 25,
+          housingCost: d.housing_cost || 0,
+          householdType: d.household_type || 'alone',
+          dependants: d.dependants || 1,
+          location: d.location || 'kl',
+          expenseFood: d.expense_food ?? 1500,
+          expenseTransport: d.expense_transport ?? 600,
+          expenseUtilities: d.expense_utilities ?? 300,
+          expenseOthers: d.expense_others ?? 100,
         });
       }
     } catch (error) {
@@ -115,8 +132,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       if (error) throw error;
 
-      // Update local state immediately
-      setProfileData(data);
+      setProfileData(prev => ({ ...prev, ...data }));
 
       toast({
         title: "Saved",
@@ -127,6 +143,46 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       toast({
         title: "Error",
         description: "Failed to save retirement data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleIncomeRealitySave = async (data: {
+    housingCost: number;
+    householdType: string;
+    dependants: number;
+    location: string;
+    expenseFood: number;
+    expenseTransport: number;
+    expenseUtilities: number;
+    expenseOthers: number;
+  }) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          housing_cost: data.housingCost,
+          household_type: data.householdType,
+          dependants: data.dependants,
+          location: data.location,
+          expense_food: data.expenseFood,
+          expense_transport: data.expenseTransport,
+          expense_utilities: data.expenseUtilities,
+          expense_others: data.expenseOthers,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setProfileData(prev => ({ ...prev, ...data }));
+    } catch (error) {
+      console.error('Error saving income reality data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save data. Please try again.",
         variant: "destructive",
       });
     }
@@ -215,6 +271,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 {currentView === 'income-reality' && (
                   <IncomeRealityView
                     initialMonthlyIncome={profileData.monthlyIncome}
+                    initialHousingCost={profileData.housingCost}
+                    initialHouseholdType={profileData.householdType}
+                    initialDependants={profileData.dependants}
+                    initialLocation={profileData.location}
+                    initialExpenses={{
+                      food: profileData.expenseFood,
+                      transport: profileData.expenseTransport,
+                      utilities: profileData.expenseUtilities,
+                      others: profileData.expenseOthers,
+                    }}
+                    onSave={handleIncomeRealitySave}
                   />
                 )}
               </>

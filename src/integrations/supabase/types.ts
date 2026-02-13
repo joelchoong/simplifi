@@ -20,9 +20,17 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           current_epf_amount: number | null
+          dependants: number | null
           email: string | null
+          expense_food: number | null
+          expense_others: number | null
+          expense_transport: number | null
+          expense_utilities: number | null
           full_name: string | null
+          household_type: string | null
+          housing_cost: number | null
           id: string
+          location: string | null
           monthly_income: number | null
           updated_at: string
           user_id: string
@@ -32,9 +40,17 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           current_epf_amount?: number | null
+          dependants?: number | null
           email?: string | null
+          expense_food?: number | null
+          expense_others?: number | null
+          expense_transport?: number | null
+          expense_utilities?: number | null
           full_name?: string | null
+          household_type?: string | null
+          housing_cost?: number | null
           id?: string
+          location?: string | null
           monthly_income?: number | null
           updated_at?: string
           user_id: string
@@ -44,9 +60,17 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           current_epf_amount?: number | null
+          dependants?: number | null
           email?: string | null
+          expense_food?: number | null
+          expense_others?: number | null
+          expense_transport?: number | null
+          expense_utilities?: number | null
           full_name?: string | null
+          household_type?: string | null
+          housing_cost?: number | null
           id?: string
+          location?: string | null
           monthly_income?: number | null
           updated_at?: string
           user_id?: string

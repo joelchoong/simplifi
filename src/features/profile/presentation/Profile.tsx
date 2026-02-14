@@ -9,6 +9,7 @@ import { supabase } from "@/shared/integrations/supabase/client";
 import { useToast } from "@/shared/hooks/use-toast";
 import { User, Mail, Banknote, ShieldCheck, Save, Loader2, KeyRound } from "lucide-react";
 import { z } from "zod";
+import { profileUpdateSchema } from "@/shared/lib/validation";
 
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
@@ -45,7 +46,7 @@ export default function Profile() {
         .single();
 
       if (error) {
-        console.error("Error fetching profile:", error);
+        // Error fetching profile - silent fail, user will see empty form
       } else if (data) {
         setProfile({
           full_name: data.full_name || "",
@@ -61,6 +62,22 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!user) return;
+
+    // Validate profile data before saving
+    const validationResult = profileUpdateSchema.safeParse({
+      full_name: profile.full_name,
+      monthly_income: profile.monthly_income,
+    });
+
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.errors[0].message;
+      toast({
+        title: "Validation Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSaving(true);
     const { error } = await supabase

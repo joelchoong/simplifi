@@ -64,8 +64,6 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
       return { sustainableWithdrawal: 0, retirementDividends: 0 };
     }
 
-    console.log('IncomeReality Calculation Inputs:', { age: initialAge, income: inputs.monthlyIncome, epf: initialCurrentEPF });
-
     const sustainable = calculateSustainableWithdrawal({
       currentAge: initialAge,
       retirementAge: 60,
@@ -83,9 +81,6 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
       currentEPFAmount: initialCurrentEPF,
       monthlyExpenses: 0,
     });
-
-    console.log('IncomeReality Sustainable:', sustainable);
-    console.log('IncomeReality Projection at 60:', projection.find(d => d.age === 60));
 
     const retirementData = projection.find(d => d.age === 60);
     const monthlyDividend = retirementData ? Math.round(retirementData.yearlyDividend / 12) : 0;

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/shared/integrations/supabase/client";
+import { setSentryUser, clearSentryUser } from "@/shared/lib/sentry";
 
 interface AuthContextType {
   user: User | null;
@@ -26,6 +27,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+
+        // Update Sentry user context
+        if (session?.user) {
+          setSentryUser(session.user.id, session.user.email);
+        } else {
+          clearSentryUser();
+        }
+
         setLoading(false);
       }
     );
@@ -34,6 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Update Sentry user context for existing session
+      if (session?.user) {
+        setSentryUser(session.user.id, session.user.email);
+      }
+
       setLoading(false);
     });
 
@@ -42,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -70,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = async (email: string) => {
     const redirectUrl = `${window.location.origin}/auth?mode=update-password`;
-    
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     });

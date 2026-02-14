@@ -86,7 +86,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         });
       }
     } catch (error) {
-      console.error('Error fetching profile data:', error);
+      // Error fetching profile data - silent fail
     } finally {
       setDataLoading(false);
     }
@@ -111,7 +111,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         description: "Your financial profile has been updated successfully",
       });
     } catch (error) {
-      console.error('Error saving income:', error);
       toast({
         title: "Error",
         description: "Failed to save income. Please try again.",
@@ -142,7 +141,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         description: "Your retirement data has been updated.",
       });
     } catch (error) {
-      console.error('Error saving retirement data:', error);
       toast({
         title: "Error",
         description: "Failed to save retirement data. Please try again.",
@@ -186,7 +184,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       setProfileData(prev => ({ ...prev, ...data }));
     } catch (error) {
-      console.error('Error saving income reality data:', error);
       toast({
         title: "Error",
         description: "Failed to save data. Please try again.",

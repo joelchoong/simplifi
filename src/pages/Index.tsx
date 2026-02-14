@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/features/auth/data/useAuth";
+import { Button } from "@/shared/components/ui/button";
 import logo from "@/assets/logo.png";
 
 export default function Index() {

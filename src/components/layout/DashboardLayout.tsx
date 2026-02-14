@@ -6,6 +6,7 @@ import { Activity, LayoutGrid, Palmtree, Scale } from "lucide-react";
 import RetirementView from "@/components/retirement/RetirementView";
 import IncomeRealityView from "@/components/income-reality/IncomeRealityView";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateIncomeReality, type HouseholdType, type Location } from "@/lib/incomeRealityCalculations";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardLayoutProps {
@@ -267,6 +268,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     initialMonthlyIncome={profileData.monthlyIncome}
                     initialCurrentEPF={profileData.currentEPF}
                     initialAge={profileData.age}
+                    baselineLifeCost={(() => {
+                      const result = calculateIncomeReality(
+                        profileData.monthlyIncome,
+                        profileData.housingCost,
+                        profileData.householdType as HouseholdType,
+                        profileData.dependants,
+                        profileData.location as Location,
+                        {
+                          food: profileData.expenseFood,
+                          transport: profileData.expenseTransport,
+                          utilities: profileData.expenseUtilities,
+                          others: profileData.expenseOthers,
+                        }
+                      );
+                      return Math.round(result.baselineLifeCost);
+                    })()}
                     onSave={handleRetirementSave}
                   />
                 )}

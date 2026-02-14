@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import EPFChart from './EPFChart';
 import RetirementInputs from './RetirementInputs';
-import { calculateEPFProjection, EPFData, calculateSustainableWithdrawal } from '@/lib/epfCalculations';
+import { calculateEPFProjection, EPFData } from '@/lib/epfCalculations';
 import { Palmtree } from 'lucide-react';
 
 interface RetirementViewProps {
     initialMonthlyIncome?: number;
     initialCurrentEPF?: number;
     initialAge?: number;
+    baselineLifeCost?: number;
     onSave: (data: { monthlyIncome: number; currentEPF: number; age: number }) => void;
 }
 
@@ -15,6 +16,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
     initialMonthlyIncome = 5000,
     initialCurrentEPF = 50000,
     initialAge = 25,
+    baselineLifeCost = 0,
     onSave,
 }) => {
     const [epfData, setEpfData] = useState<EPFData[]>([]);
@@ -23,19 +25,8 @@ const RetirementView: React.FC<RetirementViewProps> = ({
     const [age, setAge] = useState(initialAge);
     const [retirementAge, setRetirementAge] = useState(60);
 
-    // Calculate sustainable expenses once initial data is available
-    const initialSustainableExpenses = useMemo(() => {
-        if (!initialAge || initialAge < 18 || initialAge > 60 || !initialMonthlyIncome) return 0;
-        return calculateSustainableWithdrawal({
-            currentAge: initialAge,
-            retirementAge: 60,
-            targetAge: 90,
-            monthlyIncome: initialMonthlyIncome,
-            currentEPFAmount: initialCurrentEPF,
-        });
-    }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
-
-    const [monthlyExpenses, setMonthlyExpenses] = useState(initialSustainableExpenses);
+    // Use income reality baseline life cost as default monthly expenses
+    const [monthlyExpenses, setMonthlyExpenses] = useState(baselineLifeCost);
 
     // Custom rates state
     const [customRates, setCustomRates] = useState<{
@@ -183,6 +174,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                         initialMonthlyIncome={initialMonthlyIncome}
                         initialCurrentEPF={initialCurrentEPF}
                         initialAge={initialAge}
+                        baselineLifeCost={baselineLifeCost}
                         onSave={handleSave}
                     />
                 </div>

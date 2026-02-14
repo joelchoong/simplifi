@@ -10,6 +10,7 @@ interface RetirementInputsProps {
   initialMonthlyIncome?: number;
   initialCurrentEPF?: number;
   initialAge?: number;
+  baselineLifeCost?: number;
   onSave: (data: {
     monthlyIncome: number;
     currentEPF: number;
@@ -26,6 +27,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
   initialMonthlyIncome = 0,
   initialCurrentEPF = 0,
   initialAge = 25,
+  baselineLifeCost = 0,
   onSave,
 }) => {
   const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome.toString());
@@ -58,11 +60,11 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     const defaultEmployerRate = initialMonthlyIncome <= 5000 ? "13" : "12";
     setEmployerRate(defaultEmployerRate);
 
-    // Set default expenses (70% of income) if not custom
+    // Set default expenses from income reality baseline if not custom
     if (!isExpensesCustom) {
-      setMonthlyExpenses(Math.round(initialMonthlyIncome * 0.7).toString());
+      setMonthlyExpenses(Math.round(baselineLifeCost).toString());
     }
-  }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
+  }, [initialMonthlyIncome, initialCurrentEPF, initialAge, baselineLifeCost]);
 
   const triggerSave = (
     income: number,
@@ -79,7 +81,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
       currentEPF: epf,
       age: userAge,
       retirementAge: retAge !== undefined ? retAge : (parseInt(retirementAge) || 60),
-      monthlyExpenses: expenses !== undefined ? expenses : (parseFloat(monthlyExpenses) || Math.round(income * 0.7)),
+      monthlyExpenses: expenses !== undefined ? expenses : (parseFloat(monthlyExpenses) || Math.round(baselineLifeCost)),
       employeeRate: empRate,
       employerRate: emplRate,
       dividendRate: divRate,
@@ -106,7 +108,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
 
     // Auto-update expenses if not custom
     if (!isExpensesCustom) {
-      setMonthlyExpenses(Math.round(num * 0.7).toString());
+      setMonthlyExpenses(Math.round(baselineLifeCost).toString());
     }
 
     const rates = getCurrentRates();
@@ -143,7 +145,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
   };
 
   const handleResetExpenses = () => {
-    const defaultExpenses = Math.round((parseFloat(monthlyIncome) || 0) * 0.7);
+    const defaultExpenses = Math.round(baselineLifeCost);
     setMonthlyExpenses(defaultExpenses.toString());
     setIsExpensesCustom(false);
     const rates = getCurrentRates();
@@ -288,7 +290,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                     className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
                   >
                     <RotateCcw className="w-3 h-3" />
-                    Reset to 70%
+                    Reset
                   </Button>
                 )}
               </div>
@@ -307,7 +309,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                   className="text-sm pl-12"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Default: 70% of income (RM {Math.round((parseFloat(monthlyIncome) || 0) * 0.7).toLocaleString()}/mo)</p>
+              <p className="text-xs text-muted-foreground">Default: Income Reality baseline (RM {Math.round(baselineLifeCost).toLocaleString()}/mo)</p>
             </div>
 
             <div className="pt-2 border-t border-border space-y-3">

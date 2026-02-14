@@ -38,7 +38,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
 
         {/* Far Right: CTA + Avatar Menu */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="font-medium">
+          <Button variant="outline" size="sm" className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700">
             Improve my position
           </Button>
           <AvatarMenu

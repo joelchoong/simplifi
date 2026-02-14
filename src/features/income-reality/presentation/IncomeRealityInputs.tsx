@@ -138,7 +138,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                 onChange={(e) => handleNumericInput(e.target.value, setInputIncome, setMonthlyIncome)}
                 onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                 onBlur={() => triggerSave({ monthlyIncome })}
-                className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
+                className="pl-10 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
               />
             </div>
           </div>
@@ -155,7 +155,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                 onChange={(e) => handleNumericInput(e.target.value, setInputHousing, setHousingCost)}
                 onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                 onBlur={() => triggerSave({ housingCost })}
-                className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
+                className="pl-10 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
                 placeholder="0"
               />
             </div>
@@ -322,7 +322,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
         <div className="space-y-2">
           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Location</Label>
           <Select value={location} onValueChange={(v) => { setLocation(v as Location); triggerSave({ location: v as Location }); }}>
-            <SelectTrigger className="h-12 text-sm font-medium border-2">
+            <SelectTrigger className="h-12 text-sm font-medium border border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

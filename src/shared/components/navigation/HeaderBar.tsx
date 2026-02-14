@@ -4,6 +4,7 @@ import AvatarMenu from "./AvatarMenu";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { Input } from "@/shared/components/ui/input";
+import { Button } from "@/shared/components/ui/button";
 
 export type View = "classification" | "retirement" | "income-reality" | "settings" | "billing";
 
@@ -35,20 +36,24 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
           <h1 className="text-lg font-bold tracking-tight text-foreground">Money Health</h1>
         </div>
 
-        {/* Far Right: Avatar Menu */}
-        <AvatarMenu
-          src={avatarUrl}
-          name={fullName}
-          isActive={["settings", "billing"].includes(currentView)}
-          onSettings={() => {
-            navigate("/profile");
-          }}
-          onBilling={() => {
-            navigate("/billing");
-          }}
-        />
+        {/* Far Right: CTA + Avatar Menu */}
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" className="font-medium">
+            Improve my position
+          </Button>
+          <AvatarMenu
+            src={avatarUrl}
+            name={fullName}
+            isActive={["settings", "billing"].includes(currentView)}
+            onSettings={() => {
+              navigate("/profile");
+            }}
+            onBilling={() => {
+              navigate("/billing");
+            }}
+          />
+        </div>
       </div>
-
       {/* Row 2: AI Chatbar (Hidden for now) */}
       {/* <div className="flex justify-center">
                     <div className="relative w-full max-w-2xl">

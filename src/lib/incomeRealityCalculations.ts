@@ -4,6 +4,7 @@ export const DEFAULT_EXPENSES = {
   transport: 600,
   utilities: 300,
   others: 100,
+  entertainment: 500,
 };
 
 export interface ExpenseAssumptions {
@@ -11,10 +12,11 @@ export interface ExpenseAssumptions {
   transport: number;
   utilities: number;
   others: number;
+  entertainment: number;
 }
 
 export function getBaseEssentials(expenses: ExpenseAssumptions): number {
-  return expenses.food + expenses.transport + expenses.utilities + expenses.others;
+  return expenses.food + expenses.transport + expenses.utilities + expenses.others + expenses.entertainment;
 }
 // Household multipliers
 const HOUSEHOLD_MULTIPLIERS: Record<string, number> = {

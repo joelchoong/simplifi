@@ -31,6 +31,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     expenseTransport: 600,
     expenseUtilities: 300,
     expenseOthers: 100,
+    expenseEntertainment: 500,
   });
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -62,7 +63,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('monthly_income, current_epf_amount, age, housing_cost, household_type, dependants, location, expense_food, expense_transport, expense_utilities, expense_others')
+        .select('monthly_income, current_epf_amount, age, housing_cost, household_type, dependants, location, expense_food, expense_transport, expense_utilities, expense_others, expense_entertainment')
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -81,6 +82,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           expenseTransport: d.expense_transport ?? 600,
           expenseUtilities: d.expense_utilities ?? 300,
           expenseOthers: d.expense_others ?? 100,
+          expenseEntertainment: d.expense_entertainment ?? 500,
         });
       }
     } catch (error) {
@@ -159,6 +161,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     expenseTransport: number;
     expenseUtilities: number;
     expenseOthers: number;
+    expenseEntertainment: number;
   }) => {
     if (!user) return;
 
@@ -175,6 +178,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           expense_transport: data.expenseTransport,
           expense_utilities: data.expenseUtilities,
           expense_others: data.expenseOthers,
+          expense_entertainment: data.expenseEntertainment,
         })
         .eq('user_id', user.id);
 
@@ -295,6 +299,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       transport: profileData.expenseTransport,
                       utilities: profileData.expenseUtilities,
                       others: profileData.expenseOthers,
+                      entertainment: profileData.expenseEntertainment,
                     }}
                     onSave={handleIncomeRealitySave}
                   />

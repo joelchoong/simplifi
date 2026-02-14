@@ -22,6 +22,7 @@ export type Database = {
           current_epf_amount: number | null
           dependants: number | null
           email: string | null
+          expense_entertainment: number | null
           expense_food: number | null
           expense_others: number | null
           expense_transport: number | null
@@ -42,6 +43,7 @@ export type Database = {
           current_epf_amount?: number | null
           dependants?: number | null
           email?: string | null
+          expense_entertainment?: number | null
           expense_food?: number | null
           expense_others?: number | null
           expense_transport?: number | null
@@ -62,6 +64,7 @@ export type Database = {
           current_epf_amount?: number | null
           dependants?: number | null
           email?: string | null
+          expense_entertainment?: number | null
           expense_food?: number | null
           expense_others?: number | null
           expense_transport?: number | null

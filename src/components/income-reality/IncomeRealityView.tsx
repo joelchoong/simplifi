@@ -23,6 +23,7 @@ interface IncomeRealityViewProps {
     expenseTransport: number;
     expenseUtilities: number;
     expenseOthers: number;
+    expenseEntertainment: number;
   }) => void;
 }
 
@@ -108,6 +109,7 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
         expenseTransport: data.expenses.transport,
         expenseUtilities: data.expenses.utilities,
         expenseOthers: data.expenses.others,
+        expenseEntertainment: data.expenses.entertainment,
       });
     }
   };

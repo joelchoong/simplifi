@@ -170,7 +170,7 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
                                         e.currentTarget.blur();
                                     }
                                 }}
-                                className="pl-10 text-lg font-bold h-12 border-2 focus-visible:ring-primary/20"
+                                className="pl-10 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
                             />
                         </div>
                     </div>

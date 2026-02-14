@@ -8,7 +8,7 @@ interface RetirementViewProps {
     initialMonthlyIncome?: number;
     initialCurrentEPF?: number;
     initialAge?: number;
-    baselineLifeCost?: number;
+    maxSpendAmount?: number;
     onSave: (data: { monthlyIncome: number; currentEPF: number; age: number }) => void;
 }
 
@@ -16,7 +16,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
     initialMonthlyIncome = 5000,
     initialCurrentEPF = 50000,
     initialAge = 25,
-    baselineLifeCost = 0,
+    maxSpendAmount = 0,
     onSave,
 }) => {
     const [epfData, setEpfData] = useState<EPFData[]>([]);
@@ -26,7 +26,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
     const [retirementAge, setRetirementAge] = useState(60);
 
     // Use income reality baseline life cost as default monthly expenses
-    const [monthlyExpenses, setMonthlyExpenses] = useState(baselineLifeCost);
+    const [monthlyExpenses, setMonthlyExpenses] = useState(maxSpendAmount);
 
     // Custom rates state
     const [customRates, setCustomRates] = useState<{
@@ -174,7 +174,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                         initialMonthlyIncome={initialMonthlyIncome}
                         initialCurrentEPF={initialCurrentEPF}
                         initialAge={initialAge}
-                        baselineLifeCost={baselineLifeCost}
+                        maxSpendAmount={maxSpendAmount}
                         onSave={handleSave}
                     />
                 </div>

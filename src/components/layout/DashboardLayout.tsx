@@ -6,7 +6,7 @@ import { Activity, LayoutGrid, Palmtree, Scale } from "lucide-react";
 import RetirementView from "@/components/retirement/RetirementView";
 import IncomeRealityView from "@/components/income-reality/IncomeRealityView";
 import { supabase } from "@/integrations/supabase/client";
-import { calculateIncomeReality, type HouseholdType, type Location } from "@/lib/incomeRealityCalculations";
+import { calculateSustainableWithdrawal } from "@/lib/epfCalculations";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardLayoutProps {
@@ -268,21 +268,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     initialMonthlyIncome={profileData.monthlyIncome}
                     initialCurrentEPF={profileData.currentEPF}
                     initialAge={profileData.age}
-                    baselineLifeCost={(() => {
-                      const result = calculateIncomeReality(
-                        profileData.monthlyIncome,
-                        profileData.housingCost,
-                        profileData.householdType as HouseholdType,
-                        profileData.dependants,
-                        profileData.location as Location,
-                        {
-                          food: profileData.expenseFood,
-                          transport: profileData.expenseTransport,
-                          utilities: profileData.expenseUtilities,
-                          others: profileData.expenseOthers,
-                        }
-                      );
-                      return Math.round(result.baselineLifeCost);
+                    maxSpendAmount={(() => {
+                      if (!profileData.age || profileData.age < 18 || profileData.age > 60 || !profileData.monthlyIncome) return 0;
+                      return calculateSustainableWithdrawal({
+                        currentAge: profileData.age,
+                        retirementAge: 60,
+                        targetAge: 90,
+                        monthlyIncome: profileData.monthlyIncome,
+                        currentEPFAmount: profileData.currentEPF,
+                      });
                     })()}
                     onSave={handleRetirementSave}
                   />

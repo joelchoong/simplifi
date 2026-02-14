@@ -31,7 +31,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
         </Link>
 
         {/* Center: Page Title (clickable) */}
-        <Link to="/money-health" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link to="/money-health" className="story-link absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
           <Activity className="h-5 w-5 text-primary" />
           <h1 className="text-lg font-bold tracking-tight text-foreground">Money Health</h1>
         </Link>

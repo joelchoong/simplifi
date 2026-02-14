@@ -101,11 +101,6 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     const formatted = Math.round(num).toString();
     setMonthlyIncome(formatted);
 
-    // Only save if value actually changed
-    if (num === initialValuesRef.current.monthlyIncome) {
-      return;
-    }
-
     // Auto-update employer rate based on income
     const defaultEmployerRate = num <= 5000 ? "13" : "12";
     if (!employerRate || employerRate === "12" || employerRate === "13") {
@@ -114,10 +109,9 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
 
     const rates = getCurrentRates();
 
-    // Auto-update expenses if not custom
-    let activeExpenses = parseFloat(monthlyExpenses) || 0;
+    // Auto-update expenses if not custom — pre-calculate with new income to avoid stale prop
+    let activeExpenses: number | undefined;
     if (!isExpensesCustom) {
-      // Pre-calculate the NEW maxSpendAmount locally to avoid stale state in save
       const newMaxSpend = calculateSustainableWithdrawal({
         currentAge: parseInt(age) || 25,
         retirementAge: parseInt(retirementAge) || 60,
@@ -132,27 +126,12 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
       setMonthlyExpenses(Math.round(newMaxSpend).toString());
     }
 
-    triggerSave(
-      num,
-      parseFloat(currentEPF) || 0,
-      parseInt(age) || 25,
-      rates.employeeRate,
-      rates.employerRate,
-      rates.dividendRate,
-      undefined,
-      activeExpenses // Pass the freshly calculated expense
-    );
+    triggerSave(num, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, activeExpenses);
   };
 
   const handleEPFBlur = () => {
     const num = parseFloat(currentEPF) || 0;
     setCurrentEPF(Math.round(num).toString());
-
-    // Only save if value actually changed
-    if (num === initialValuesRef.current.currentEPF) {
-      return;
-    }
-
     const rates = getCurrentRates();
     triggerSave(parseFloat(monthlyIncome) || 0, num, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate);
   };
@@ -160,12 +139,6 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
   const handleAgeBlur = () => {
     const userAge = parseInt(age) || 25;
     setAge(userAge.toString());
-
-    // Only save if value actually changed
-    if (userAge === initialValuesRef.current.age) {
-      return;
-    }
-
     const rates = getCurrentRates();
     triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, userAge, rates.employeeRate, rates.employerRate, rates.dividendRate);
   };

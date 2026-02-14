@@ -30,11 +30,11 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
           />
         </Link>
 
-        {/* Center: Page Title */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+        {/* Center: Page Title (clickable) */}
+        <Link to="/money-health" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Activity className="h-5 w-5 text-primary" />
           <h1 className="text-lg font-bold tracking-tight text-foreground">Money Health</h1>
-        </div>
+        </Link>
 
         {/* Far Right: CTA + Avatar Menu */}
         <div className="flex items-center gap-3">

@@ -25,7 +25,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
           <img
             src={logo}
             alt="SimpliFi Logo"
-            className="w-10 h-10 object-contain transition-transform group-hover:scale-110"
+            className="w-16 h-16 object-contain transition-transform group-hover:scale-110"
           />
         </Link>
 
@@ -76,8 +76,9 @@ const HeaderTab: React.FC<{
 }> = ({ label, icon, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${active ? "bg-green-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-      }`}
+    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+      active ? "bg-green-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+    }`}
     aria-current={active ? "page" : undefined}
   >
     {icon}

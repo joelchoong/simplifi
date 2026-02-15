@@ -234,7 +234,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       }`}
                   >
                     <LayoutGrid className="w-4 h-4" />
-                    Classification
+                    <span className="hidden sm:inline">Classification</span>
                   </button>
                   <button
                     onClick={() => setCurrentView('retirement')}
@@ -244,7 +244,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       }`}
                   >
                     <Palmtree className="w-4 h-4" />
-                    Retirement
+                    <span className="hidden sm:inline">Retirement</span>
                   </button>
                   <button
                     onClick={() => setCurrentView('income-reality')}
@@ -254,7 +254,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       }`}
                   >
                     <Scale className="w-4 h-4" />
-                    Income Reality
+                    <span className="hidden sm:inline">Income Reality</span>
                   </button>
                 </div>
               </div>

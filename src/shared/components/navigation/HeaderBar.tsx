@@ -31,7 +31,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
           <img
             src="/favicon.png"
             alt="SimpliFi Logo"
-            className="block sm:hidden w-9 h-9 object-contain transition-transform group-hover:scale-110"
+            className="block sm:hidden w-9 h-9 object-contain transition-transform group-hover:scale-110 mix-blend-multiply"
           />
         </Link>
 

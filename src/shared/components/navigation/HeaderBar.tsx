@@ -31,9 +31,12 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
         </Link>
 
         {/* Center: Page Title (clickable) */}
-        <Link to="/money-health" className="group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+        <Link
+          to="/money-health"
+          className="group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2"
+        >
           <Activity className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110" />
-          <span className="relative text-lg font-bold tracking-tight text-foreground hidden sm:inline">
+          <span className="relative text-lg tracking-tight text-foreground hidden sm:inline">
             Money Health
             <span className="absolute left-0 -bottom-0.5 h-0.5 w-full origin-left scale-x-0 bg-primary transition-transform duration-300 group-hover:scale-x-100" />
           </span>
@@ -41,10 +44,18 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
 
         {/* Far Right: CTA + Avatar Menu */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button variant="outline" size="icon" className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 sm:hidden h-9 w-9">
+          <Button
+            variant="outline"
+            size="icon"
+            className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 sm:hidden h-9 w-9"
+          >
             <TrendingUp className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hidden sm:inline-flex">
+          <Button
+            variant="outline"
+            size="sm"
+            className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hidden sm:inline-flex"
+          >
             <TrendingUp className="h-4 w-4" />
             Improve my position
           </Button>

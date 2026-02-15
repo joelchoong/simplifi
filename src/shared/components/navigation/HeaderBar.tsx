@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity } from "lucide-react";
+import { Activity, TrendingUp } from "lucide-react";
 import AvatarMenu from "./AvatarMenu";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
@@ -42,6 +42,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
         {/* Far Right: CTA + Avatar Menu */}
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <TrendingUp className="h-4 w-4" />
             Improve my position
           </Button>
           <AvatarMenu

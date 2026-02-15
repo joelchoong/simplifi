@@ -36,7 +36,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
           className="group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2"
         >
           <Activity className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110" />
-          <span className="relative text-lg tracking-tight text-foreground hidden sm:inline">
+          <span className="relative text-l font-bold tracking-tight text-foreground hidden sm:inline">
             Money Health
             <span className="absolute left-0 -bottom-0.5 h-0.5 w-full origin-left scale-x-0 bg-primary transition-transform duration-300 group-hover:scale-x-100" />
           </span>

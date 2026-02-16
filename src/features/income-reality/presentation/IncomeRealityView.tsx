@@ -112,13 +112,13 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Left: Chart */}
-        <div className="lg:col-span-7 xl:col-span-8">
-          <section className="bg-card border border-border rounded-2xl shadow-sm p-4">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-foreground">Can your income support your life?</h2>
+        {/* Chart */}
+        <div className="lg:col-span-7 xl:col-span-8 order-2 lg:order-1">
+          <section className="bg-card border border-border rounded-2xl shadow-sm p-3 sm:p-4">
+            <div className="mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">Can your income support your life?</h2>
             </div>
-            <div className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border p-4 h-[400px]">
+            <div className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border p-2 sm:p-4 h-[320px] sm:h-[400px]">
               <IncomeRealityChart
                 result={result}
                 sustainableWithdrawal={sustainableWithdrawal}
@@ -128,8 +128,8 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
           </section>
         </div>
 
-        {/* Right: Inputs */}
-        <div className="lg:col-span-5 xl:col-span-4">
+        {/* Inputs */}
+        <div className="lg:col-span-5 xl:col-span-4 order-1 lg:order-2">
           <IncomeRealityInputs
             initialMonthlyIncome={initialMonthlyIncome}
             initialHousingCost={initialHousingCost}

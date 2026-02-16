@@ -70,11 +70,11 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
 
       {/* Bar chart */}
       <TooltipProvider delayDuration={0}>
-        <div className="flex items-end justify-center gap-2 pb-2 h-full flex-1 w-full">
+        <div className="flex items-end justify-center gap-1.5 sm:gap-2 pb-2 h-full flex-1 w-full">
           {/* GROUP: TODAY */}
-          <div className="flex items-end justify-center gap-3 px-2 py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 h-full flex-1">
+          <div className="flex items-end justify-center gap-1.5 sm:gap-3 px-1.5 sm:px-2 py-2 sm:py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 h-full flex-1">
             {/* 1. Current Income */}
-            <div className="flex flex-col items-center gap-1.5 w-20 h-full justify-end">
+            <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end">
               <span className="text-[10px] font-bold text-foreground">{formatRM(monthlyIncome)}</span>
               <div
                 className="w-full rounded-t-lg bg-emerald-500/80 dark:bg-emerald-500/70 shadow-sm flex items-center justify-center"
@@ -86,7 +86,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
             </div>
 
             {/* 2. Today's Life Cost */}
-            <div className="flex flex-col items-center gap-1.5 w-20 h-full justify-end">
+            <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end">
               <span className="text-[10px] font-bold text-foreground">{formatRM(baselineLifeCost)}</span>
               <div
                 className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm"
@@ -123,11 +123,11 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
           <div className="w-2" />
 
           {/* GROUP: RETIREMENT */}
-          <div className="flex items-end justify-center gap-3 px-2 py-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 h-full flex-1">
+          <div className="flex items-end justify-center gap-1.5 sm:gap-3 px-1.5 sm:px-2 py-2 sm:py-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 h-full flex-1">
             {/* 3. Sustainable Spend (Max Spend) */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex flex-col items-center gap-1.5 w-20 h-full justify-end cursor-help group">
+                <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(sustainableWithdrawal)}</span>
                   <div
                     className="w-full rounded-t-lg bg-indigo-600/80 dark:bg-indigo-600/70 shadow-sm transition-opacity group-hover:opacity-80 flex items-center justify-center"
@@ -146,7 +146,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
             {/* 4. Recommended Breakdown */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex flex-col items-center gap-1.5 w-20 h-full justify-end cursor-help group">
+                <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(recommendedBarTotal)}</span>
                   <div
                     className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm transition-opacity group-hover:opacity-80"

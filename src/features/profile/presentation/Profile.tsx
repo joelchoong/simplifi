@@ -221,7 +221,7 @@ export default function Profile() {
                       <div className="flex items-start gap-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
                         <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                         <p className="text-xs text-amber-700 dark:text-amber-300">
-                          A verification email will be sent to both your current and new email. You must confirm from both to complete the change.
+                          A verification email will be sent to your new email address. You must confirm it to complete the change.
                         </p>
                       </div>
                       <div className="flex gap-2">

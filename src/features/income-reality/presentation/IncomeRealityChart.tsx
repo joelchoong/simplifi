@@ -20,40 +20,36 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
     );
   }
 
-  const { monthlyIncome, baselineLifeCost, surplus, coveragePercent, locationAdjusted, othersCost, housingCost } = result;
+  const { monthlyIncome, baselineLifeCost, surplus, coveragePercent, locationAdjusted, othersCost, entertainmentCost, housingCost } = result;
+
+  // Split life cost: essentials = locationAdjusted - othersCost - entertainmentCost
+  const pureEssentials = locationAdjusted - othersCost - entertainmentCost;
 
   // Recommended Breakdown Logic
-  // 1. Target total is Max Spend rounded down to nearest 1000
   const recommendedTotal = Math.floor(sustainableWithdrawal / 1000) * 1000;
-
-  // 2. Fixed costs (Housing + Essentials)
-  const essentialsOnly = locationAdjusted - othersCost; // This is redundant with line 34, so remove line 34-37 block below and consolidate here
-
-  // 3. Calculate "Others" as the remainder
-  // If basics exceed recommended, Others is 0 (and total will exceed recommended)
+  const essentialsOnly = pureEssentials + entertainmentCost; // for recommended calc
   const recommendedOthers = Math.max(0, recommendedTotal - housingCost - essentialsOnly);
-
-  // 4. Actual height of the recommended bar
   const recommendedBarTotal = housingCost + essentialsOnly + recommendedOthers;
 
   // Calculate max value with headroom
   const maxVal = Math.max(monthlyIncome, baselineLifeCost, sustainableWithdrawal, retirementDividends, recommendedBarTotal, 1000) * 1.15;
 
   const incomeHeight = (monthlyIncome / maxVal) * 100;
-  const retirementIncomeHeight = (retirementDividends / maxVal) * 100;
   const sustainableSpendHeight = (sustainableWithdrawal / maxVal) * 100;
 
   // Breakdown heights for Today
-  const essentialsHeight = (essentialsOnly / maxVal) * 100;
+  const pureEssentialsHeight = (pureEssentials / maxVal) * 100;
+  const entertainmentHeight = (entertainmentCost / maxVal) * 100;
   const othersHeight = (othersCost / maxVal) * 100;
   const housingHeight = (housingCost / maxVal) * 100;
-  const totalCostHeight = essentialsHeight + othersHeight + housingHeight;
+  const totalCostHeight = pureEssentialsHeight + entertainmentHeight + othersHeight + housingHeight;
 
   // Breakdown heights for Recommended
   const recHousingHeight = (housingCost / maxVal) * 100;
-  const recEssentialsHeight = (essentialsOnly / maxVal) * 100;
+  const recEssentialsHeight = (pureEssentials / maxVal) * 100;
+  const recEntertainmentHeight = (entertainmentCost / maxVal) * 100;
   const recOthersHeight = (recommendedOthers / maxVal) * 100;
-  const recTotalHeight = recHousingHeight + recEssentialsHeight + recOthersHeight;
+  const recTotalHeight = recHousingHeight + recEssentialsHeight + recEntertainmentHeight + recOthersHeight;
 
   return (
     <div className="h-full flex flex-col">
@@ -108,11 +104,19 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                     {othersHeight / totalCostHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Others</span>}
                   </div>
                 )}
+                {entertainmentCost > 0 && (
+                  <div
+                    className="w-full bg-purple-400/80 dark:bg-purple-400/70 flex items-center justify-center border-b border-white/10"
+                    style={{ height: `${(entertainmentHeight / totalCostHeight) * 100}%` }}
+                  >
+                    {entertainmentHeight / totalCostHeight > 0.12 && <span className="text-[8px] font-bold text-white/90">Entertain</span>}
+                  </div>
+                )}
                 <div
                   className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center"
-                  style={{ height: `${(essentialsHeight / totalCostHeight) * 100}%` }}
+                  style={{ height: `${(pureEssentialsHeight / totalCostHeight) * 100}%` }}
                 >
-                  {essentialsHeight / totalCostHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Life Cost</span>}
+                  {pureEssentialsHeight / totalCostHeight > 0.12 && <span className="text-[8px] font-bold text-white/90">Essentials</span>}
                 </div>
               </div>
               <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight">Expenses</span>
@@ -168,11 +172,19 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                         {recOthersHeight / recTotalHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Others</span>}
                       </div>
                     )}
+                    {entertainmentCost > 0 && (
+                      <div
+                        className="w-full bg-purple-400/80 dark:bg-purple-400/70 flex items-center justify-center border-b border-white/10"
+                        style={{ height: `${(recEntertainmentHeight / recTotalHeight) * 100}%` }}
+                      >
+                        {recEntertainmentHeight / recTotalHeight > 0.12 && <span className="text-[8px] font-bold text-white/90">Entertain</span>}
+                      </div>
+                    )}
                     <div
                       className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center"
                       style={{ height: `${(recEssentialsHeight / recTotalHeight) * 100}%` }}
                     >
-                      {recEssentialsHeight / recTotalHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Life Cost</span>}
+                      {recEssentialsHeight / recTotalHeight > 0.12 && <span className="text-[8px] font-bold text-white/90">Essentials</span>}
                     </div>
                   </div>
                   <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight border-b border-dashed border-muted-foreground/30">Recommended</span>

@@ -7,7 +7,7 @@ import { Label } from "@/shared/components/ui/label";
 import { useAuth } from "@/features/auth/data/useAuth";
 import { supabase } from "@/shared/integrations/supabase/client";
 import { useToast } from "@/shared/hooks/use-toast";
-import { User, Mail, Banknote, ShieldCheck, Save, Loader2, KeyRound } from "lucide-react";
+import { User, Mail, Banknote, ShieldCheck, Save, Loader2, KeyRound, AlertCircle } from "lucide-react";
 import { z } from "zod";
 import { profileUpdateSchema } from "@/shared/lib/validation";
 
@@ -34,6 +34,9 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<{ password?: string; confirm?: string }>({});
+  const [emailEditing, setEmailEditing] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -183,16 +186,77 @@ export default function Profile() {
 
                 <div className="grid gap-2">
                   <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      className="pl-10 h-11 bg-muted/30 border-muted text-muted-foreground cursor-not-allowed"
-                      value={profile.email || ""}
-                      disabled
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">Email is managed via your authentication provider</p>
+                  {!emailEditing ? (
+                    <>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          className="pl-10 h-11 bg-muted/30 border-muted text-muted-foreground cursor-not-allowed"
+                          value={profile.email || ""}
+                          disabled
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setNewEmail(profile.email || ""); setEmailEditing(true); }}
+                        className="text-xs text-emerald-600 hover:text-emerald-700 underline underline-offset-2 text-left w-fit"
+                      >
+                        Change email address
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="newEmail"
+                          type="email"
+                          className="pl-10 h-11 focus:ring-emerald-500"
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                          placeholder="Enter new email address"
+                        />
+                      </div>
+                      <div className="flex items-start gap-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          A verification email will be sent to both your current and new email. You must confirm from both to complete the change.
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEmailEditing(false)}
+                          className="text-xs"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={savingEmail || !newEmail || newEmail === profile.email}
+                          onClick={async () => {
+                            setSavingEmail(true);
+                            const { error } = await supabase.auth.updateUser({ email: newEmail });
+                            if (error) {
+                              toast({ title: "Error", description: error.message, variant: "destructive" });
+                            } else {
+                              toast({
+                                title: "Verification email sent",
+                                description: "Please check both your current and new email to confirm the change.",
+                              });
+                              setEmailEditing(false);
+                            }
+                            setSavingEmail(false);
+                          }}
+                          className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                          {savingEmail ? <Loader2 className="w-3 h-3 animate-spin" /> : "Update Email"}
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="pt-4 border-t border-emerald-50">

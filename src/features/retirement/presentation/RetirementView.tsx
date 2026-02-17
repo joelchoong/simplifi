@@ -19,7 +19,6 @@ const RetirementView: React.FC<RetirementViewProps> = ({
     maxSpendAmount = 0,
     onSave,
 }) => {
-    const [epfData, setEpfData] = useState<EPFData[]>([]);
     const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome);
     const [currentEPF, setCurrentEPF] = useState(initialCurrentEPF);
     const [age, setAge] = useState(initialAge);
@@ -42,10 +41,10 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         setAge(initialAge);
     }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
 
-    // Calculate projection whenever inputs change
-    useEffect(() => {
+    // Calculate projection synchronously via useMemo to avoid stale state issues
+    const epfData = useMemo<EPFData[]>(() => {
         if (monthlyIncome > 0 && age >= 18 && age <= 60) {
-            const projection = calculateEPFProjection({
+            return calculateEPFProjection({
                 currentAge: age,
                 retirementAge,
                 targetAge: 90,
@@ -56,11 +55,9 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                 annualDividendRate: customRates.dividendRate,
                 monthlyExpenses,
             });
-            setEpfData(projection);
-        } else {
-            setEpfData([]);
         }
-    }, [monthlyIncome, currentEPF, age, retirementAge, monthlyExpenses, customRates]);
+        return [];
+    }, [monthlyIncome, currentEPF, age, retirementAge, monthlyExpenses, customRates.employeeRate, customRates.employerRate, customRates.dividendRate]);
 
     // Calculate key metrics for green highlights
     const epfAtRetirement = useMemo(() => {

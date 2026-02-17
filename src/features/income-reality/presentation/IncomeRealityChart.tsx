@@ -109,7 +109,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                     className="w-full bg-purple-400/80 dark:bg-purple-400/70 flex items-center justify-center border-b border-white/10"
                     style={{ height: `${(entertainmentHeight / totalCostHeight) * 100}%` }}
                   >
-                    {entertainmentHeight / totalCostHeight > 0.12 && <span className="text-[8px] font-bold text-white/90">Entertain</span>}
+                    <span className="text-[8px] font-bold text-white/90">Entertain</span>
                   </div>
                 )}
                 <div
@@ -177,7 +177,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                         className="w-full bg-purple-400/80 dark:bg-purple-400/70 flex items-center justify-center border-b border-white/10"
                         style={{ height: `${(recEntertainmentHeight / recTotalHeight) * 100}%` }}
                       >
-                        {recEntertainmentHeight / recTotalHeight > 0.12 && <span className="text-[8px] font-bold text-white/90">Entertain</span>}
+                        <span className="text-[8px] font-bold text-white/90">Entertain</span>
                       </div>
                     )}
                     <div

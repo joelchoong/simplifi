@@ -53,6 +53,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
             variant="outline"
             size="icon"
             className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 sm:hidden h-9 w-9"
+            onClick={() => navigate("/improve")}
           >
             <TrendingUp className="h-4 w-4" />
           </Button>
@@ -60,6 +61,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
             variant="outline"
             size="sm"
             className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hidden sm:inline-flex"
+            onClick={() => navigate("/improve")}
           >
             <TrendingUp className="h-4 w-4" />
             Improve my position

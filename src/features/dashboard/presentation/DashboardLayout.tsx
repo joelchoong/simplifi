@@ -5,6 +5,7 @@ import { HeaderBar, View } from "@/shared/components/navigation/HeaderBar";
 import { Activity, LayoutGrid, Palmtree, Scale } from "lucide-react";
 import RetirementView from "@/features/retirement/presentation/RetirementView";
 import IncomeRealityView from "@/features/income-reality/presentation/IncomeRealityView";
+import ImprovePositionView from "@/features/improve/presentation/ImprovePositionView";
 import { supabase } from "@/shared/integrations/supabase/client";
 import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -36,6 +37,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [dataLoading, setDataLoading] = useState(true);
 
   const isDashboard = location.pathname === "/money-health";
+  const isImprove = location.pathname === "/improve";
 
   useEffect(() => {
     if (!loading && !user) {
@@ -261,7 +263,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           )}
           <div className="mx-auto max-w-6xl">
-            {isDashboard ? (
+            {isImprove ? (
+              <ImprovePositionView />
+            ) : isDashboard ? (
               <>
                 {currentView === 'classification' && enhancedChildren}
                 {currentView === 'retirement' && (

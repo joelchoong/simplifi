@@ -255,22 +255,34 @@ const ImprovePositionView: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground leading-relaxed pb-4 border-b border-border/40">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Understanding your position is the first step. A <strong className="text-foreground">licensed advisor</strong> can help you decide which lever to pull — and build a plan around your specific life situation.
               </p>
 
-              {mockAdvisors.map((advisor) => (
-                <AdvisorCard key={advisor.name} advisor={advisor} />
-              ))}
+              {/* Coming Soon Overlay */}
+              <div className="relative mt-2">
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-[2px] rounded-xl">
+                  <Badge variant="outline" className="text-sm font-bold px-4 py-1.5 border-primary/30 text-primary bg-accent mb-2">
+                    Coming Soon
+                  </Badge>
+                  <p className="text-xs text-muted-foreground text-center max-w-[260px]">
+                    We're onboarding licensed financial advisors matched to your profile.
+                  </p>
+                </div>
 
-              {/* See more */}
-              <div className="text-center py-3 border border-dashed border-emerald-200 dark:border-emerald-800 rounded-xl cursor-pointer hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-colors">
-                <span className="text-sm font-semibold text-primary">View more advisors →</span>
+                <div className="opacity-40 pointer-events-none space-y-4">
+                  {mockAdvisors.map((advisor) => (
+                    <AdvisorCard key={advisor.name} advisor={advisor} />
+                  ))}
+
+                  <div className="text-center py-3 border border-dashed border-border/40 rounded-xl">
+                    <span className="text-sm font-semibold text-muted-foreground">View more advisors →</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Disclaimer */}
-              <p className="text-[11px] text-muted-foreground/60 text-center leading-relaxed">
-                All advisors are independently licensed and regulated. SimpliFi does not provide financial advice. Connections are currently free.
+              <p className="text-[11px] text-muted-foreground/60 text-center leading-relaxed mt-2">
+                All advisors are independently licensed and regulated. SimpliFi does not provide financial advice.
               </p>
             </CardContent>
           </Card>

@@ -53,6 +53,11 @@
     --emerald-700: 158 64% 32%;
     --cyan-50: 183 100% 96%;
     --cyan-600: 192 91% 36%;
+
+    /* Phase colors */
+    --phase-stabilise: 20 80% 55%;
+    --phase-strengthen: 220 70% 55%;
+    --phase-scale: 270 60% 55%;
   }
 
   .dark {
@@ -92,6 +97,11 @@
     --sidebar-accent-foreground: 158 64% 52%;
     --sidebar-border: 160 15% 18%;
     --sidebar-ring: 158 64% 52%;
+
+    /* Phase colors */
+    --phase-stabilise: 20 80% 60%;
+    --phase-strengthen: 220 70% 65%;
+    --phase-scale: 270 60% 65%;
   }
 }
 

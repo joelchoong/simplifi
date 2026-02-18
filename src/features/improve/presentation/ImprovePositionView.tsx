@@ -4,7 +4,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Search, Compass, TrendingUp, Rocket, MapPin, Lightbulb, CheckCircle2 } from 'lucide-react';
 
-type Phase = 'stabilise' | 'optimise' | 'upgrade';
+type Phase = 'stabilise' | 'strengthen' | 'scale';
 
 interface PositionSummary {
   surplus: number;
@@ -25,8 +25,8 @@ const mockPosition: PositionSummary = {
 
 function getPhase(surplus: number, retirementMaxSpend: number, currentSpend: number): Phase {
   if (surplus < 0) return 'stabilise';
-  if (currentSpend > retirementMaxSpend * 0.9) return 'optimise';
-  return 'upgrade';
+  if (currentSpend > retirementMaxSpend * 0.9) return 'strengthen';
+  return 'scale';
 }
 
 const phaseConfig: Record<Phase, { icon: React.ReactNode; label: string; description: string; color: string; bgClass: string; borderClass: string; badgeClass: string }> = {
@@ -34,28 +34,28 @@ const phaseConfig: Record<Phase, { icon: React.ReactNode; label: string; descrip
     icon: <Compass className="w-5 h-5" />,
     label: 'Stabilise',
     description: "You're in deficit. Focus on reaching break-even first.",
-    color: 'text-accent-foreground',
-    bgClass: 'bg-accent',
-    borderClass: 'border-primary/20',
-    badgeClass: 'bg-accent text-accent-foreground border-primary/20',
+    color: 'text-phase-stabilise',
+    bgClass: 'bg-phase-stabilise/10',
+    borderClass: 'border-phase-stabilise/20',
+    badgeClass: 'bg-phase-stabilise/10 text-phase-stabilise border-phase-stabilise/20',
   },
-  optimise: {
+  strengthen: {
     icon: <TrendingUp className="w-5 h-5" />,
-    label: 'Optimise',
-    description: "You're stable but constrained. Time to improve efficiency.",
-    color: 'text-accent-foreground',
-    bgClass: 'bg-accent',
-    borderClass: 'border-primary/20',
-    badgeClass: 'bg-accent text-accent-foreground border-primary/20',
+    label: 'Strengthen',
+    description: "You're break-even or in surplus. Build your financial foundation.",
+    color: 'text-phase-strengthen',
+    bgClass: 'bg-phase-strengthen/10',
+    borderClass: 'border-phase-strengthen/20',
+    badgeClass: 'bg-phase-strengthen/10 text-phase-strengthen border-phase-strengthen/20',
   },
-  upgrade: {
+  scale: {
     icon: <Rocket className="w-5 h-5" />,
-    label: 'Upgrade',
-    description: "You're in a strong position. Push for acceleration.",
-    color: 'text-primary',
-    bgClass: 'bg-accent',
-    borderClass: 'border-primary/20',
-    badgeClass: 'bg-accent text-accent-foreground border-primary/20',
+    label: 'Scale',
+    description: "Your foundation is solid. Now grow your wealth deliberately.",
+    color: 'text-phase-scale',
+    bgClass: 'bg-phase-scale/10',
+    borderClass: 'border-phase-scale/20',
+    badgeClass: 'bg-phase-scale/10 text-phase-scale border-phase-scale/20',
   },
 };
 

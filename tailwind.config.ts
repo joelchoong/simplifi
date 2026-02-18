@@ -57,6 +57,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        phase: {
+          stabilise: "hsl(var(--phase-stabilise))",
+          strengthen: "hsl(var(--phase-strengthen))",
+          scale: "hsl(var(--phase-scale))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

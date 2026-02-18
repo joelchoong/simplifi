@@ -34,19 +34,19 @@ const phaseConfig: Record<Phase, { icon: React.ReactNode; label: string; descrip
     icon: <Compass className="w-5 h-5" />,
     label: 'Stabilise',
     description: "You're in deficit. Focus on reaching break-even first.",
-    color: 'text-amber-600 dark:text-amber-400',
-    bgClass: 'bg-amber-50 dark:bg-amber-950/30',
-    borderClass: 'border-amber-200 dark:border-amber-800/50',
-    badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-700',
+    color: 'text-accent-foreground',
+    bgClass: 'bg-accent',
+    borderClass: 'border-primary/20',
+    badgeClass: 'bg-accent text-accent-foreground border-primary/20',
   },
   optimise: {
     icon: <TrendingUp className="w-5 h-5" />,
     label: 'Optimise',
     description: "You're stable but constrained. Time to improve efficiency.",
-    color: 'text-blue-600 dark:text-blue-400',
-    bgClass: 'bg-blue-50 dark:bg-blue-950/30',
-    borderClass: 'border-blue-200 dark:border-blue-800/50',
-    badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-700',
+    color: 'text-accent-foreground',
+    bgClass: 'bg-accent',
+    borderClass: 'border-primary/20',
+    badgeClass: 'bg-accent text-accent-foreground border-primary/20',
   },
   upgrade: {
     icon: <Rocket className="w-5 h-5" />,
@@ -233,7 +233,7 @@ const ImprovePositionView: React.FC = () => {
               </div>
               <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
                 <span className="text-sm text-muted-foreground font-medium">Primary Constraint</span>
-                <Badge variant="outline" className="font-semibold text-xs border-amber-300 text-amber-700 bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:bg-amber-950/30">
+                <Badge variant="outline" className="font-semibold text-xs border-primary/30 text-accent-foreground bg-accent">
                   {position.primaryConstraint}
                 </Badge>
               </div>

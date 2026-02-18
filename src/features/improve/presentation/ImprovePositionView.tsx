@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
-import { Search, Compass, TrendingUp, Rocket, Home, Briefcase, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
+import { Search, Compass, TrendingUp, Rocket, MapPin, Lightbulb, CheckCircle2 } from 'lucide-react';
 
 type Phase = 'stabilise' | 'optimise' | 'upgrade';
 
@@ -13,13 +14,7 @@ interface PositionSummary {
   primaryConstraint: string;
 }
 
-interface ActionPath {
-  icon: React.ReactNode;
-  label: string;
-  amount: number;
-}
-
-// Static mock data for now
+// Static mock data
 const mockPosition: PositionSummary = {
   surplus: -500,
   housingRatio: 80,
@@ -38,7 +33,7 @@ const phaseConfig: Record<Phase, { icon: React.ReactNode; label: string; descrip
   stabilise: {
     icon: <Compass className="w-5 h-5" />,
     label: 'Stabilise',
-    description: 'You\'re in deficit. Focus on reaching break-even first.',
+    description: "You're in deficit. Focus on reaching break-even first.",
     color: 'text-amber-600 dark:text-amber-400',
     bgClass: 'bg-amber-50 dark:bg-amber-950/30',
     borderClass: 'border-amber-200 dark:border-amber-800/50',
@@ -47,7 +42,7 @@ const phaseConfig: Record<Phase, { icon: React.ReactNode; label: string; descrip
   optimise: {
     icon: <TrendingUp className="w-5 h-5" />,
     label: 'Optimise',
-    description: 'You\'re stable but constrained. Time to improve efficiency.',
+    description: "You're stable but constrained. Time to improve efficiency.",
     color: 'text-blue-600 dark:text-blue-400',
     bgClass: 'bg-blue-50 dark:bg-blue-950/30',
     borderClass: 'border-blue-200 dark:border-blue-800/50',
@@ -56,7 +51,7 @@ const phaseConfig: Record<Phase, { icon: React.ReactNode; label: string; descrip
   upgrade: {
     icon: <Rocket className="w-5 h-5" />,
     label: 'Upgrade',
-    description: 'You\'re in a strong position. Push for acceleration.',
+    description: "You're in a strong position. Push for acceleration.",
     color: 'text-primary',
     bgClass: 'bg-accent',
     borderClass: 'border-primary/20',
@@ -70,23 +65,119 @@ function formatRM(amount: number): string {
   return amount < 0 ? `–${formatted}` : formatted;
 }
 
+interface Advisor {
+  initials: string;
+  name: string;
+  title: string;
+  experience: string;
+  badges: { label: string; variant: 'sc' | 'fimm' | 'cfa' }[];
+  matchReason: string;
+  tags: { label: string; isMatch: boolean }[];
+  location: string;
+  avatarColor: string;
+}
+
+const mockAdvisors: Advisor[] = [
+  {
+    initials: 'AH',
+    name: 'Ahmad Hafiz',
+    title: 'Licensed Financial Planner',
+    experience: '8 years exp.',
+    badges: [{ label: 'SC Licensed', variant: 'sc' }],
+    matchReason: 'Specialises in young earners in the Stabilise phase — budgeting, housing decisions, and EPF optimisation.',
+    tags: [
+      { label: 'Housing decisions', isMatch: true },
+      { label: 'B40–M40 earners', isMatch: false },
+      { label: 'EPF planning', isMatch: false },
+      { label: 'Debt management', isMatch: false },
+    ],
+    location: 'KL / Klang Valley',
+    avatarColor: 'bg-emerald-600',
+  },
+  {
+    initials: 'NR',
+    name: 'Nurul Raziah',
+    title: 'Wealth Consultant',
+    experience: '5 years exp.',
+    badges: [{ label: 'FIMM', variant: 'fimm' }],
+    matchReason: 'Focuses on income growth strategies and lifestyle restructuring for people in deficit.',
+    tags: [
+      { label: 'Income growth', isMatch: true },
+      { label: 'Lifestyle budgeting', isMatch: false },
+      { label: 'Unit trust', isMatch: false },
+      { label: 'Emergency fund', isMatch: false },
+    ],
+    location: 'Petaling Jaya · Online available',
+    avatarColor: 'bg-violet-600',
+  },
+];
+
+const badgeStyles: Record<string, string> = {
+  sc: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800',
+  fimm: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800',
+  cfa: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-800',
+};
+
+const AdvisorCard: React.FC<{ advisor: Advisor }> = ({ advisor }) => (
+  <div className="border border-border/60 rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all cursor-pointer space-y-3">
+    {/* Top row */}
+    <div className="flex items-start gap-3">
+      <div className={`w-11 h-11 rounded-full ${advisor.avatarColor} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
+        {advisor.initials}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-sm text-foreground">{advisor.name}</p>
+        <p className="text-xs text-muted-foreground">{advisor.title} · {advisor.experience}</p>
+      </div>
+      <div className="flex gap-1.5 shrink-0">
+        {advisor.badges.map((b) => (
+          <Badge key={b.label} variant="outline" className={`text-[10px] font-semibold ${badgeStyles[b.variant]}`}>
+            <CheckCircle2 className="w-3 h-3 mr-0.5" />
+            {b.label}
+          </Badge>
+        ))}
+      </div>
+    </div>
+
+    {/* Match reason */}
+    <div className="flex items-start gap-2 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg px-3 py-2">
+      <Lightbulb className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+      <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">{advisor.matchReason}</p>
+    </div>
+
+    {/* Tags */}
+    <div className="flex flex-wrap gap-1.5">
+      {advisor.tags.map((tag) => (
+        <span
+          key={tag.label}
+          className={`text-[11px] font-medium px-2.5 py-1 rounded-full border ${
+            tag.isMatch
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/20 dark:border-emerald-800 dark:text-emerald-300'
+              : 'bg-secondary/50 border-border/40 text-muted-foreground'
+          }`}
+        >
+          {tag.label}
+        </span>
+      ))}
+    </div>
+
+    {/* Bottom */}
+    <div className="flex items-center justify-between pt-1">
+      <span className="text-xs text-muted-foreground flex items-center gap-1">
+        <MapPin className="w-3 h-3" />
+        {advisor.location}
+      </span>
+      <Button size="sm" className="h-8 text-xs font-semibold rounded-lg px-4">
+        Connect →
+      </Button>
+    </div>
+  </div>
+);
+
 const ImprovePositionView: React.FC = () => {
   const position = mockPosition;
   const phase = getPhase(position.surplus, position.retirementMaxSpend, position.currentSpend);
   const config = phaseConfig[phase];
-  const deficit = Math.abs(position.surplus);
-
-  const actionPaths: ActionPath[] = position.surplus < 0
-    ? [
-        { icon: <Home className="w-4 h-4" />, label: 'Reduce housing', amount: deficit },
-        { icon: <Briefcase className="w-4 h-4" />, label: 'Increase income', amount: deficit },
-        { icon: <ShoppingBag className="w-4 h-4" />, label: 'Reduce lifestyle', amount: deficit },
-      ]
-    : [
-        { icon: <TrendingUp className="w-4 h-4" />, label: 'Boost retirement savings', amount: 500 },
-        { icon: <Briefcase className="w-4 h-4" />, label: 'Increase income', amount: 500 },
-        { icon: <ShoppingBag className="w-4 h-4" />, label: 'Optimise spending', amount: 300 },
-      ];
 
   return (
     <div className="max-w-6xl mx-auto space-y-4">
@@ -106,7 +197,7 @@ const ImprovePositionView: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left: Position Summary */}
-        <div className="lg:col-span-5 xl:col-span-5">
+        <div className="lg:col-span-5">
           <Card className="shadow-sm border-border/60">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -115,15 +206,12 @@ const ImprovePositionView: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* Surplus / Deficit */}
               <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
                 <span className="text-sm text-muted-foreground font-medium">Surplus / Deficit</span>
                 <span className={`text-base font-bold ${position.surplus < 0 ? 'text-destructive' : 'text-primary'}`}>
                   {formatRM(position.surplus)}/mo
                 </span>
               </div>
-
-              {/* Housing Ratio */}
               <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
                 <span className="text-sm text-muted-foreground font-medium">Housing Ratio</span>
                 <div className="flex items-center gap-2">
@@ -131,30 +219,18 @@ const ImprovePositionView: React.FC = () => {
                     {position.housingRatio}%
                   </span>
                   {position.housingRatio > 30 && (
-                    <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive bg-destructive/5">
-                      High
-                    </Badge>
+                    <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive bg-destructive/5">High</Badge>
                   )}
                 </div>
               </div>
-
-              {/* Retirement Max Spend */}
               <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
                 <span className="text-sm text-muted-foreground font-medium">Retirement Max Spend</span>
-                <span className="text-base font-bold text-foreground">
-                  {formatRM(position.retirementMaxSpend)}/mo
-                </span>
+                <span className="text-base font-bold text-foreground">{formatRM(position.retirementMaxSpend)}/mo</span>
               </div>
-
-              {/* Current Spend */}
               <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
                 <span className="text-sm text-muted-foreground font-medium">Current Spend</span>
-                <span className="text-base font-bold text-foreground">
-                  {formatRM(position.currentSpend)}/mo
-                </span>
+                <span className="text-base font-bold text-foreground">{formatRM(position.currentSpend)}/mo</span>
               </div>
-
-              {/* Primary Constraint */}
               <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
                 <span className="text-sm text-muted-foreground font-medium">Primary Constraint</span>
                 <Badge variant="outline" className="font-semibold text-xs border-amber-300 text-amber-700 bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:bg-amber-950/30">
@@ -165,58 +241,37 @@ const ImprovePositionView: React.FC = () => {
           </Card>
         </div>
 
-        {/* Right: Action Paths */}
-        <div className="lg:col-span-7 xl:col-span-7">
+        {/* Right: Financial Advisors */}
+        <div className="lg:col-span-7">
           <Card className="shadow-sm border-border/60">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <ArrowRight className="h-5 w-5 text-primary" />
-                How to Improve
-              </CardTitle>
-              {position.surplus < 0 && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  You need <span className="font-bold text-foreground">+{formatRM(deficit)}/month</span> to break even.
-                  Here are the fastest mechanical paths:
-                </p>
-              )}
+              <div className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  💬 Talk to a Financial Advisor
+                </CardTitle>
+                <Badge variant="outline" className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800">
+                  Free
+                </Badge>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {actionPaths.map((path, i) => (
-                <div
-                  key={i}
-                  className="group flex items-center gap-4 py-3.5 px-4 rounded-xl border border-border/60 bg-card hover:border-primary/30 hover:bg-accent/30 transition-colors cursor-default"
-                >
-                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:bg-accent transition-colors shrink-0">
-                    {path.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{path.label}</p>
-                    <p className="text-xs text-muted-foreground">
-                      by <span className="font-bold text-foreground">{formatRM(path.amount)}/mo</span>
-                    </p>
-                  </div>
-                  {i < actionPaths.length - 1 && (
-                    <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">or</span>
-                  )}
-                </div>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground leading-relaxed pb-4 border-b border-border/40">
+                Understanding your position is the first step. A <strong className="text-foreground">licensed advisor</strong> can help you decide which lever to pull — and build a plan around your specific life situation.
+              </p>
+
+              {mockAdvisors.map((advisor) => (
+                <AdvisorCard key={advisor.name} advisor={advisor} />
               ))}
 
-              {/* Phase-specific guidance */}
-              <div className={`mt-4 p-4 rounded-xl border ${config.borderClass} ${config.bgClass}`}>
-                <div className="flex items-start gap-3">
-                  <div className={`mt-0.5 ${config.color}`}>{config.icon}</div>
-                  <div>
-                    <p className={`text-sm font-bold ${config.color}`}>
-                      Phase: {config.label}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      {phase === 'stabilise' && 'Your immediate goal is to close the deficit gap. Pick the most achievable path above and work towards it. Even a partial reduction helps.'}
-                      {phase === 'optimise' && 'You\'re covering costs but running tight on retirement capacity. Focus on increasing the gap between income and spending to build long-term resilience.'}
-                      {phase === 'upgrade' && 'You have solid coverage and strong retirement capacity. Consider accelerating savings, investing surplus, or planning for major life upgrades.'}
-                    </p>
-                  </div>
-                </div>
+              {/* See more */}
+              <div className="text-center py-3 border border-dashed border-emerald-200 dark:border-emerald-800 rounded-xl cursor-pointer hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-colors">
+                <span className="text-sm font-semibold text-primary">View more advisors →</span>
               </div>
+
+              {/* Disclaimer */}
+              <p className="text-[11px] text-muted-foreground/60 text-center leading-relaxed">
+                All advisors are independently licensed and regulated. SimpliFi does not provide financial advice. Connections are currently free.
+              </p>
             </CardContent>
           </Card>
         </div>

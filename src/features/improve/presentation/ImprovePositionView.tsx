@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Search, Compass, TrendingUp, Rocket, MapPin, Lightbulb, CheckCircle2, Info } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/components/ui/tooltip';
 import { calculateIncomeReality, ExpenseAssumptions, DEFAULT_EXPENSES, HouseholdType, Location } from '@/features/income-reality/domain/incomeRealityCalculations';
 import { calculateSustainableWithdrawal } from '@/features/retirement/domain/epfCalculations';
 
@@ -231,18 +231,30 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       {/* Phase Banner */}
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${config.bgClass} ${config.borderClass}`}>
-        <div className={config.color}>{config.icon}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={`font-bold text-sm ${config.color}`}>{config.label}</span>
-            <Badge variant="outline" className={`text-[10px] font-semibold ${config.badgeClass}`}>
-              Current Phase
-            </Badge>
+      <TooltipProvider delayDuration={200}>
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${config.bgClass} ${config.borderClass}`}>
+          <div className={config.color}>{config.icon}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className={`font-bold text-sm ${config.color}`}>{config.label}</span>
+              <Badge variant="outline" className={`text-[10px] font-semibold ${config.badgeClass}`}>
+                Current Phase
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">{config.description}</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">{config.description}</p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="w-4 h-4 text-muted-foreground shrink-0 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs space-y-2 p-3">
+              <p className="text-xs font-semibold text-phase-stabilise flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Stabilise — You're in deficit. Focus on reaching break-even first.</p>
+              <p className="text-xs font-semibold text-phase-strengthen flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Strengthen — Break-even or surplus. Build your financial foundation.</p>
+              <p className="text-xs font-semibold text-phase-scale flex items-center gap-1.5"><Rocket className="w-3.5 h-3.5" /> Scale — Foundation is solid. Grow your wealth deliberately.</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
-      </div>
+      </TooltipProvider>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left: Position Summary */}
@@ -252,6 +264,16 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Search className="h-5 w-5 text-primary" />
                 Your Position Today
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-[220px] p-2">
+                      <p className="text-xs">A snapshot of your financial health based on your current income, expenses, and retirement projections.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">

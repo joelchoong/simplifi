@@ -29,9 +29,11 @@ interface ImprovePositionViewProps {
   expenses: ExpenseAssumptions;
 }
 
-function getPhase(surplus: number, retirementMaxSpend: number, currentSpend: number): Phase {
+const T20_MIN_INCOME = 13585;
+
+function getPhase(surplus: number, monthlyIncome: number): Phase {
   if (surplus < 0) return 'stabilise';
-  if (currentSpend > retirementMaxSpend * 0.9) return 'strengthen';
+  if (monthlyIncome < T20_MIN_INCOME) return 'strengthen';
   return 'scale';
 }
 
@@ -245,7 +247,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
       primaryConstraint,
     };
   }, [monthlyIncome, housingCost, currentEPF, age, householdType, dependants, userLocation, expenses]);
-  const phase = getPhase(position.surplus, position.retirementMaxSpend, position.currentSpend);
+  const phase = getPhase(position.surplus, monthlyIncome);
   const config = phaseConfig[phase];
 
   return (

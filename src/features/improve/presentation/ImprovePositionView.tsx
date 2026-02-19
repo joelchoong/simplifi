@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import { Search, Compass, TrendingUp, Rocket, MapPin, Lightbulb, CheckCircle2, Info } from 'lucide-react';
+import { Search, Compass, TrendingUp, Rocket, MapPin, Lightbulb, CheckCircle2, Info, Check, ArrowRight } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/components/ui/tooltip';
 import { calculateIncomeReality, ExpenseAssumptions, DEFAULT_EXPENSES, HouseholdType, Location } from '@/features/income-reality/domain/incomeRealityCalculations';
 import { calculateSustainableWithdrawal } from '@/features/retirement/domain/epfCalculations';
@@ -61,6 +62,25 @@ const phaseConfig: Record<Phase, { icon: React.ReactNode; label: string; descrip
     bgClass: 'bg-phase-scale/10',
     borderClass: 'border-phase-scale/20',
     badgeClass: 'bg-phase-scale/10 text-phase-scale border-phase-scale/20',
+  },
+};
+
+const phaseOrder: Phase[] = ['stabilise', 'strengthen', 'scale'];
+
+const phaseDetails: Record<Phase, { meaning: string; focusAreas: string[]; next?: { phase: Phase; hint: string } }> = {
+  stabilise: {
+    meaning: "You're spending more than you earn. The priority is to close the gap and reach break-even.",
+    focusAreas: ['Cut non-essential spending', 'Increase income sources', 'Restructure housing costs'],
+    next: { phase: 'strengthen', hint: 'once you reach break-even' },
+  },
+  strengthen: {
+    meaning: "You're covering your expenses. Now it's time to build a buffer and grow your financial security.",
+    focusAreas: ['Build 3–6 months emergency fund', 'Optimise EPF contributions', 'Reduce high-interest debt'],
+    next: { phase: 'scale', hint: 'once your foundation is solid' },
+  },
+  scale: {
+    meaning: "Your foundation is solid. You can now focus on growing wealth and optimising for retirement.",
+    focusAreas: ['Diversify investments', 'Maximise retirement contributions', 'Build passive income streams'],
   },
 };
 
@@ -231,30 +251,107 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       {/* Phase Banner */}
-      <TooltipProvider delayDuration={200}>
-        <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${config.bgClass} ${config.borderClass}`}>
-          <div className={config.color}>{config.icon}</div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className={`font-bold text-sm ${config.color}`}>{config.label}</span>
-              <Badge variant="outline" className={`text-[10px] font-semibold ${config.badgeClass}`}>
-                Current Phase
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">{config.description}</p>
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${config.bgClass} ${config.borderClass}`}>
+        <div className={config.color}>{config.icon}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`font-bold text-sm ${config.color}`}>{config.label}</span>
+            <Badge variant="outline" className={`text-[10px] font-semibold ${config.badgeClass}`}>
+              Current Phase
+            </Badge>
           </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="w-4 h-4 text-muted-foreground shrink-0 cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="max-w-xs space-y-2 p-3">
-              <p className="text-xs font-semibold text-phase-stabilise flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Stabilise — You're in deficit. Focus on reaching break-even first.</p>
-              <p className="text-xs font-semibold text-phase-strengthen flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Strengthen — Break-even or surplus. Build your financial foundation.</p>
-              <p className="text-xs font-semibold text-phase-scale flex items-center gap-1.5"><Rocket className="w-3.5 h-3.5" /> Scale — Foundation is solid. Grow your wealth deliberately.</p>
-            </TooltipContent>
-          </Tooltip>
+          <p className="text-xs text-muted-foreground mt-0.5">{config.description}</p>
         </div>
-      </TooltipProvider>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className={`w-7 h-7 rounded-full border flex items-center justify-center shrink-0 cursor-pointer transition-colors hover:bg-background/50 ${config.borderClass}`}>
+              <Info className={`w-4 h-4 ${config.color}`} />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent side="bottom" align="end" className="w-80 p-0">
+            {/* Header */}
+            <div className="px-4 pt-4 pb-3 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <div className={`w-2.5 h-2.5 rounded-full bg-phase-${phase}`} style={{ backgroundColor: `hsl(var(--phase-${phase}))` }} />
+                <span className={`font-bold text-base ${config.color}`}>{config.label}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">Phase {phaseOrder.indexOf(phase) + 1} of 3</p>
+            </div>
+
+            {/* Stepper */}
+            <div className="px-4 py-3 border-b border-border/40">
+              <div className="flex items-center justify-between">
+                {phaseOrder.map((p, i) => {
+                  const isCurrent = p === phase;
+                  const isCompleted = phaseOrder.indexOf(p) < phaseOrder.indexOf(phase);
+                  const pConfig = phaseConfig[p];
+                  return (
+                    <React.Fragment key={p}>
+                      {i > 0 && (
+                        <div className={`flex-1 h-0.5 mx-1.5 rounded-full ${isCompleted ? `bg-phase-${phaseOrder[i - 1]}` : 'bg-border'}`}
+                          style={isCompleted ? { backgroundColor: `hsl(var(--phase-${phaseOrder[i-1]}))` } : undefined}
+                        />
+                      )}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
+                            isCompleted
+                              ? 'bg-phase-stabilise text-white border-transparent'
+                              : isCurrent
+                              ? 'border-transparent text-white'
+                              : 'border-border bg-secondary/50 text-muted-foreground'
+                          }`}
+                          style={
+                            isCompleted
+                              ? { backgroundColor: `hsl(var(--phase-${p}))` }
+                              : isCurrent
+                              ? { backgroundColor: `hsl(var(--phase-${p}))` }
+                              : undefined
+                          }
+                        >
+                          {isCompleted ? <Check className="w-4 h-4" /> : i + 1}
+                        </div>
+                        <span className={`text-[11px] font-semibold ${isCurrent ? config.color : isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {pConfig.label}
+                        </span>
+                      </div>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* What this means */}
+            <div className="px-4 py-3 space-y-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">What this means</p>
+                <p className="text-sm text-foreground leading-relaxed">{phaseDetails[phase].meaning}</p>
+              </div>
+
+              {/* Focus areas */}
+              <div className={`rounded-lg border p-3 ${config.bgClass} ${config.borderClass}`}>
+                <p className={`text-[10px] font-bold uppercase tracking-wider ${config.color} mb-2`}>Focus Areas</p>
+                <ul className="space-y-1.5">
+                  {phaseDetails[phase].focusAreas.map((area) => (
+                    <li key={area} className="flex items-start gap-2 text-sm text-foreground">
+                      <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0`} style={{ backgroundColor: `hsl(var(--phase-${phase}))` }} />
+                      {area}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Next phase hint */}
+              {phaseDetails[phase].next && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
+                  <ArrowRight className="w-3.5 h-3.5" />
+                  <span>Next: <strong className="text-foreground">{phaseConfig[phaseDetails[phase].next!.phase].label}</strong> — {phaseDetails[phase].next!.hint}</span>
+                </div>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left: Position Summary */}

@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import { Search, Compass, TrendingUp, Rocket, MapPin, Lightbulb, CheckCircle2 } from 'lucide-react';
+import { Search, Compass, TrendingUp, Rocket, MapPin, Lightbulb, CheckCircle2, Info } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
 import { calculateIncomeReality, ExpenseAssumptions, DEFAULT_EXPENSES, HouseholdType, Location } from '@/features/income-reality/domain/incomeRealityCalculations';
 import { calculateSustainableWithdrawal } from '@/features/retirement/domain/epfCalculations';
 

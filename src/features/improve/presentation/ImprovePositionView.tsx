@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Search, Compass, TrendingUp, Rocket, MapPin, Lightbulb, CheckCircle2 } from 'lucide-react';
+import { calculateIncomeReality, ExpenseAssumptions, DEFAULT_EXPENSES, HouseholdType, Location } from '@/features/income-reality/domain/incomeRealityCalculations';
+import { calculateSustainableWithdrawal } from '@/features/retirement/domain/epfCalculations';
 
 type Phase = 'stabilise' | 'strengthen' | 'scale';
 
@@ -14,14 +16,16 @@ interface PositionSummary {
   primaryConstraint: string;
 }
 
-// Static mock data
-const mockPosition: PositionSummary = {
-  surplus: -500,
-  housingRatio: 80,
-  retirementMaxSpend: 3224,
-  currentSpend: 2300,
-  primaryConstraint: 'Housing',
-};
+interface ImprovePositionViewProps {
+  monthlyIncome: number;
+  housingCost: number;
+  currentEPF: number;
+  age: number;
+  householdType: string;
+  dependants: number;
+  location: string;
+  expenses: ExpenseAssumptions;
+}
 
 function getPhase(surplus: number, retirementMaxSpend: number, currentSpend: number): Phase {
   if (surplus < 0) return 'stabilise';
@@ -174,8 +178,52 @@ const AdvisorCard: React.FC<{ advisor: Advisor }> = ({ advisor }) => (
   </div>
 );
 
-const ImprovePositionView: React.FC = () => {
-  const position = mockPosition;
+const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
+  monthlyIncome,
+  housingCost,
+  currentEPF,
+  age,
+  householdType,
+  dependants,
+  location: userLocation,
+  expenses,
+}) => {
+  const position: PositionSummary = useMemo(() => {
+    const reality = calculateIncomeReality(
+      monthlyIncome,
+      housingCost,
+      householdType as HouseholdType,
+      dependants,
+      userLocation as Location,
+      expenses,
+    );
+
+    const housingRatio = monthlyIncome > 0 ? Math.round((housingCost / monthlyIncome) * 100) : 0;
+
+    let retirementMaxSpend = 0;
+    if (age >= 18 && age <= 60 && monthlyIncome > 0) {
+      retirementMaxSpend = calculateSustainableWithdrawal({
+        currentAge: age,
+        retirementAge: 60,
+        targetAge: 90,
+        monthlyIncome,
+        currentEPFAmount: currentEPF,
+      });
+    }
+
+    // Determine primary constraint
+    let primaryConstraint = 'None';
+    if (housingRatio > 30) primaryConstraint = 'Housing';
+    else if (reality.surplus < 0) primaryConstraint = 'Income';
+
+    return {
+      surplus: reality.surplus,
+      housingRatio,
+      retirementMaxSpend,
+      currentSpend: reality.baselineLifeCost,
+      primaryConstraint,
+    };
+  }, [monthlyIncome, housingCost, currentEPF, age, householdType, dependants, userLocation, expenses]);
   const phase = getPhase(position.surplus, position.retirementMaxSpend, position.currentSpend);
   const config = phaseConfig[phase];
 

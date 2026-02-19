@@ -264,7 +264,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           )}
           <div className="mx-auto max-w-6xl">
             {isImprove ? (
-              <ImprovePositionView />
+              <ImprovePositionView
+                monthlyIncome={profileData.monthlyIncome}
+                housingCost={profileData.housingCost}
+                currentEPF={profileData.currentEPF}
+                age={profileData.age}
+                householdType={profileData.householdType}
+                dependants={profileData.dependants}
+                location={profileData.location}
+                expenses={{
+                  food: profileData.expenseFood,
+                  transport: profileData.expenseTransport,
+                  utilities: profileData.expenseUtilities,
+                  others: profileData.expenseOthers,
+                  entertainment: profileData.expenseEntertainment,
+                }}
+              />
             ) : isDashboard ? (
               <>
                 {currentView === 'classification' && enhancedChildren}

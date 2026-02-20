@@ -24,6 +24,7 @@ import {
   Location,
 } from "@/features/income-reality/domain/incomeRealityCalculations";
 import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
+import { calculateNettPay } from "@/features/classification/domain/nettPayCalculation";
 
 type Phase = "stabilise" | "strengthen" | "scale";
 
@@ -48,9 +49,9 @@ interface ImprovePositionViewProps {
 
 const T20_MIN_INCOME = 13585;
 
-function getPhase(surplus: number, monthlyIncome: number): Phase {
+function getPhase(surplus: number, nettPay: number): Phase {
   if (surplus < 0) return "stabilise";
-  if (monthlyIncome < T20_MIN_INCOME) return "strengthen";
+  if (nettPay < T20_MIN_INCOME) return "strengthen";
   return "scale";
 }
 
@@ -280,7 +281,9 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
       primaryConstraint,
     };
   }, [monthlyIncome, housingCost, currentEPF, age, householdType, dependants, userLocation, expenses]);
-  const phase = getPhase(position.surplus, monthlyIncome);
+
+  const nettPay = useMemo(() => calculateNettPay(monthlyIncome, age), [monthlyIncome, age]);
+  const phase = getPhase(position.surplus, nettPay);
   const config = phaseConfig[phase];
 
   return (

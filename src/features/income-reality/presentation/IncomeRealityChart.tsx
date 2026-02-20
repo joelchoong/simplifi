@@ -6,12 +6,13 @@ interface IncomeRealityChartProps {
   result: IncomeRealityResult | null;
   sustainableWithdrawal: number;
   retirementDividends: number;
+  nettPay?: number;
 }
 
 const formatRM = (val: number) =>
   `RM ${Math.abs(val).toLocaleString("en-MY", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
-const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustainableWithdrawal, retirementDividends }) => {
+const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustainableWithdrawal, retirementDividends, nettPay }) => {
   if (!result || result.monthlyIncome <= 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
@@ -21,6 +22,9 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
   }
 
   const { monthlyIncome, baselineLifeCost, surplus, coveragePercent, locationAdjusted, othersCost, entertainmentCost, housingCost } = result;
+
+  // Use nett pay for the income bar if provided, otherwise fall back to gross
+  const displayIncome = nettPay !== undefined && nettPay > 0 ? nettPay : monthlyIncome;
 
   // Split life cost: essentials = locationAdjusted - othersCost - entertainmentCost
   const pureEssentials = locationAdjusted - othersCost - entertainmentCost;
@@ -32,9 +36,9 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
   const recommendedBarTotal = housingCost + essentialsOnly + recommendedOthers;
 
   // Calculate max value with headroom
-  const maxVal = Math.max(monthlyIncome, baselineLifeCost, sustainableWithdrawal, retirementDividends, recommendedBarTotal, 1000) * 1.15;
+  const maxVal = Math.max(displayIncome, baselineLifeCost, sustainableWithdrawal, retirementDividends, recommendedBarTotal, 1000) * 1.15;
 
-  const incomeHeight = (monthlyIncome / maxVal) * 100;
+  const incomeHeight = (displayIncome / maxVal) * 100;
   const sustainableSpendHeight = (sustainableWithdrawal / maxVal) * 100;
 
   // Breakdown heights for Today
@@ -71,12 +75,12 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
           <div className="flex items-end justify-center gap-1.5 sm:gap-3 px-1.5 sm:px-2 py-2 sm:py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 h-full flex-1">
             {/* 1. Current Income */}
             <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end">
-              <span className="text-[10px] font-bold text-foreground">{formatRM(monthlyIncome)}</span>
+              <span className="text-[10px] font-bold text-foreground">{formatRM(displayIncome)}</span>
               <div
                 className="w-full rounded-t-lg bg-emerald-500/80 dark:bg-emerald-500/70 shadow-sm flex items-center justify-center"
                 style={{ height: `${Math.max(incomeHeight, 4)}%` }}
               >
-                {Math.max(incomeHeight, 4) > 15 && <span className="text-[9px] font-bold text-white/90">Salary</span>}
+                {Math.max(incomeHeight, 4) > 15 && <span className="text-[9px] font-bold text-white/90">Nett Pay</span>}
               </div>
               <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight">Income</span>
             </div>

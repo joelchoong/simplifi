@@ -3,6 +3,7 @@ import IncomeRealityInputs from './IncomeRealityInputs';
 import IncomeRealityChart from './IncomeRealityChart';
 import { calculateIncomeReality, HouseholdType, Location, IncomeRealityResult, ExpenseAssumptions, DEFAULT_EXPENSES } from '@/features/income-reality/domain/incomeRealityCalculations';
 import { calculateSustainableWithdrawal, calculateEPFProjection } from '@/features/retirement/domain/epfCalculations';
+import { calculateNettPay } from '@/features/classification/domain/nettPayCalculation';
 
 interface IncomeRealityViewProps {
   initialMonthlyIncome?: number;
@@ -88,6 +89,8 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
     return { sustainableWithdrawal: sustainable, retirementDividends: monthlyDividend };
   }, [initialAge, inputs.monthlyIncome, initialCurrentEPF]);
 
+  const nettPay = useMemo(() => calculateNettPay(inputs.monthlyIncome, initialAge), [inputs.monthlyIncome, initialAge]);
+
   const handleChanged = (data: typeof inputs) => {
     setInputs(data);
   };
@@ -123,6 +126,7 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
                 result={result}
                 sustainableWithdrawal={sustainableWithdrawal}
                 retirementDividends={retirementDividends}
+                nettPay={nettPay}
               />
             </div>
           </section>

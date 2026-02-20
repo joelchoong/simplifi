@@ -116,7 +116,7 @@ const phaseDetails: Record<Phase, { meaning: string; focusAreas: string[]; next?
 };
 
 function formatRM(amount: number): string {
-  const abs = Math.abs(amount);
+  const abs = Math.round(Math.abs(amount));
   const formatted = `RM${abs.toLocaleString("en-MY")}`;
   return amount < 0 ? `–${formatted}` : formatted;
 }

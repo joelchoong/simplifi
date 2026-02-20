@@ -246,8 +246,10 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
   expenses,
 }) => {
   const position: PositionSummary = useMemo(() => {
+    const nett = calculateNettPay(monthlyIncome, age);
+
     const reality = calculateIncomeReality(
-      monthlyIncome,
+      nett,
       housingCost,
       householdType as HouseholdType,
       dependants,
@@ -255,7 +257,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
       expenses,
     );
 
-    const housingRatio = monthlyIncome > 0 ? Math.round((housingCost / monthlyIncome) * 100) : 0;
+    const housingRatio = nett > 0 ? Math.round((housingCost / nett) * 100) : 0;
 
     let retirementMaxSpend = 0;
     if (age >= 18 && age <= 60 && monthlyIncome > 0) {

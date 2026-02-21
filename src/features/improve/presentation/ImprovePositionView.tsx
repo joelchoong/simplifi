@@ -270,10 +270,14 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
       });
     }
 
-    // Determine primary constraint
+    // Determine primary constraint (first match wins)
+    const expenseRatio = nett > 0 ? (reality.baselineLifeCost / nett) * 100 : 0;
     let primaryConstraint = "None";
-    if (housingRatio > 30) primaryConstraint = "Housing";
-    else if (reality.surplus < 0) primaryConstraint = "Income";
+    if (reality.surplus < 0) primaryConstraint = "Lifestyle";
+    else if (housingRatio > 30) primaryConstraint = "Housing";
+    else if (monthlyIncome < 5782) primaryConstraint = "Stability Income";
+    else if (expenseRatio >= 60) primaryConstraint = "Cashflow";
+    else if (monthlyIncome < 13585) primaryConstraint = "Expansion Income";
 
     return {
       surplus: reality.surplus,

@@ -467,82 +467,132 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                 return (
                   <div className="py-3 px-3 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
                     <div className="relative">
-                      <div className="w-full h-8 rounded-lg bg-primary/10 border border-primary/20 overflow-visible flex relative">
-                        {/* Housing */}
-                        {position.housingCost > 0 && (
-                          <div
-                            className="h-full bg-orange-500/75 flex items-center justify-center first:rounded-l-lg"
-                            style={{ width: `${housingPct * scale}%` }}
-                          >
-                            {housingPct * scale > 12 && (
-                              <span className="text-[9px] font-bold text-white truncate px-0.5">
-                                Housing {Math.round(housingPct)}%
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {/* Essentials */}
-                        <div
-                          className="h-full bg-destructive/65 flex items-center justify-center"
-                          style={{ width: `${essentialsPct * scale}%` }}
-                        >
-                          {essentialsPct * scale > 12 && (
-                            <span className="text-[9px] font-bold text-white truncate px-0.5">
-                              Essentials {Math.round(essentialsPct)}%
-                            </span>
+                      <TooltipProvider delayDuration={0}>
+                        <div className="w-full h-8 rounded-lg bg-primary/10 border border-primary/20 overflow-visible flex relative">
+                          {/* Housing */}
+                          {position.housingCost > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="h-full bg-orange-500/75 flex items-center justify-center first:rounded-l-lg cursor-default hover:brightness-110 transition-all"
+                                  style={{ width: `${housingPct * scale}%` }}
+                                >
+                                  {housingPct * scale > 12 && (
+                                    <span className="text-[9px] font-bold text-white truncate px-0.5">
+                                      Housing {Math.round(housingPct)}%
+                                    </span>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-xs">
+                                <p className="font-semibold">Housing: {formatRM(position.housingCost)}</p>
+                                <p className="text-muted-foreground">{Math.round(housingPct)}% of nett pay</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {/* Essentials */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div
+                                className="h-full bg-destructive/65 flex items-center justify-center cursor-default hover:brightness-110 transition-all"
+                                style={{ width: `${essentialsPct * scale}%` }}
+                              >
+                                {essentialsPct * scale > 12 && (
+                                  <span className="text-[9px] font-bold text-white truncate px-0.5">
+                                    Essentials {Math.round(essentialsPct)}%
+                                  </span>
+                                )}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="text-xs">
+                              <p className="font-semibold">Essentials: {formatRM(position.essentialsCost)}</p>
+                              <p className="text-muted-foreground">{Math.round(essentialsPct)}% of nett pay</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          {/* Entertainment */}
+                          {position.entertainmentCost > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="h-full bg-purple-500/70 flex items-center justify-center cursor-default hover:brightness-110 transition-all"
+                                  style={{ width: `${entertainmentPct * scale}%` }}
+                                >
+                                  {entertainmentPct * scale > 12 && (
+                                    <span className="text-[9px] font-bold text-white truncate px-0.5">
+                                      Entertain {Math.round(entertainmentPct)}%
+                                    </span>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-xs">
+                                <p className="font-semibold">Entertainment: {formatRM(position.entertainmentCost)}</p>
+                                <p className="text-muted-foreground">{Math.round(entertainmentPct)}% of nett pay</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {/* Others */}
+                          {position.othersCost > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="h-full bg-amber-500/70 flex items-center justify-center cursor-default hover:brightness-110 transition-all"
+                                  style={{ width: `${othersPct * scale}%` }}
+                                >
+                                  {othersPct * scale > 10 && (
+                                    <span className="text-[9px] font-bold text-white truncate px-0.5">
+                                      Others {Math.round(othersPct)}%
+                                    </span>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-xs">
+                                <p className="font-semibold">Others: {formatRM(position.othersCost)}</p>
+                                <p className="text-muted-foreground">{Math.round(othersPct)}% of nett pay</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {/* Surplus */}
+                          {!isDeficit && surplusPct > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="h-full rounded-r-lg bg-primary/35 flex items-center justify-center cursor-default hover:brightness-110 transition-all"
+                                  style={{ width: `${surplusPct}%` }}
+                                >
+                                  {surplusPct > 15 && (
+                                    <span className="text-[9px] font-bold text-primary truncate px-0.5">
+                                      Surplus {Math.round(surplusPct)}%
+                                    </span>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-xs">
+                                <p className="font-semibold">Surplus: {formatRM(position.surplus)}</p>
+                                <p className="text-muted-foreground">{Math.round(surplusPct)}% of nett pay</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {/* Overflow for deficit */}
+                          {isDeficit && overflowPct > 0 && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="absolute top-0 h-full rounded-r-lg bg-destructive/90 border-2 border-dashed border-destructive flex items-center justify-center cursor-default"
+                                  style={{ left: "100%", width: `${Math.min(overflowPct, 35)}%` }}
+                                >
+                                  <span className="text-[9px] font-bold text-white px-1">
+                                    {formatRM(position.surplus)}
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-xs">
+                                <p className="font-semibold">Deficit: {formatRM(position.surplus)}</p>
+                                <p className="text-muted-foreground">Expenses exceed income by {Math.round(overflowPct)}%</p>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                         </div>
-                        {/* Entertainment */}
-                        {position.entertainmentCost > 0 && (
-                          <div
-                            className="h-full bg-purple-500/70 flex items-center justify-center"
-                            style={{ width: `${entertainmentPct * scale}%` }}
-                          >
-                            {entertainmentPct * scale > 12 && (
-                              <span className="text-[9px] font-bold text-white truncate px-0.5">
-                                Entertain {Math.round(entertainmentPct)}%
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {/* Others */}
-                        {position.othersCost > 0 && (
-                          <div
-                            className="h-full bg-amber-500/70 flex items-center justify-center"
-                            style={{ width: `${othersPct * scale}%` }}
-                          >
-                            {othersPct * scale > 10 && (
-                              <span className="text-[9px] font-bold text-white truncate px-0.5">
-                                Others {Math.round(othersPct)}%
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {/* Surplus */}
-                        {!isDeficit && surplusPct > 0 && (
-                          <div
-                            className="h-full rounded-r-lg bg-primary/35 flex items-center justify-center"
-                            style={{ width: `${surplusPct}%` }}
-                          >
-                            {surplusPct > 15 && (
-                              <span className="text-[9px] font-bold text-primary truncate px-0.5">
-                                Surplus {Math.round(surplusPct)}%
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {/* Overflow for deficit */}
-                        {isDeficit && overflowPct > 0 && (
-                          <div
-                            className="absolute top-0 h-full rounded-r-lg bg-destructive/90 border-2 border-dashed border-destructive flex items-center justify-center"
-                            style={{ left: "100%", width: `${Math.min(overflowPct, 35)}%` }}
-                          >
-                            <span className="text-[9px] font-bold text-white px-1">
-                              {formatRM(position.surplus)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      </TooltipProvider>
                     </div>
                     {/* Legend */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">

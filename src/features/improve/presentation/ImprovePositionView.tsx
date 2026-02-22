@@ -34,6 +34,10 @@ interface PositionSummary {
   retirementMaxSpend: number;
   currentSpend: number;
   primaryConstraint: string;
+  housingCost: number;
+  essentialsCost: number;
+  entertainmentCost: number;
+  othersCost: number;
 }
 
 interface ImprovePositionViewProps {
@@ -279,12 +283,19 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
     else if (expenseRatio >= 60) primaryConstraint = "Cashflow";
     else if (monthlyIncome < 13585) primaryConstraint = "Expansion Income";
 
+    // Essentials = locationAdjusted - others - entertainment (food + transport + utilities adjusted)
+    const essentialsCost = reality.locationAdjusted - reality.othersCost - reality.entertainmentCost;
+
     return {
       surplus: reality.surplus,
       housingRatio,
       retirementMaxSpend,
       currentSpend: reality.baselineLifeCost,
       primaryConstraint,
+      housingCost: reality.housingCost,
+      essentialsCost,
+      entertainmentCost: reality.entertainmentCost,
+      othersCost: reality.othersCost,
     };
   }, [monthlyIncome, housingCost, currentEPF, age, householdType, dependants, userLocation, expenses]);
 
@@ -442,58 +453,91 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
             <CardContent className="space-y-3">
               {/* Horizontal Income Bar */}
               {(() => {
-                const spendRatio = nettPay > 0 ? Math.min((position.currentSpend / nettPay) * 100, 100) : 0;
-                const surplusRatio = nettPay > 0 ? Math.max(((nettPay - position.currentSpend) / nettPay) * 100, 0) : 0;
                 const isDeficit = position.surplus < 0;
-                const overflowRatio = isDeficit && nettPay > 0 ? ((position.currentSpend - nettPay) / nettPay) * 100 : 0;
-                
+                const housingPct = nettPay > 0 ? (position.housingCost / nettPay) * 100 : 0;
+                const essentialsPct = nettPay > 0 ? (position.essentialsCost / nettPay) * 100 : 0;
+                const entertainmentPct = nettPay > 0 ? (position.entertainmentCost / nettPay) * 100 : 0;
+                const othersPct = nettPay > 0 ? (position.othersCost / nettPay) * 100 : 0;
+                const totalSpendPct = housingPct + essentialsPct + entertainmentPct + othersPct;
+                const surplusPct = Math.max(0, 100 - totalSpendPct);
+                const overflowPct = isDeficit && nettPay > 0 ? ((position.currentSpend - nettPay) / nettPay) * 100 : 0;
+                // Cap segments to 100% for the bar when in deficit
+                const scale = totalSpendPct > 100 ? 100 / totalSpendPct : 1;
+
                 return (
                   <div className="py-3 px-3 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="font-medium">Nett Pay: {formatRM(nettPay)}</span>
-                      <span className={`font-bold ${isDeficit ? "text-destructive" : "text-primary"}`}>
-                        {isDeficit ? "Deficit" : "Surplus"}: {formatRM(position.surplus)}
-                      </span>
-                    </div>
                     <div className="relative">
-                      {/* Base bar (income) */}
-                      <div className="w-full h-7 rounded-lg bg-primary/15 border border-primary/20 overflow-visible flex relative">
-                        {/* Spending portion */}
-                        <div
-                          className={`h-full rounded-l-lg flex items-center justify-center transition-all ${
-                            isDeficit ? "bg-destructive/70 rounded-r-none" : "bg-amber-500/70"
-                          } ${spendRatio >= 100 ? "rounded-r-lg" : ""}`}
-                          style={{ width: `${spendRatio}%` }}
-                        >
-                          {spendRatio > 25 && (
-                            <span className="text-[10px] font-bold text-white">
-                              {formatRM(position.currentSpend)} · {Math.round(spendRatio)}%
-                            </span>
-                          )}
-                        </div>
-                        {/* Surplus portion */}
-                        {!isDeficit && surplusRatio > 0 && (
+                      <div className="w-full h-8 rounded-lg bg-primary/10 border border-primary/20 overflow-visible flex relative">
+                        {/* Housing */}
+                        {position.housingCost > 0 && (
                           <div
-                            className="h-full rounded-r-lg bg-primary/40 flex items-center justify-center"
-                            style={{ width: `${surplusRatio}%` }}
+                            className="h-full bg-orange-500/75 flex items-center justify-center first:rounded-l-lg"
+                            style={{ width: `${housingPct * scale}%` }}
                           >
-                            {surplusRatio > 20 && (
-                              <span className="text-[10px] font-bold text-primary-foreground/80">
-                                {formatRM(position.surplus)}
+                            {housingPct * scale > 12 && (
+                              <span className="text-[9px] font-bold text-white truncate px-0.5">
+                                Housing {Math.round(housingPct)}%
                               </span>
                             )}
                           </div>
                         )}
-                        {/* Overflow indicator for deficit */}
-                        {isDeficit && overflowRatio > 0 && (
+                        {/* Essentials */}
+                        <div
+                          className="h-full bg-destructive/65 flex items-center justify-center"
+                          style={{ width: `${essentialsPct * scale}%` }}
+                        >
+                          {essentialsPct * scale > 12 && (
+                            <span className="text-[9px] font-bold text-white truncate px-0.5">
+                              Essentials {Math.round(essentialsPct)}%
+                            </span>
+                          )}
+                        </div>
+                        {/* Entertainment */}
+                        {position.entertainmentCost > 0 && (
+                          <div
+                            className="h-full bg-purple-500/70 flex items-center justify-center"
+                            style={{ width: `${entertainmentPct * scale}%` }}
+                          >
+                            {entertainmentPct * scale > 12 && (
+                              <span className="text-[9px] font-bold text-white truncate px-0.5">
+                                Entertain {Math.round(entertainmentPct)}%
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {/* Others */}
+                        {position.othersCost > 0 && (
+                          <div
+                            className="h-full bg-amber-500/70 flex items-center justify-center"
+                            style={{ width: `${othersPct * scale}%` }}
+                          >
+                            {othersPct * scale > 10 && (
+                              <span className="text-[9px] font-bold text-white truncate px-0.5">
+                                Others {Math.round(othersPct)}%
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {/* Surplus */}
+                        {!isDeficit && surplusPct > 0 && (
+                          <div
+                            className="h-full rounded-r-lg bg-primary/35 flex items-center justify-center"
+                            style={{ width: `${surplusPct}%` }}
+                          >
+                            {surplusPct > 15 && (
+                              <span className="text-[9px] font-bold text-primary truncate px-0.5">
+                                Surplus {Math.round(surplusPct)}%
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {/* Overflow for deficit */}
+                        {isDeficit && overflowPct > 0 && (
                           <div
                             className="absolute top-0 h-full rounded-r-lg bg-destructive/90 border-2 border-dashed border-destructive flex items-center justify-center"
-                            style={{
-                              left: "100%",
-                              width: `${Math.min(overflowRatio, 40)}%`,
-                            }}
+                            style={{ left: "100%", width: `${Math.min(overflowPct, 35)}%` }}
                           >
-                            <span className="text-[10px] font-bold text-white px-1">
+                            <span className="text-[9px] font-bold text-white px-1">
                               {formatRM(position.surplus)}
                             </span>
                           </div>
@@ -501,21 +545,33 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                       </div>
                     </div>
                     {/* Legend */}
-                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+                      {position.housingCost > 0 && (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-sm bg-orange-500/75" /> Housing
+                        </span>
+                      )}
                       <span className="flex items-center gap-1">
-                        <span className={`w-2 h-2 rounded-sm ${isDeficit ? "bg-destructive/70" : "bg-amber-500/70"}`} />
-                        Expenses ({Math.round(spendRatio)}%)
+                        <span className="w-2 h-2 rounded-sm bg-destructive/65" /> Essentials
                       </span>
+                      {position.entertainmentCost > 0 && (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-sm bg-purple-500/70" /> Entertainment
+                        </span>
+                      )}
+                      {position.othersCost > 0 && (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-sm bg-amber-500/70" /> Others
+                        </span>
+                      )}
                       {!isDeficit && (
                         <span className="flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-sm bg-primary/40" />
-                          Surplus ({Math.round(surplusRatio)}%)
+                          <span className="w-2 h-2 rounded-sm bg-primary/35" /> Surplus
                         </span>
                       )}
                       {isDeficit && (
                         <span className="flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-sm bg-destructive/90" />
-                          Exceeds income
+                          <span className="w-2 h-2 rounded-sm bg-destructive/90" /> Exceeds income
                         </span>
                       )}
                     </div>

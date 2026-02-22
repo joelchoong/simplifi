@@ -440,6 +440,89 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {/* Horizontal Income Bar */}
+              {(() => {
+                const spendRatio = nettPay > 0 ? Math.min((position.currentSpend / nettPay) * 100, 100) : 0;
+                const surplusRatio = nettPay > 0 ? Math.max(((nettPay - position.currentSpend) / nettPay) * 100, 0) : 0;
+                const isDeficit = position.surplus < 0;
+                const overflowRatio = isDeficit && nettPay > 0 ? ((position.currentSpend - nettPay) / nettPay) * 100 : 0;
+                
+                return (
+                  <div className="py-3 px-3 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="font-medium">Nett Pay: {formatRM(nettPay)}</span>
+                      <span className={`font-bold ${isDeficit ? "text-destructive" : "text-primary"}`}>
+                        {isDeficit ? "Deficit" : "Surplus"}: {formatRM(position.surplus)}
+                      </span>
+                    </div>
+                    <div className="relative">
+                      {/* Base bar (income) */}
+                      <div className="w-full h-7 rounded-lg bg-primary/15 border border-primary/20 overflow-visible flex relative">
+                        {/* Spending portion */}
+                        <div
+                          className={`h-full rounded-l-lg flex items-center justify-center transition-all ${
+                            isDeficit ? "bg-destructive/70 rounded-r-none" : "bg-amber-500/70"
+                          } ${spendRatio >= 100 ? "rounded-r-lg" : ""}`}
+                          style={{ width: `${spendRatio}%` }}
+                        >
+                          {spendRatio > 25 && (
+                            <span className="text-[10px] font-bold text-white">
+                              {formatRM(position.currentSpend)} · {Math.round(spendRatio)}%
+                            </span>
+                          )}
+                        </div>
+                        {/* Surplus portion */}
+                        {!isDeficit && surplusRatio > 0 && (
+                          <div
+                            className="h-full rounded-r-lg bg-primary/40 flex items-center justify-center"
+                            style={{ width: `${surplusRatio}%` }}
+                          >
+                            {surplusRatio > 20 && (
+                              <span className="text-[10px] font-bold text-primary-foreground/80">
+                                {formatRM(position.surplus)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {/* Overflow indicator for deficit */}
+                        {isDeficit && overflowRatio > 0 && (
+                          <div
+                            className="absolute top-0 h-full rounded-r-lg bg-destructive/90 border-2 border-dashed border-destructive flex items-center justify-center"
+                            style={{
+                              left: "100%",
+                              width: `${Math.min(overflowRatio, 40)}%`,
+                            }}
+                          >
+                            <span className="text-[10px] font-bold text-white px-1">
+                              {formatRM(position.surplus)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {/* Legend */}
+                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <span className={`w-2 h-2 rounded-sm ${isDeficit ? "bg-destructive/70" : "bg-amber-500/70"}`} />
+                        Expenses ({Math.round(spendRatio)}%)
+                      </span>
+                      {!isDeficit && (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-sm bg-primary/40" />
+                          Surplus ({Math.round(surplusRatio)}%)
+                        </span>
+                      )}
+                      {isDeficit && (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-sm bg-destructive/90" />
+                          Exceeds income
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
                 <span className="text-sm text-muted-foreground font-medium">Surplus / Deficit</span>
                 <span className={`text-base font-bold ${position.surplus < 0 ? "text-destructive" : "text-primary"}`}>

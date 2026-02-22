@@ -165,7 +165,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                         className="w-full bg-orange-400/80 dark:bg-orange-400/70 flex items-center justify-center border-b border-white/10"
                         style={{ height: `${(recHousingHeight / recTotalHeight) * 100}%` }}
                       >
-                        {recHousingHeight / recTotalHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Housing</span>}
+                        <span className="text-[8px] font-bold text-white/90">Housing</span>
                       </div>
                     )}
                     {recommendedOthers > 0 && (
@@ -194,8 +194,12 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                   <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight border-b border-dashed border-muted-foreground/30">Recommended</span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent className="max-w-[200px] text-xs">
-                <p>Based on your Max Spend of {formatRM(recommendedTotal)}, here is a sustainable breakdown: {formatRM(essentialsOnly)} for basics, {formatRM(housingCost)} for housing, leaving {formatRM(recommendedOthers)} for other expenses.</p>
+              <TooltipContent className="max-w-[220px] text-xs space-y-1">
+                <p className="font-semibold">Recommended: {formatRM(recommendedBarTotal)}/mo</p>
+                {housingCost > 0 && <p className="text-orange-500">Housing: {formatRM(housingCost)}</p>}
+                <p className="text-red-400">Essentials: {formatRM(pureEssentials)}</p>
+                <p className="text-purple-400">Entertainment: {formatRM(entertainmentCost)}</p>
+                {recommendedOthers > 0 && <p className="text-amber-500">Others: {formatRM(recommendedOthers)}</p>}
               </TooltipContent>
             </Tooltip>
           </div>

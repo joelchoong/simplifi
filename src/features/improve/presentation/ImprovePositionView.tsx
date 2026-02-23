@@ -461,14 +461,16 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                 const totalSpendPct = housingPct + essentialsPct + entertainmentPct + othersPct;
                 const surplusPct = Math.max(0, 100 - totalSpendPct);
                 const overflowPct = isDeficit && nettPay > 0 ? ((position.currentSpend - nettPay) / nettPay) * 100 : 0;
-                // Cap segments to 100% for the bar when in deficit
-                const scale = totalSpendPct > 100 ? 100 / totalSpendPct : 1;
+                // In deficit: scale all segments to fit within bar including a deficit indicator
+                // Reserve a portion for the deficit segment (proportional to overflow)
+                const deficitReserve = isDeficit ? Math.min(overflowPct / (totalSpendPct + overflowPct) * 100, 25) : 0;
+                const scale = totalSpendPct > 0 ? (100 - deficitReserve) / totalSpendPct : 1;
 
                 return (
                   <div className="py-3 px-3 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
                     <div className="relative">
                       <TooltipProvider delayDuration={0}>
-                        <div className="w-full h-8 rounded-lg bg-primary/10 border border-primary/20 overflow-visible flex relative">
+                        <div className="w-full h-8 rounded-lg bg-primary/10 border border-primary/20 overflow-hidden flex relative">
                           {/* Housing */}
                           {position.housingCost > 0 && (
                             <Tooltip>
@@ -573,14 +575,14 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                             </Tooltip>
                           )}
                           {/* Overflow for deficit */}
-                          {isDeficit && overflowPct > 0 && (
+                          {isDeficit && deficitReserve > 0 && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div
-                                  className="absolute top-0 h-full rounded-r-lg bg-destructive/90 border-2 border-dashed border-destructive flex items-center justify-center cursor-default"
-                                  style={{ left: "100%", width: `${Math.min(overflowPct, 35)}%` }}
+                                  className="h-full rounded-r-lg bg-destructive/90 border-l-2 border-dashed border-white/30 flex items-center justify-center cursor-default"
+                                  style={{ width: `${deficitReserve}%` }}
                                 >
-                                  <span className="text-[9px] font-bold text-white px-1">
+                                  <span className="text-[9px] font-bold text-white px-1 truncate">
                                     {formatRM(position.surplus)}
                                   </span>
                                 </div>

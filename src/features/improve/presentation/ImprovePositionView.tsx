@@ -725,10 +725,6 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                 </div>
               </div>
               <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
-                <span className="text-sm text-muted-foreground font-medium">Retirement Max Spend</span>
-                <span className="text-base font-bold text-foreground">{formatRM(position.retirementMaxSpend)}/mo</span>
-              </div>
-              <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
                 <span className="text-sm text-muted-foreground font-medium">Current Spend</span>
                 <span className="text-base font-bold text-foreground">{formatRM(position.currentSpend)}/mo</span>
               </div>

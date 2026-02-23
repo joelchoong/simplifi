@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -13,6 +13,8 @@ import {
   Info,
   Check,
   ArrowRight,
+  Heart,
+  ThumbsUp,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/ui/tooltip";
@@ -238,6 +240,69 @@ const AdvisorCard: React.FC<{ advisor: Advisor }> = ({ advisor }) => (
     </div>
   </div>
 );
+
+const PRICE_OPTIONS = ["Free", "RM10/mo", "RM25/mo", "RM50/mo"];
+
+const InterestCapture: React.FC = () => {
+  const [submitted, setSubmitted] = useState(false);
+  const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-6 px-4 rounded-xl border border-primary/20 bg-primary/5 text-center">
+        <ThumbsUp className="w-6 h-6 text-primary" />
+        <p className="text-sm font-semibold text-foreground">Thanks for your interest!</p>
+        <p className="text-xs text-muted-foreground max-w-[280px]">
+          We'll notify you when advisor matching is available.
+          {selectedPrice && selectedPrice !== "Free" && (
+            <span className="block mt-1">You indicated you'd pay <strong className="text-foreground">{selectedPrice}</strong> for this.</span>
+          )}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 py-4 px-4 rounded-xl border border-border/60 bg-secondary/20">
+      <div className="flex items-center gap-2">
+        <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary bg-accent">
+          Coming Soon
+        </Badge>
+        <span className="text-xs text-muted-foreground">We're onboarding licensed advisors.</span>
+      </div>
+
+      <p className="text-sm text-foreground font-medium">Would you find this valuable?</p>
+
+      <div className="space-y-2">
+        <p className="text-[11px] text-muted-foreground font-medium">How much would you pay for personalised advisor matching?</p>
+        <div className="flex flex-wrap gap-1.5">
+          {PRICE_OPTIONS.map((price) => (
+            <button
+              key={price}
+              onClick={() => setSelectedPrice(selectedPrice === price ? null : price)}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                selectedPrice === price
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/50 text-muted-foreground border-border/60 hover:border-primary/40 hover:text-foreground"
+              }`}
+            >
+              {price}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Button
+        size="sm"
+        className="w-full h-9 text-sm font-semibold rounded-lg mt-1"
+        onClick={() => setSubmitted(true)}
+      >
+        <Heart className="w-4 h-4 mr-1.5" />
+        Yes, I want this!
+      </Button>
+    </div>
+  );
+};
 
 const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
   monthlyIncome,
@@ -724,24 +789,14 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
               </p>
 
               {/* Coming Soon Overlay */}
-              <div className="relative mt-2">
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-[2px] rounded-xl">
-                  <Badge
-                    variant="outline"
-                    className="text-sm font-bold px-4 py-1.5 border-primary/30 text-primary bg-accent mb-2"
-                  >
-                    Coming Soon
-                  </Badge>
-                  <p className="text-xs text-muted-foreground text-center max-w-[260px]">
-                    We're onboarding licensed financial advisors matched to your profile.
-                  </p>
-                </div>
+              <InterestCapture />
 
+              <div className="relative mt-2">
+                <div className="absolute inset-0 z-10 rounded-xl" />
                 <div className="opacity-40 pointer-events-none space-y-4">
                   {mockAdvisors.map((advisor) => (
                     <AdvisorCard key={advisor.name} advisor={advisor} />
                   ))}
-
                   <div className="text-center py-3 border border-dashed border-border/40 rounded-xl">
                     <span className="text-sm font-semibold text-muted-foreground">View more advisors →</span>
                   </div>

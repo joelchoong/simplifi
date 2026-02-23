@@ -792,17 +792,20 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                 and build a plan around your specific life situation.
               </p>
 
-              {/* Coming Soon Overlay */}
-              <InterestCapture />
-
               <div className="relative mt-2">
-                <div className="absolute inset-0 z-10 rounded-xl" />
-                <div className="opacity-40 pointer-events-none space-y-4">
+                {/* Blurred advisor cards */}
+                <div className="opacity-30 blur-[2px] pointer-events-none space-y-4">
                   {mockAdvisors.map((advisor) => (
                     <AdvisorCard key={advisor.name} advisor={advisor} />
                   ))}
                   <div className="text-center py-3 border border-dashed border-border/40 rounded-xl">
                     <span className="text-sm font-semibold text-muted-foreground">View more advisors →</span>
+                  </div>
+                </div>
+                {/* Centered overlay */}
+                <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
+                  <div className="w-full max-w-sm">
+                    <InterestCapture />
                   </div>
                 </div>
               </div>

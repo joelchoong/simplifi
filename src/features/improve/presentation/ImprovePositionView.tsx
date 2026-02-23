@@ -270,7 +270,7 @@ const InterestCapture: React.FC = () => {
         <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary bg-accent">
           Coming Soon
         </Badge>
-        <span className="text-xs text-muted-foreground">We're onboarding licensed advisors.</span>
+        <span className="text-xs text-muted-foreground">We're planning on onboarding licensed advisors.</span>
       </div>
 
       <p className="text-sm text-foreground font-medium">Would you find this valuable?</p>

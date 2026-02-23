@@ -241,7 +241,7 @@ const AdvisorCard: React.FC<{ advisor: Advisor }> = ({ advisor }) => (
   </div>
 );
 
-const PRICE_OPTIONS = ["Free", "RM10/mo", "RM25/mo", "RM50/mo"];
+const PRICE_OPTIONS = ["Free", "RM10", "RM20", "RM50"];
 
 const InterestCapture: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -255,7 +255,9 @@ const InterestCapture: React.FC = () => {
         <p className="text-xs text-muted-foreground max-w-[280px]">
           We'll notify you when advisor matching is available.
           {selectedPrice && selectedPrice !== "Free" && (
-            <span className="block mt-1">You indicated you'd pay <strong className="text-foreground">{selectedPrice}</strong> for this.</span>
+            <span className="block mt-1">
+              You indicated you'd pay <strong className="text-foreground">{selectedPrice}</strong> for this.
+            </span>
           )}
         </p>
       </div>
@@ -274,7 +276,9 @@ const InterestCapture: React.FC = () => {
       <p className="text-sm text-foreground font-medium">Would you find this valuable?</p>
 
       <div className="space-y-2">
-        <p className="text-[11px] text-muted-foreground font-medium">How much would you pay for personalised advisor matching?</p>
+        <p className="text-[11px] text-muted-foreground font-medium">
+          How much would you pay for personalised advisor matching?
+        </p>
         <div className="flex flex-wrap gap-1.5">
           {PRICE_OPTIONS.map((price) => (
             <button
@@ -292,11 +296,7 @@ const InterestCapture: React.FC = () => {
         </div>
       </div>
 
-      <Button
-        size="sm"
-        className="w-full h-9 text-sm font-semibold rounded-lg mt-1"
-        onClick={() => setSubmitted(true)}
-      >
+      <Button size="sm" className="w-full h-9 text-sm font-semibold rounded-lg mt-1" onClick={() => setSubmitted(true)}>
         <Heart className="w-4 h-4 mr-1.5" />
         Yes, I want this!
       </Button>
@@ -528,7 +528,9 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                 const overflowPct = isDeficit && nettPay > 0 ? ((position.currentSpend - nettPay) / nettPay) * 100 : 0;
                 // In deficit: scale all segments to fit within bar including a deficit indicator
                 // Reserve a portion for the deficit segment (proportional to overflow)
-                const deficitReserve = isDeficit ? Math.min(overflowPct / (totalSpendPct + overflowPct) * 100, 25) : 0;
+                const deficitReserve = isDeficit
+                  ? Math.min((overflowPct / (totalSpendPct + overflowPct)) * 100, 25)
+                  : 0;
                 const scale = totalSpendPct > 0 ? (100 - deficitReserve) / totalSpendPct : 1;
 
                 return (
@@ -654,7 +656,9 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                               </TooltipTrigger>
                               <TooltipContent className="text-xs">
                                 <p className="font-semibold">Deficit: {formatRM(position.surplus)}</p>
-                                <p className="text-muted-foreground">Expenses exceed income by {Math.round(overflowPct)}%</p>
+                                <p className="text-muted-foreground">
+                                  Expenses exceed income by {Math.round(overflowPct)}%
+                                </p>
                               </TooltipContent>
                             </Tooltip>
                           )}

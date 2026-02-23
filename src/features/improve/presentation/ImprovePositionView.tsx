@@ -661,15 +661,41 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                 <span className="text-sm text-muted-foreground font-medium">Current Spend</span>
                 <span className="text-base font-bold text-foreground">{formatRM(position.currentSpend)}/mo</span>
               </div>
-              <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40">
-                <span className="text-sm text-muted-foreground font-medium">Primary Constraint</span>
-                <Badge
-                  variant="outline"
-                  className="font-semibold text-xs border-primary/30 text-accent-foreground bg-accent"
-                >
-                  {position.primaryConstraint}
-                </Badge>
-              </div>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40 cursor-help">
+                      <span className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
+                        Primary Constraint
+                        <Info className="w-3.5 h-3.5 text-muted-foreground/50" />
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="font-semibold text-xs border-primary/30 text-accent-foreground bg-accent"
+                      >
+                        {position.primaryConstraint}
+                      </Badge>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[260px] text-xs space-y-1 p-3">
+                    <p className="font-semibold">{position.primaryConstraint}</p>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {position.primaryConstraint === "Lifestyle" &&
+                        "Your expenses exceed your income. Focus on cutting non-essential spending or increasing income to reach break-even."}
+                      {position.primaryConstraint === "Housing" &&
+                        "Housing takes over 30% of your nett pay. Consider downsizing or increasing income to bring this ratio below 30%."}
+                      {position.primaryConstraint === "Stability Income" &&
+                        "Your income is below the B40 threshold. Prioritise upskilling or seeking higher-paying roles to build financial stability."}
+                      {position.primaryConstraint === "Cashflow" &&
+                        "Over 60% of your income goes to expenses. Trim discretionary spending to free up more cash for savings and investments."}
+                      {position.primaryConstraint === "Expansion Income" &&
+                        "You're financially stable but below the T20 threshold. Focus on career growth or side income to accelerate wealth building."}
+                      {position.primaryConstraint === "None" &&
+                        "No major constraint detected. You're in a strong position — focus on optimising investments and retirement planning."}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardContent>
           </Card>
         </div>

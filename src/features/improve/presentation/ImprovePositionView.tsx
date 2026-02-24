@@ -246,6 +246,16 @@ const PRICE_OPTIONS = ["Free", "RM10", "RM20", "RM50"];
 const InterestCapture: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
+  const [customValue, setCustomValue] = useState("");
+  const [isCustom, setIsCustom] = useState(false);
+  const [frequency, setFrequency] = useState<"once" | "monthly">("monthly");
+
+  const displayPrice = isCustom && customValue ? `RM${customValue}` : selectedPrice;
+  const displayLabel = displayPrice
+    ? displayPrice === "Free"
+      ? "Free"
+      : `${displayPrice}${frequency === "monthly" ? "/mo" : " one-time"}`
+    : null;
 
   if (submitted) {
     return (
@@ -254,9 +264,9 @@ const InterestCapture: React.FC = () => {
         <p className="text-sm font-semibold text-foreground">Thanks for your interest!</p>
         <p className="text-xs text-muted-foreground max-w-[280px]">
           We'll notify you when advisor matching is available.
-          {selectedPrice && selectedPrice !== "Free" && (
+          {displayLabel && displayLabel !== "Free" && (
             <span className="block mt-1">
-              You indicated you'd pay <strong className="text-foreground">{selectedPrice}</strong> for this.
+              You indicated you'd pay <strong className="text-foreground">{displayLabel}</strong> for this.
             </span>
           )}
         </p>
@@ -283,9 +293,13 @@ const InterestCapture: React.FC = () => {
           {PRICE_OPTIONS.map((price) => (
             <button
               key={price}
-              onClick={() => setSelectedPrice(selectedPrice === price ? null : price)}
+              onClick={() => {
+                setSelectedPrice(selectedPrice === price ? null : price);
+                setIsCustom(false);
+                setCustomValue("");
+              }}
               className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
-                selectedPrice === price
+                !isCustom && selectedPrice === price
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-secondary/50 text-muted-foreground border-border/60 hover:border-primary/40 hover:text-foreground"
               }`}
@@ -293,7 +307,54 @@ const InterestCapture: React.FC = () => {
               {price}
             </button>
           ))}
+          <button
+            onClick={() => {
+              setIsCustom(true);
+              setSelectedPrice(null);
+            }}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+              isCustom
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-secondary/50 text-muted-foreground border-border/60 hover:border-primary/40 hover:text-foreground"
+            }`}
+          >
+            Other
+          </button>
         </div>
+
+        {isCustom && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground font-medium">RM</span>
+            <input
+              type="number"
+              min="1"
+              placeholder="Enter amount"
+              value={customValue}
+              onChange={(e) => setCustomValue(e.target.value)}
+              className="h-8 w-24 rounded-md border border-border/60 bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </div>
+        )}
+
+        {/* Frequency toggle – show when a non-free price is picked */}
+        {((selectedPrice && selectedPrice !== "Free" && !isCustom) || (isCustom && customValue)) && (
+          <div className="flex items-center gap-1.5 pt-0.5">
+            <span className="text-[11px] text-muted-foreground font-medium mr-1">Pay</span>
+            {(["once", "monthly"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFrequency(f)}
+                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                  frequency === f
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-secondary/50 text-muted-foreground border-border/60 hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                {f === "once" ? "One-time" : "Per month"}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <Button size="sm" className="w-full h-9 text-sm font-semibold rounded-lg mt-1" onClick={() => setSubmitted(true)}>

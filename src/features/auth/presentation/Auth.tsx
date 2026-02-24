@@ -4,10 +4,10 @@ import { useAuth } from "@/features/auth/data/useAuth";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { useToast } from "@/shared/hooks/use-toast";
 import { z } from "zod";
 import logo from "@/assets/logo.png";
+import authIllustration from "@/assets/auth-illustration.png";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -153,18 +153,35 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary to-accent p-4">
-      <Card className="w-full max-w-md shadow-lg border-border">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
-            <img src={logo} alt="SimpliFi" className="h-16 w-auto" />
+    <div className="min-h-screen flex bg-white">
+      {/* Left panel - Illustration */}
+      <div className="hidden lg:flex lg:w-1/2 bg-primary/5 items-center justify-center p-12 relative overflow-hidden">
+        <div className="relative z-10 text-center max-w-md">
+          <img
+            src={authIllustration}
+            alt="Financial freedom illustration"
+            className="w-80 h-80 mx-auto mb-8 object-contain"
+          />
+          <h2 className="text-2xl font-bold text-foreground mb-3">
+            Your journey to financial freedom
+          </h2>
+          <p className="text-muted-foreground">
+            Plan smarter, invest better, and achieve your financial goals step by step with SimpliFi.
+          </p>
+        </div>
+      </div>
+
+      {/* Right panel - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-6">
+              <img src={logo} alt="SimpliFi" className="h-14 w-auto" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
+            <p className="text-muted-foreground mt-1 text-sm">{getDescription()}</p>
           </div>
-          <div>
-            <CardTitle className="text-2xl font-bold text-foreground">{getTitle()}</CardTitle>
-            <CardDescription className="text-muted-foreground mt-1">{getDescription()}</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "signup" && (
               <div className="space-y-2">
@@ -290,8 +307,8 @@ export default function Auth() {
               </button>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

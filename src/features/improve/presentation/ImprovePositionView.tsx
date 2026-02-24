@@ -851,7 +851,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
 
               <div className="relative mt-2">
                 {/* Blurred advisor cards */}
-                <div className="opacity-30 blur-[2px] pointer-events-none space-y-4">
+                <div className="opacity-15 blur-[3px] pointer-events-none space-y-4">
                   {mockAdvisors.map((advisor) => (
                     <AdvisorCard key={advisor.name} advisor={advisor} />
                   ))}

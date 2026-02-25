@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/data/useAuth";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import { useToast } from "@/shared/hooks/use-toast";
 import { z } from "zod";
 import logo from "@/assets/logo.png";
@@ -25,8 +26,9 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string; agreed?: string }>({});
 
   const { signIn, signUp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
@@ -39,7 +41,7 @@ export default function Auth() {
   }, [user, navigate, mode]);
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string; confirmPassword?: string } = {};
+    const newErrors: { email?: string; password?: string; confirmPassword?: string; agreed?: string } = {};
 
     if (mode !== "update-password") {
       const emailResult = emailSchema.safeParse(email);
@@ -57,6 +59,10 @@ export default function Auth() {
 
     if ((mode === "signup" || mode === "update-password") && password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    if (mode === "signup" && !agreed) {
+      newErrors.agreed = "You must agree to the Privacy Policy and Terms of Service";
     }
 
     setErrors(newErrors);
@@ -254,6 +260,50 @@ export default function Auth() {
                 />
                 {errors.confirmPassword && (
                   <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+                )}
+              </div>
+            )}
+
+            {mode === "signup" && (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="agreed"
+                    checked={agreed}
+                    onCheckedChange={(checked) => {
+                      setAgreed(checked === true);
+                      setErrors((prev) => ({ ...prev, agreed: undefined }));
+                    }}
+                    className={errors.agreed ? "border-destructive" : ""}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="agreed"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      I agree and have read the{" "}
+                      <Link
+                        to="/privacy-policy"
+                        target="_blank"
+                        className="text-primary hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Privacy Policy
+                      </Link>{" "}
+                      and{" "}
+                      <Link
+                        to="/terms-of-service"
+                        target="_blank"
+                        className="text-primary hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Terms of Service
+                      </Link>
+                    </label>
+                  </div>
+                </div>
+                {errors.agreed && (
+                  <p className="text-sm text-destructive">{errors.agreed}</p>
                 )}
               </div>
             )}

@@ -62,6 +62,13 @@ export default {
           strengthen: "hsl(var(--phase-strengthen))",
           scale: "hsl(var(--phase-scale))",
         },
+        emerald: {
+          50: "hsl(var(--emerald-50))",
+          100: "hsl(var(--emerald-100))",
+          500: "hsl(var(--emerald-500))",
+          600: "hsl(var(--emerald-600))",
+          700: "hsl(var(--emerald-700))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -27,21 +27,21 @@ export default function Index() {
   const features = [
     {
       icon: BarChart3,
-      title: "Personalised Financial Insights",
+      title: "Personal Financial Snapshot",
       description:
-        "See exactly where you stand among Malaysians. Enter your salary and get a clear picture of your income tier, retirement outlook, and growth potential.",
+        "See exactly where you stand today. Enter your income and key numbers to instantly understand your income tier, projected retirement funds, and estimated future spending capacity.",
     },
     {
       icon: UserCircle,
-      title: "Your Complete Financial Profile",
+      title: "Retirement Visibility — Before It's Too Late",
       description:
-        "SimpliFi connects income, expenses, and retirement savings in one place. Get tailored insights that match your real life — not generic advice.",
+        "Understand your retirement outlook in minutes. See how much you may accumulate by retirement and how much you could sustainably spend — based on your current inputs.",
     },
     {
       icon: BookOpen,
-      title: "Track & Improve Over Time",
+      title: "Clarity on Your Biggest Financial Constraint",
       description:
-        "Monitor your financial health, track progress, and discover actionable steps to level up your financial position month after month.",
+        "Identify what's holding you back. SimpliFi highlights the key factor that most limits your financial position today — whether it's income level, savings rate, or lifestyle assumptions.",
     },
   ];
 

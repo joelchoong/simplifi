@@ -4,7 +4,7 @@ import { useAuth } from "@/features/auth/data/useAuth";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import logo from "@/assets/logo.png";
-import { DollarSign, Eye, Heart, ArrowRight, BarChart3, UserCircle, BookOpen } from "lucide-react";
+import { ArrowRight, BarChart3, UserCircle, BookOpen } from "lucide-react";
 
 export default function Index() {
   const { user, loading } = useAuth();
@@ -136,26 +136,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Value Props Strip */}
-      <section className="border-t border-border px-6 py-12">
-        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-          <div className="flex flex-col items-center gap-2">
-            <DollarSign className="h-6 w-6 text-primary" />
-            <h4 className="font-semibold text-foreground">100% Free to Use</h4>
-            <p className="text-sm text-muted-foreground">No hidden fees, no premium tiers.</p>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <Eye className="h-6 w-6 text-primary" />
-            <h4 className="font-semibold text-foreground">Visualise Your Future</h4>
-            <p className="text-sm text-muted-foreground">See where you stand and where you could be.</p>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <Heart className="h-6 w-6 text-primary" />
-            <h4 className="font-semibold text-foreground">Support Development</h4>
-            <p className="text-sm text-muted-foreground">Share SimpliFi to help us keep building.</p>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border bg-card px-6 py-10">

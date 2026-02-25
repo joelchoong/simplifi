@@ -138,17 +138,57 @@ export default function Index() {
 
 
       {/* Footer */}
-      <footer className="border-t border-border bg-card px-6 py-10">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="SimpliFi" className="h-8 w-auto" />
-            <span className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} SimpliFi. All rights reserved.
-            </span>
+      <footer className="border-t border-border bg-accent/30 px-6 pt-16 pb-8">
+        <div className="max-w-5xl mx-auto">
+          {/* Top: tagline + CTA buttons */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground max-w-md">
+              We believe financial freedom should be accessible
+            </h3>
+            <div className="flex gap-3">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/auth">For Individuals</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/auth">Explore Tools</Link>
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Built with ❤️ for Malaysians who want to take control of their finances.
-          </p>
+
+          <div className="border-t border-border pt-10 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+              <div>
+                <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider mb-4">Products</h4>
+                <ul className="space-y-3">
+                  <li><Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Financial Health Check</Link></li>
+                  <li><Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Retirement Calculator</Link></li>
+                  <li><Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Income Tier Comparison</Link></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider mb-4">Company</h4>
+                <ul className="space-y-3">
+                  <li><Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About Us</Link></li>
+                  <li><Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact Us</Link></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider mb-4">Terms & Policies</h4>
+                <ul className="space-y-3">
+                  <li><Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                  <li><Link to="/terms-of-service" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <img src={logo} alt="SimpliFi" className="h-8 w-auto" />
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} SimpliFi — All rights reserved. Made with ❤️ in Malaysia
+            </p>
+          </div>
         </div>
       </footer>
     </div>

@@ -26,6 +26,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
 
     // Use income reality baseline life cost as default monthly expenses
     const [monthlyExpenses, setMonthlyExpenses] = useState(maxSpendAmount);
+    const [isExpensesCustom, setIsExpensesCustom] = useState(false);
 
     // Custom rates state
     const [customRates, setCustomRates] = useState<{
@@ -40,6 +41,13 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         setCurrentEPF(initialCurrentEPF);
         setAge(initialAge);
     }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
+
+    // Sync monthlyExpenses with maxSpendAmount when it changes (unless user customized)
+    useEffect(() => {
+        if (!isExpensesCustom) {
+            setMonthlyExpenses(maxSpendAmount);
+        }
+    }, [maxSpendAmount, isExpensesCustom]);
 
     // Calculate projection synchronously via useMemo to avoid stale state issues
     const epfData = useMemo<EPFData[]>(() => {
@@ -76,6 +84,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         age: number;
         retirementAge?: number;
         monthlyExpenses?: number;
+        isExpensesCustom?: boolean;
         employeeRate?: number;
         employerRate?: number;
         dividendRate?: number;
@@ -85,6 +94,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         setAge(data.age);
         if (data.retirementAge !== undefined) setRetirementAge(data.retirementAge);
         if (data.monthlyExpenses !== undefined) setMonthlyExpenses(data.monthlyExpenses);
+        if (data.isExpensesCustom !== undefined) setIsExpensesCustom(data.isExpensesCustom);
 
         // Update custom rates if provided
         if (data.employeeRate !== undefined || data.employerRate !== undefined || data.dividendRate !== undefined) {

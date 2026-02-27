@@ -87,7 +87,7 @@ export default function Index() {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-6">
-            <span className="font-semibold">100% Free.</span> No hidden fees, no premium tiers.
+            <span className="font-semibold">Currently free during beta.</span>
           </p>
         </div>
       </section>

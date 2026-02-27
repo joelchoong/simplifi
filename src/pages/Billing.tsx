@@ -7,15 +7,15 @@ import { Check, Rocket, Sparkles, Zap } from "lucide-react";
 export default function Billing() {
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-        <header className="flex flex-col gap-2">
+      <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <header className="flex flex-col gap-2 text-center sm:text-left">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Billing & Subscription</h1>
-          <p className="text-muted-foreground">Manage your subscription plan and explore future options.</p>
+          <p className="text-muted-foreground">SimpliFi is currently in free beta. No payment is required.</p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex justify-center">
           {/* Current Plan */}
-          <Card className="relative overflow-hidden border-2 border-emerald-500/20 shadow-xl shadow-emerald-900/5">
+          <Card className="relative overflow-hidden border-2 border-emerald-500/20 shadow-xl shadow-emerald-900/5 w-full max-w-lg">
             <div className="absolute top-0 right-0 p-4">
               <Badge
                 variant="secondary"
@@ -71,43 +71,6 @@ export default function Billing() {
                 disabled
               >
                 Current Phase
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Future Plan */}
-          <Card className="relative overflow-hidden bg-slate-50/50 border-dashed">
-            <div className="absolute top-0 right-0 p-4">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1">
-                Coming Soon
-              </Badge>
-            </div>
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Rocket className="w-5 h-5 text-blue-500" />
-                <CardTitle className="text-2xl font-bold">Pro Plan</CardTitle>
-              </div>
-              <CardDescription>Premium features for power users.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-slate-900">RM20</span>
-                <span className="text-slate-500 font-medium">/ month</span>
-              </div>
-
-              <div className="space-y-3 py-4 border-t border-slate-200">
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <Check className="w-4 h-4 text-blue-400" />
-                  <span>Priority Community Support</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <Check className="w-4 h-4 text-blue-400" />
-                  <span>Future plans coming soon</span>
-                </div>
-              </div>
-
-              <Button className="w-full h-11" variant="secondary" disabled>
-                Estimated Launch: April 2026
               </Button>
             </CardContent>
           </Card>

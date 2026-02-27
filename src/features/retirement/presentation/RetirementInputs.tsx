@@ -18,6 +18,7 @@ interface RetirementInputsProps {
     age: number;
     retirementAge?: number;
     monthlyExpenses?: number;
+    isExpensesCustom?: boolean;
     employeeRate?: number;
     employerRate?: number;
     dividendRate?: number;
@@ -76,6 +77,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     divRate?: number,
     retAge?: number,
     expenses?: number,
+    expensesCustom?: boolean,
   ) => {
     onSave({
       monthlyIncome: income,
@@ -83,6 +85,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
       age: userAge,
       retirementAge: retAge !== undefined ? retAge : (parseInt(retirementAge) || 60),
       monthlyExpenses: expenses !== undefined ? expenses : (parseFloat(monthlyExpenses) || Math.round(maxSpendAmount)),
+      isExpensesCustom: expensesCustom !== undefined ? expensesCustom : isExpensesCustom,
       employeeRate: empRate,
       employerRate: emplRate,
       dividendRate: divRate,
@@ -126,7 +129,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
       setMonthlyExpenses(Math.round(newMaxSpend).toString());
     }
 
-    triggerSave(num, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, activeExpenses);
+    triggerSave(num, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, activeExpenses, false);
   };
 
   const handleEPFBlur = () => {
@@ -155,7 +158,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     setMonthlyExpenses(Math.round(num).toString());
     setIsExpensesCustom(true);
     const rates = getCurrentRates();
-    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, num);
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, num, true);
   };
 
   const handleResetExpenses = () => {
@@ -163,7 +166,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     setMonthlyExpenses(defaultExpenses.toString());
     setIsExpensesCustom(false);
     const rates = getCurrentRates();
-    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, defaultExpenses);
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, defaultExpenses, false);
   };
 
   const handleRateChange = () => {

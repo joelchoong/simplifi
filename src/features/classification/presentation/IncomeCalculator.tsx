@@ -28,6 +28,7 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
     const [isOpen, setIsOpen] = useState(false);
     const [gross, setGross] = useState<number>(initialGross);
     const [inputGross, setInputGross] = useState<string>(initialGross.toString());
+    const [isEditing, setIsEditing] = useState(false);
 
     // Deductions State
     const [deductions, setDeductions] = useState({
@@ -135,6 +136,7 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
             });
             return;
         }
+        setIsEditing(false);
         onSave(gross);
     };
 
@@ -157,21 +159,42 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
                         <Label htmlFor="grossIncome" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                             Gross Monthly Income
                         </Label>
-                        <div className="relative group">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
-                            <Input
-                                id="grossIncome"
-                                type="number"
-                                value={inputGross}
-                                onChange={(e) => setInputGross(e.target.value)}
-                                onBlur={handleUpdate}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        e.currentTarget.blur();
-                                    }
-                                }}
-                                className="pl-10 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
-                            />
+                        <div className="flex gap-2" id="tour-income-input">
+                            <div className="relative group flex-1">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
+                                <Input
+                                    id="grossIncome"
+                                    type="number"
+                                    value={inputGross}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        const cleanlyFormatted = val.replace(/^0+(?=\d)/, '');
+                                        setInputGross(cleanlyFormatted);
+                                        if (parseFloat(cleanlyFormatted) !== gross) {
+                                            setIsEditing(true);
+                                        } else {
+                                            setIsEditing(false);
+                                        }
+                                    }}
+                                    onBlur={handleUpdate}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.currentTarget.blur();
+                                            handleUpdate();
+                                        }
+                                    }}
+                                    className="pl-10 pr-20 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
+                                />
+                                {isEditing && (
+                                    <Button
+                                        onClick={handleUpdate}
+                                        size="sm"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-4 font-bold"
+                                    >
+                                        Save
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
 

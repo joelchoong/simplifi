@@ -9,6 +9,22 @@ import ImprovePositionView from "@/features/improve/presentation/ImprovePosition
 import { supabase } from "@/shared/integrations/supabase/client";
 import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
 import { useToast } from "@/shared/hooks/use-toast";
+import { Tour, TourStep } from "@/shared/components/ui/tour";
+
+const TOUR_STEPS: TourStep[] = [
+  {
+    target: "#tour-navigation-tabs",
+    title: "Welcome to SimpliFi!",
+    content: "Use these tabs to switch between different areas of your financial health: Classification, Retirement planning, and your Income Reality.",
+    placement: "bottom"
+  },
+  {
+    target: "#tour-income-input",
+    title: "Start Your Journey",
+    content: "Enter your Gross Monthly Income here and press Enter. You'll instantly see your charts update with your financial snapshot.",
+    placement: "left"
+  }
+];
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -35,9 +51,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     expenseEntertainment: 500,
   });
   const [dataLoading, setDataLoading] = useState(true);
+  const [showTour, setShowTour] = useState(false);
 
   const isDashboard = location.pathname === "/money-health";
   const isImprove = location.pathname === "/improve";
+
+  useEffect(() => {
+    // Check if user has completed the tour
+    if (isDashboard && !localStorage.getItem("simplifi_tour_completed")) {
+      // Small delay to let the UI settle
+      const timer = setTimeout(() => setShowTour(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isDashboard]);
+
+  const handleTourComplete = () => {
+    localStorage.setItem("simplifi_tour_completed", "true");
+    setShowTour(false);
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -227,7 +258,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {isDashboard && (
             <div className="mx-auto max-w-6xl mb-4">
               <div className="flex justify-start">
-                <div className="flex items-center gap-2 p-1 bg-secondary/20 rounded-full">
+                <div id="tour-navigation-tabs" className="flex items-center gap-2 p-1 bg-secondary/20 rounded-full">
                   <button
                     onClick={() => setCurrentView('classification')}
                     className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'classification'
@@ -327,6 +358,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
       </main>
+
+      <Tour
+        isOpen={showTour}
+        steps={TOUR_STEPS}
+        onComplete={handleTourComplete}
+        onSkip={handleTourComplete}
+      />
     </div>
   );
 }

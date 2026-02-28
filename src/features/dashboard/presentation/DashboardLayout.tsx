@@ -44,11 +44,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     householdType: 'alone' as string,
     dependants: 1,
     location: 'kl' as string,
-    expenseFood: 1500,
+    expenseFood: 1000,
     expenseTransport: 600,
     expenseUtilities: 300,
     expenseOthers: 100,
-    expenseEntertainment: 500,
+    expenseEntertainment: 200,
   });
   const [dataLoading, setDataLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);

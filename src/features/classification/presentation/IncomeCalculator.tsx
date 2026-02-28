@@ -16,6 +16,13 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/shared/components/ui/popover";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
+import { formatNumberInput, parseNumberInput } from "@/shared/lib/utils";
 
 interface IncomeCalculatorProps {
     initialGross?: number;
@@ -123,7 +130,7 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
     const nettPay = Math.max(0, gross - totalDeductions);
 
     useEffect(() => {
-        const val = parseFloat(inputGross);
+        const val = parseFloat(parseNumberInput(inputGross));
         if (!isNaN(val)) setGross(val);
     }, [inputGross]);
 
@@ -137,181 +144,198 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
             return;
         }
         setIsEditing(false);
+        // Format the input nicely on blur
+        setInputGross(formatNumberInput(gross.toString()));
         onSave(gross);
     };
 
     const formatRM = (val: number) => `RM ${Math.round(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
     return (
-        <Card className="w-full shadow-md border-border/60">
-            <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                    <Calculator className="h-5 w-5 text-primary" />
-                    Nett Pay Calculator
-                </CardTitle>
-                <CardDescription className="text-xs">
-                    Auto-calculates your take-home pay after deductions.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="grossIncome" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                            Gross Monthly Income
-                        </Label>
-                        <div className="flex gap-2" id="tour-income-input">
-                            <div className="relative group flex-1">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
-                                <Input
-                                    id="grossIncome"
-                                    type="number"
-                                    value={inputGross}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        const cleanlyFormatted = val.replace(/^0+(?=\d)/, '');
-                                        setInputGross(cleanlyFormatted);
-                                        if (parseFloat(cleanlyFormatted) !== gross) {
-                                            setIsEditing(true);
-                                        } else {
-                                            setIsEditing(false);
-                                        }
+        <TooltipProvider delayDuration={300}>
+            <Card className="w-full shadow-md border-border/60">
+                <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                        <Calculator className="h-5 w-5 text-primary" />
+                        Nett Pay Calculator
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                        Auto-calculates your take-home pay after deductions.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="grossIncome" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                Gross Monthly Income
+                            </Label>
+                            <div className="flex gap-2" id="tour-income-input">
+                                <div className="relative group flex-1">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
+                                    <Input
+                                        id="grossIncome"
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={formatNumberInput(inputGross)}
+                                        onChange={(e) => {
+                                            const parsed = parseNumberInput(e.target.value);
+                                            const cleanlyFormatted = parsed.replace(/^0+(?=\d)/, '');
+                                            setInputGross(cleanlyFormatted);
+                                            if (parseFloat(cleanlyFormatted) !== gross) {
+                                                setIsEditing(true);
+                                            } else {
+                                                setIsEditing(false);
+                                            }
+                                        }}
+                                        onBlur={handleUpdate}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.currentTarget.blur();
+                                                handleUpdate();
+                                            }
+                                        }}
+                                        className="pl-10 pr-20 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
+                                    />
+                                    {isEditing && (
+                                        <Button
+                                            onClick={handleUpdate}
+                                            size="sm"
+                                            className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-4 font-bold"
+                                        >
+                                            Save
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Estimated Nett Pay</span>
+                            <span className="text-3xl font-black text-primary tracking-tight tabular-nums">{formatRM(nettPay)}</span>
+                        </div>
+                    </div>
+
+                    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border rounded-xl overflow-hidden bg-white/50">
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="w-full flex justify-between items-center p-4 hover:bg-secondary/30 rounded-none h-auto">
+                                <div className="flex flex-col items-start gap-0.5">
+                                    <span className="font-bold text-sm">Deductions Breakdown</span>
+                                    <span className="text-[10px] font-medium text-muted-foreground">
+                                        Total deductions: {formatRM(totalDeductions)}
+                                    </span>
+                                </div>
+                                {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                            </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="p-4 pt-0 space-y-4">
+                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                <div className="flex flex-col">
+                                    <Label htmlFor="overrides" className="text-xs font-bold">Manual Overrides</Label>
+                                    <span className="text-[10px] text-muted-foreground">Edit specific values manually</span>
+                                </div>
+                                <Switch
+                                    id="overrides"
+                                    checked={overrides.enable}
+                                    onCheckedChange={(checked) => {
+                                        setOverrides({ ...overrides, enable: checked });
+                                        if (!checked) handleUpdate();
                                     }}
-                                    onBlur={handleUpdate}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            e.currentTarget.blur();
-                                            handleUpdate();
-                                        }
-                                    }}
-                                    className="pl-10 pr-20 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
                                 />
-                                {isEditing && (
-                                    <Button
-                                        onClick={handleUpdate}
-                                        size="sm"
-                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-4 font-bold"
-                                    >
-                                        Save
-                                    </Button>
-                                )}
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex flex-col items-center justify-center gap-1 shadow-sm">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Estimated Nett Pay</span>
-                        <span className="text-3xl font-black text-primary tracking-tight tabular-nums">{formatRM(nettPay)}</span>
-                    </div>
-                </div>
-
-                <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border rounded-xl overflow-hidden bg-white/50">
-                    <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full flex justify-between items-center p-4 hover:bg-secondary/30 rounded-none h-auto">
-                            <div className="flex flex-col items-start gap-0.5">
-                                <span className="font-bold text-sm">Deductions Breakdown</span>
-                                <span className="text-[10px] font-medium text-muted-foreground">
-                                    Total deductions: {formatRM(totalDeductions)}
-                                </span>
-                            </div>
-                            {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-                        </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="p-4 pt-0 space-y-4">
-                        <div className="flex items-center justify-between py-2 border-b border-border/50">
-                            <div className="flex flex-col">
-                                <Label htmlFor="overrides" className="text-xs font-bold">Manual Overrides</Label>
-                                <span className="text-[10px] text-muted-foreground">Edit specific values manually</span>
-                            </div>
-                            <Switch
-                                id="overrides"
-                                checked={overrides.enable}
-                                onCheckedChange={(checked) => {
-                                    setOverrides({ ...overrides, enable: checked });
-                                    if (!checked) handleUpdate();
-                                }}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3">
-                            {[
-                                { id: 'epf', label: 'EPF', value: overrides.epf, computed: computedEPF, rate: `${deductions.epfRate}%` },
-                                { id: 'socso', label: 'SOCSO', value: overrides.socso, computed: computedSOCSO },
-                                { id: 'eis', label: 'EIS', value: overrides.eis, computed: computedEIS },
-                                { id: 'pcb', label: 'PCB', value: overrides.pcb, computed: computedPCB_MTD },
-                                { id: 'cp38', label: 'CP38', value: overrides.cp38, computed: computedCP38 },
-                            ].map((item) => (
-                                <div key={item.id} className="space-y-1.5">
-                                    <div className="flex justify-between items-center px-0.5">
-                                        <Label className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">{item.label}</Label>
-                                        {!overrides.enable && item.rate && <span className="text-[9px] font-bold text-primary/70 bg-primary/5 px-1.5 rounded">{item.rate}</span>}
-                                    </div>
-                                    <div className="relative">
-                                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground">RM</span>
-                                        <Input
-                                            type="number"
-                                            value={overrides.enable ? (item.value ?? item.computed).toString() : Math.round(item.computed).toString()}
-                                            disabled={!overrides.enable}
-                                            onChange={(e) => {
-                                                const val = parseFloat(e.target.value);
-                                                setOverrides({ ...overrides, [(item.id)]: isNaN(val) ? null : val });
-                                            }}
-                                            onBlur={handleUpdate}
-                                            className="h-8 pl-8 text-xs font-semibold focus-visible:ring-primary/20"
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="pt-2 border-t border-border/50">
-                            <div className="flex justify-between items-center px-0.5">
-                                <div className="flex items-center gap-1.5">
-                                    <Label className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">Est. Annual Income Tax</Label>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <button className="text-muted-foreground/60 hover:text-primary transition-colors">
-                                                <Info className="h-3 w-3" />
-                                            </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-80 p-0 overflow-hidden" side="right">
-                                            <div className="bg-primary px-3 py-2">
-                                                <span className="text-xs font-bold text-primary-foreground">Malaysia Tax Brackets (2024)</span>
+                            <div className="grid grid-cols-1 gap-3">
+                                {[
+                                    { id: 'epf', label: 'EPF', tooltip: 'Employees Provident Fund - Mandatory retirement savings', value: overrides.epf, computed: computedEPF, rate: `${deductions.epfRate}%` },
+                                    { id: 'socso', label: 'SOCSO', tooltip: 'Social Security Organization - Workplace injury insurance', value: overrides.socso, computed: computedSOCSO },
+                                    { id: 'eis', label: 'EIS', tooltip: 'Employment Insurance System - Unemployment benefits', value: overrides.eis, computed: computedEIS },
+                                    { id: 'pcb', label: 'PCB', tooltip: 'Potongan Cukai Berjadual - Monthly tax deduction', value: overrides.pcb, computed: computedPCB_MTD },
+                                    { id: 'cp38', label: 'CP38', tooltip: 'Additional tax deduction order from LHDN', value: overrides.cp38, computed: computedCP38 },
+                                ].map((item) => (
+                                    <div key={item.id} className="space-y-1.5">
+                                        <div className="flex justify-between items-center px-0.5">
+                                            <div className="flex items-center gap-1.5">
+                                                <Label className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">{item.label}</Label>
+                                                {item.tooltip && (
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Info className="h-3 w-3 text-muted-foreground/60 hover:text-primary transition-colors cursor-help" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="right">
+                                                            <p className="text-xs max-w-[200px]">{item.tooltip}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                )}
                                             </div>
-                                            <div className="p-2 bg-background">
-                                                <table className="w-full text-[10px]">
-                                                    <thead>
-                                                        <tr className="border-b border-border">
-                                                            <th className="text-left py-1 font-bold">Taxable Income (RM)</th>
-                                                            <th className="text-right py-1 font-bold">Rate</th>
-                                                            <th className="text-right py-1 font-bold">Tax (RM)</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-border/50">
-                                                        <tr><td className="py-1">0 - 5,000</td><td className="text-right">0%</td><td className="text-right">0</td></tr>
-                                                        <tr><td className="py-1">5,001 - 20,000</td><td className="text-right">1%</td><td className="text-right">150</td></tr>
-                                                        <tr><td className="py-1">20,001 - 35,000</td><td className="text-right">3%</td><td className="text-right">450</td></tr>
-                                                        <tr><td className="py-1">35,001 - 50,000</td><td className="text-right">6%</td><td className="text-right">900</td></tr>
-                                                        <tr><td className="py-1">50,001 - 70,000</td><td className="text-right">11%</td><td className="text-right">2,200</td></tr>
-                                                        <tr><td className="py-1">70,001 - 100,000</td><td className="text-right">19%</td><td className="text-right">5,700</td></tr>
-                                                        <tr><td className="py-1">100,001 - 400,000</td><td className="text-right">25%</td><td className="text-right">75,000</td></tr>
-                                                        <tr><td className="py-1">400,001 - 600,000</td><td className="text-right">26%</td><td className="text-right">52,000</td></tr>
-                                                        <tr><td className="py-1">600,001 - 2,000,000</td><td className="text-right">28%</td><td className="text-right">392,000</td></tr>
-                                                        <tr><td className="py-1">&gt; 2,000,000</td><td className="text-right">30%</td><td className="text-right">-</td></tr>
-                                                    </tbody>
-                                                </table>
-                                                <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
-                                                    * Calculations include Standard Relief (9,000) and EPF Relief (up to 4,000).
+                                            {!overrides.enable && item.rate && <span className="text-[9px] font-bold text-primary/70 bg-primary/5 px-1.5 rounded">{item.rate}</span>}
+                                        </div>
+                                        <div className="relative">
+                                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground">RM</span>
+                                            <Input
+                                                type="number"
+                                                value={overrides.enable ? (item.value ?? item.computed).toString() : Math.round(item.computed).toString()}
+                                                disabled={!overrides.enable}
+                                                onChange={(e) => {
+                                                    const val = parseFloat(e.target.value);
+                                                    setOverrides({ ...overrides, [(item.id)]: isNaN(val) ? null : val });
+                                                }}
+                                                onBlur={handleUpdate}
+                                                className="h-8 pl-8 text-xs font-semibold focus-visible:ring-primary/20"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="pt-2 border-t border-border/50">
+                                <div className="flex justify-between items-center px-0.5">
+                                    <div className="flex items-center gap-1.5">
+                                        <Label className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">Est. Annual Income Tax</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button className="text-muted-foreground/60 hover:text-primary transition-colors">
+                                                    <Info className="h-3 w-3" />
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-80 p-0 overflow-hidden" side="right">
+                                                <div className="bg-primary px-3 py-2">
+                                                    <span className="text-xs font-bold text-primary-foreground">Malaysia Tax Brackets (2024)</span>
                                                 </div>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
+                                                <div className="p-2 bg-background">
+                                                    <table className="w-full text-[10px]">
+                                                        <thead>
+                                                            <tr className="border-b border-border">
+                                                                <th className="text-left py-1 font-bold">Taxable Income (RM)</th>
+                                                                <th className="text-right py-1 font-bold">Rate</th>
+                                                                <th className="text-right py-1 font-bold">Tax (RM)</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-border/50">
+                                                            <tr><td className="py-1">0 - 5,000</td><td className="text-right">0%</td><td className="text-right">0</td></tr>
+                                                            <tr><td className="py-1">5,001 - 20,000</td><td className="text-right">1%</td><td className="text-right">150</td></tr>
+                                                            <tr><td className="py-1">20,001 - 35,000</td><td className="text-right">3%</td><td className="text-right">450</td></tr>
+                                                            <tr><td className="py-1">35,001 - 50,000</td><td className="text-right">6%</td><td className="text-right">900</td></tr>
+                                                            <tr><td className="py-1">50,001 - 70,000</td><td className="text-right">11%</td><td className="text-right">2,200</td></tr>
+                                                            <tr><td className="py-1">70,001 - 100,000</td><td className="text-right">19%</td><td className="text-right">5,700</td></tr>
+                                                            <tr><td className="py-1">100,001 - 400,000</td><td className="text-right">25%</td><td className="text-right">75,000</td></tr>
+                                                            <tr><td className="py-1">400,001 - 600,000</td><td className="text-right">26%</td><td className="text-right">52,000</td></tr>
+                                                            <tr><td className="py-1">600,001 - 2,000,000</td><td className="text-right">28%</td><td className="text-right">392,000</td></tr>
+                                                            <tr><td className="py-1">&gt; 2,000,000</td><td className="text-right">30%</td><td className="text-right">-</td></tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
+                                                        * Calculations include Standard Relief (9,000) and EPF Relief (up to 4,000).
+                                                    </div>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <span className="text-xs font-bold text-foreground">{formatRM(computedAnnualTax)}</span>
                                 </div>
-                                <span className="text-xs font-bold text-foreground">{formatRM(computedAnnualTax)}</span>
                             </div>
-                        </div>
-                    </CollapsibleContent>
-                </Collapsible>
-            </CardContent>
-        </Card>
+                        </CollapsibleContent>
+                    </Collapsible>
+                </CardContent>
+            </Card>
+        </TooltipProvider>
     );
 }

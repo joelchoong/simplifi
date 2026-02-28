@@ -1,10 +1,10 @@
 // Default monthly essentials for a single adult in KL (no housing)
 export const DEFAULT_EXPENSES = {
-  food: 1500,
+  food: 1000,
   transport: 600,
   utilities: 300,
   others: 100,
-  entertainment: 500,
+  entertainment: 200,
 };
 
 export interface ExpenseAssumptions {

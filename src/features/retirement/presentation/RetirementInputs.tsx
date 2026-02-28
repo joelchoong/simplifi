@@ -3,9 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
-import { Palmtree, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { Palmtree, ChevronDown, ChevronUp, RotateCcw, Info } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible";
 import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
+import { formatNumberInput, parseNumberInput } from "@/shared/lib/utils";
 
 interface RetirementInputsProps {
   initialMonthlyIncome?: number;
@@ -182,226 +189,235 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
   };
 
   return (
-    <Card className="w-full shadow-md border-border/60">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-xl">
-          <Palmtree className="h-5 w-5 text-primary" />
-          Retirement Planning
-        </CardTitle>
-        <CardDescription className="text-xs">Auto-calculates your EPF growth until retirement.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="age" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
-              Current Age
-            </Label>
-            <Input
-              id="age"
-              type="number"
-              min="18"
-              max="60"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              onBlur={handleAgeBlur}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.currentTarget.blur();
-                }
-              }}
-              placeholder="25"
-              className="text-base"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="monthly-income"
-              className="text-xs font-semibold text-muted-foreground tracking-wide uppercase"
-            >
-              Gross Monthly Income
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">RM</span>
-              <Input
-                id="monthly-income"
-                type="number"
-                min="0"
-                step="0.01"
-                value={monthlyIncome}
-                onChange={(e) => setMonthlyIncome(e.target.value)}
-                onBlur={handleIncomeBlur}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
-                }}
-                placeholder="5000.00"
-                className="text-base pl-12"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="current-epf"
-              className="text-xs font-semibold text-muted-foreground tracking-wide uppercase"
-            >
-              Current EPF Balance
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">RM</span>
-              <Input
-                id="current-epf"
-                type="number"
-                min="0"
-                step="0.01"
-                value={currentEPF}
-                onChange={(e) => setCurrentEPF(e.target.value)}
-                onBlur={handleEPFBlur}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
-                }}
-                placeholder="50000.00"
-                className="text-base pl-12"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">Your total EPF savings (Account 1, 2 & 3)</p>
-          </div>
-        </div>
-
-        {/* Retirement Assumptions Dropdown */}
-        <Collapsible open={isRatesOpen} onOpenChange={setIsRatesOpen} className="border border-border rounded-xl">
-          <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors rounded-xl">
-            <div className="text-left">
-              <h4 className="text-sm font-semibold text-foreground">Retirement Assumptions</h4>
-              <p className="text-xs text-muted-foreground">
-                Retire at {retirementAge} · RM {Math.round(monthlyContribution()).toLocaleString()}/mo contribution
-              </p>
-            </div>
-            {isRatesOpen ? (
-              <ChevronUp className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            )}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-4 pb-4 space-y-4">
+    <TooltipProvider delayDuration={300}>
+      <Card className="w-full shadow-md border-border/60">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Palmtree className="h-5 w-5 text-primary" />
+            Retirement Planning
+          </CardTitle>
+          <CardDescription className="text-xs">Auto-calculates your EPF growth until retirement.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="retirement-age" className="text-xs font-medium">
-                Retirement Age
+              <Label htmlFor="age" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
+                Current Age
               </Label>
               <Input
-                id="retirement-age"
+                id="age"
                 type="number"
-                min={parseInt(age) || 18}
-                max="80"
-                value={retirementAge}
-                onChange={(e) => setRetirementAge(e.target.value)}
-                onBlur={handleRetirementAgeBlur}
-                onKeyDown={(e) => e.key === "Enter" && handleRetirementAgeBlur()}
-                placeholder="60"
-                className="text-sm"
+                min="18"
+                max="60"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                onBlur={handleAgeBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  }
+                }}
+                placeholder="25"
+                className="text-base"
               />
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="monthly-expenses" className="text-xs font-medium">
-                  Post-Retirement Monthly Expenses
-                </Label>
-                {isExpensesCustom && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleResetExpenses}
-                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    Reset
-                  </Button>
-                )}
-              </div>
+              <Label
+                htmlFor="monthly-income"
+                className="text-xs font-semibold text-muted-foreground tracking-wide uppercase"
+              >
+                Gross Monthly Income
+              </Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">RM</span>
                 <Input
-                  id="monthly-expenses"
-                  type="number"
-                  min="0"
-                  step="100"
-                  value={monthlyExpenses}
-                  onChange={(e) => { setMonthlyExpenses(e.target.value); setIsExpensesCustom(true); }}
-                  onBlur={handleExpensesBlur}
-                  onKeyDown={(e) => e.key === "Enter" && handleExpensesBlur()}
-                  placeholder="3500"
-                  className="text-sm pl-12"
+                  id="monthly-income"
+                  type="text"
+                  inputMode="numeric"
+                  value={formatNumberInput(monthlyIncome)}
+                  onChange={(e) => setMonthlyIncome(parseNumberInput(e.target.value))}
+                  onBlur={handleIncomeBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  placeholder="5,000"
+                  className="text-base pl-12"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Default: Max sustainable spend (RM {Math.round(maxSpendAmount).toLocaleString()}/mo)</p>
             </div>
 
-            <div className="pt-2 border-t border-border space-y-3">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">EPF Contribution Rates</p>
-              <div className="space-y-2">
-                <Label htmlFor="employee-rate" className="text-xs font-medium">
-                  Employee Contribution (%)
-                </Label>
+            <div className="space-y-2">
+              <Label
+                htmlFor="current-epf"
+                className="text-xs font-semibold text-muted-foreground tracking-wide uppercase"
+              >
+                Current EPF Balance
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">RM</span>
                 <Input
-                  id="employee-rate"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={employeeRate}
-                  onChange={(e) => setEmployeeRate(e.target.value)}
-                  onBlur={handleRateChange}
-                  onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
-                  className="text-sm"
+                  id="current-epf"
+                  type="text"
+                  inputMode="numeric"
+                  value={formatNumberInput(currentEPF)}
+                  onChange={(e) => setCurrentEPF(parseNumberInput(e.target.value))}
+                  onBlur={handleEPFBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  placeholder="50,000"
+                  className="text-base pl-12"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="employer-rate" className="text-xs font-medium">
-                  Employer Contribution (%)
-                </Label>
-                <Input
-                  id="employer-rate"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={employerRate}
-                  onChange={(e) => setEmployerRate(e.target.value)}
-                  onBlur={handleRateChange}
-                  onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
-                  className="text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dividend-rate" className="text-xs font-medium">
-                  Annual Dividend Rate (%)
-                </Label>
-                <Input
-                  id="dividend-rate"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={dividendRate}
-                  onChange={(e) => setDividendRate(e.target.value)}
-                  onBlur={handleRateChange}
-                  onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
-                  className="text-sm"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Default: Employee 11%, Employer 13-12% (based on salary), Dividend 5.5%
-              </p>
+              <p className="text-xs text-muted-foreground">Your total EPF savings (Account 1, 2 & 3)</p>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-    </Card>
+          </div>
+
+          {/* Retirement Assumptions Dropdown */}
+          <Collapsible open={isRatesOpen} onOpenChange={setIsRatesOpen} className="border border-border rounded-xl">
+            <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors rounded-xl">
+              <div className="text-left">
+                <h4 className="text-sm font-semibold text-foreground">Retirement Assumptions</h4>
+                <p className="text-xs text-muted-foreground">
+                  Retire at {retirementAge} · RM {Math.round(monthlyContribution()).toLocaleString()}/mo contribution
+                </p>
+              </div>
+              {isRatesOpen ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-4 pb-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="retirement-age" className="text-xs font-medium">
+                  Retirement Age
+                </Label>
+                <Input
+                  id="retirement-age"
+                  type="number"
+                  min={parseInt(age) || 18}
+                  max="80"
+                  value={retirementAge}
+                  onChange={(e) => setRetirementAge(e.target.value)}
+                  onBlur={handleRetirementAgeBlur}
+                  onKeyDown={(e) => e.key === "Enter" && handleRetirementAgeBlur()}
+                  placeholder="60"
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="monthly-expenses" className="text-xs font-medium">
+                      Post-Retirement Monthly Expenses
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground/60 hover:text-primary transition-colors cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs max-w-[250px]">The estimated monthly amount you expect to spend during retirement to maintain your desired lifestyle.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  {isExpensesCustom && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleResetExpenses}
+                      className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Reset
+                    </Button>
+                  )}
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
+                  <Input
+                    id="monthly-expenses"
+                    type="text"
+                    inputMode="numeric"
+                    value={formatNumberInput(monthlyExpenses)}
+                    onChange={(e) => { setMonthlyExpenses(parseNumberInput(e.target.value)); setIsExpensesCustom(true); }}
+                    onBlur={handleExpensesBlur}
+                    onKeyDown={(e) => e.key === "Enter" && handleExpensesBlur()}
+                    placeholder="3,500"
+                    className="text-sm pl-12"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Default: Max sustainable spend (RM {Math.round(maxSpendAmount).toLocaleString()}/mo)</p>
+              </div>
+
+              <div className="pt-2 border-t border-border space-y-3">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">EPF Contribution Rates</p>
+                <div className="space-y-2">
+                  <Label htmlFor="employee-rate" className="text-xs font-medium">
+                    Employee Contribution (%)
+                  </Label>
+                  <Input
+                    id="employee-rate"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={employeeRate}
+                    onChange={(e) => setEmployeeRate(e.target.value)}
+                    onBlur={handleRateChange}
+                    onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="employer-rate" className="text-xs font-medium">
+                    Employer Contribution (%)
+                  </Label>
+                  <Input
+                    id="employer-rate"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={employerRate}
+                    onChange={(e) => setEmployerRate(e.target.value)}
+                    onBlur={handleRateChange}
+                    onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dividend-rate" className="text-xs font-medium">
+                    Annual Dividend Rate (%)
+                  </Label>
+                  <Input
+                    id="dividend-rate"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={dividendRate}
+                    onChange={(e) => setDividendRate(e.target.value)}
+                    onBlur={handleRateChange}
+                    onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
+                    className="text-sm"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Default: Employee 11%, Employer 13-12% (based on salary), Dividend 5.5%
+                </p>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
 

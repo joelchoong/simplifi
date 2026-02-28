@@ -8,6 +8,7 @@ import { Scale, Minus, Plus, RotateCcw, ChevronDown } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible";
 import { HouseholdType, Location, ExpenseAssumptions, DEFAULT_EXPENSES } from "@/features/income-reality/domain/incomeRealityCalculations";
+import { formatNumberInput, parseNumberInput } from "@/shared/lib/utils";
 
 interface IncomeRealityInputsProps {
   initialMonthlyIncome?: number;
@@ -105,10 +106,12 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
     setInput: (v: string) => void,
     setValue: (v: number) => void
   ) => {
-    setInput(value);
-    const val = parseFloat(value);
+    const parsed = parseNumberInput(value);
+    const cleanlyFormatted = parsed.replace(/^0+(?=\d)/, '');
+    setInput(cleanlyFormatted);
+    const val = parseFloat(cleanlyFormatted);
     if (!isNaN(val)) setValue(val);
-    else if (value === "") setValue(0);
+    else if (cleanlyFormatted === "") setValue(0);
   };
 
   return (
@@ -133,8 +136,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
               <Input
                 id="realityIncome"
-                type="number"
-                value={inputIncome}
+                type="text"
+                inputMode="numeric"
+                value={formatNumberInput(inputIncome)}
                 onChange={(e) => handleNumericInput(e.target.value, setInputIncome, setMonthlyIncome)}
                 onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                 onBlur={() => triggerSave({ monthlyIncome })}
@@ -150,8 +154,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm group-focus-within:text-primary transition-colors">RM</span>
               <Input
                 id="housingCost"
-                type="number"
-                value={inputHousing}
+                type="text"
+                inputMode="numeric"
+                value={formatNumberInput(inputHousing)}
                 onChange={(e) => handleNumericInput(e.target.value, setInputHousing, setHousingCost)}
                 onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                 onBlur={() => triggerSave({ housingCost })}
@@ -183,8 +188,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
                 <Input
-                  type="number"
-                  value={inputFood}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatNumberInput(inputFood)}
                   onChange={(e) => handleNumericInput(e.target.value, setInputFood, (v) => setExpenses(prev => ({ ...prev, food: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
@@ -198,8 +204,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
                 <Input
-                  type="number"
-                  value={inputTransport}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatNumberInput(inputTransport)}
                   onChange={(e) => handleNumericInput(e.target.value, setInputTransport, (v) => setExpenses(prev => ({ ...prev, transport: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
@@ -213,8 +220,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
                 <Input
-                  type="number"
-                  value={inputUtilities}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatNumberInput(inputUtilities)}
                   onChange={(e) => handleNumericInput(e.target.value, setInputUtilities, (v) => setExpenses(prev => ({ ...prev, utilities: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
@@ -228,8 +236,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
                 <Input
-                  type="number"
-                  value={inputOthers}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatNumberInput(inputOthers)}
                   onChange={(e) => handleNumericInput(e.target.value, setInputOthers, (v) => setExpenses(prev => ({ ...prev, others: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
@@ -243,8 +252,9 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">RM</span>
                 <Input
-                  type="number"
-                  value={inputEntertainment}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatNumberInput(inputEntertainment)}
                   onChange={(e) => handleNumericInput(e.target.value, setInputEntertainment, (v) => setExpenses(prev => ({ ...prev, entertainment: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}

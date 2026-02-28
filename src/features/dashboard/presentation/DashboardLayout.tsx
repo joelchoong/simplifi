@@ -8,6 +8,7 @@ import IncomeRealityView from "@/features/income-reality/presentation/IncomeReal
 import ImprovePositionView from "@/features/improve/presentation/ImprovePositionView";
 import { supabase } from "@/shared/integrations/supabase/client";
 import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
+import { DEFAULT_EXPENSES } from "@/features/income-reality/domain/incomeRealityCalculations";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Tour, TourStep } from "@/shared/components/ui/tour";
 
@@ -44,11 +45,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     householdType: 'alone' as string,
     dependants: 1,
     location: 'kl' as string,
-    expenseFood: 1000,
-    expenseTransport: 600,
-    expenseUtilities: 300,
-    expenseOthers: 100,
-    expenseEntertainment: 200,
+    expenseFood: DEFAULT_EXPENSES.food,
+    expenseTransport: DEFAULT_EXPENSES.transport,
+    expenseUtilities: DEFAULT_EXPENSES.utilities,
+    expenseOthers: DEFAULT_EXPENSES.others,
+    expenseEntertainment: DEFAULT_EXPENSES.entertainment,
   });
   const [dataLoading, setDataLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);
@@ -111,11 +112,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           householdType: d.household_type || 'alone',
           dependants: d.dependants || 1,
           location: d.location || 'kl',
-          expenseFood: d.expense_food ?? 1500,
-          expenseTransport: d.expense_transport ?? 600,
-          expenseUtilities: d.expense_utilities ?? 300,
-          expenseOthers: d.expense_others ?? 100,
-          expenseEntertainment: d.expense_entertainment ?? 500,
+          expenseFood: d.expense_food ?? DEFAULT_EXPENSES.food,
+          expenseTransport: d.expense_transport ?? DEFAULT_EXPENSES.transport,
+          expenseUtilities: d.expense_utilities ?? DEFAULT_EXPENSES.utilities,
+          expenseOthers: d.expense_others ?? DEFAULT_EXPENSES.others,
+          expenseEntertainment: d.expense_entertainment ?? DEFAULT_EXPENSES.entertainment,
         });
       }
     } catch (error) {

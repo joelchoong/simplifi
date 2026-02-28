@@ -261,33 +261,33 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div id="tour-navigation-tabs" className="flex items-center gap-2 p-1 bg-secondary/20 rounded-full">
                   <button
                     onClick={() => setCurrentView('classification')}
-                    className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'classification'
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${currentView === 'classification'
                       ? 'bg-emerald-500 text-white shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                       }`}
                   >
-                    <LayoutGrid className="w-4 h-4" />
-                    <span className="hidden sm:inline">Classification</span>
+                    <LayoutGrid className="w-4 h-4 shrink-0" />
+                    <span className={currentView === 'classification' ? 'inline whitespace-nowrap' : 'hidden sm:inline whitespace-nowrap'}>Classification</span>
                   </button>
                   <button
                     onClick={() => setCurrentView('retirement')}
-                    className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'retirement'
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${currentView === 'retirement'
                       ? 'bg-emerald-500 text-white shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                       }`}
                   >
-                    <Palmtree className="w-4 h-4" />
-                    <span className="hidden sm:inline">Retirement</span>
+                    <Palmtree className="w-4 h-4 shrink-0" />
+                    <span className={currentView === 'retirement' ? 'inline whitespace-nowrap' : 'hidden sm:inline whitespace-nowrap'}>Retirement</span>
                   </button>
                   <button
                     onClick={() => setCurrentView('income-reality')}
-                    className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${currentView === 'income-reality'
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${currentView === 'income-reality'
                       ? 'bg-emerald-500 text-white shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                       }`}
                   >
-                    <Scale className="w-4 h-4" />
-                    <span className="hidden sm:inline">Income Reality</span>
+                    <Scale className="w-4 h-4 shrink-0" />
+                    <span className={currentView === 'income-reality' ? 'inline whitespace-nowrap' : 'hidden sm:inline whitespace-nowrap'}>Income Reality</span>
                   </button>
                 </div>
               </div>

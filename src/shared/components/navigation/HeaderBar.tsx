@@ -49,14 +49,17 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
 
         {/* Far Right: CTA + Avatar Menu */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile version */}
           <Button
             variant="outline"
-            size="icon"
-            className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 sm:hidden h-9 w-9"
+            size="sm"
+            className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 sm:hidden flex items-center gap-1.5 h-9 px-3"
             onClick={() => navigate("/improve")}
           >
             <TrendingUp className="h-4 w-4" />
+            <span className="text-xs font-bold">Improve</span>
           </Button>
+          {/* Desktop version */}
           <Button
             variant="outline"
             size="sm"
@@ -106,9 +109,8 @@ const HeaderTab: React.FC<{
 }> = ({ label, icon, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-      active ? "bg-green-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-    }`}
+    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${active ? "bg-green-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+      }`}
     aria-current={active ? "page" : undefined}
   >
     {icon}

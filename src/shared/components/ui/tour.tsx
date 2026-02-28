@@ -62,38 +62,80 @@ export function Tour({ steps, isOpen, onComplete, onSkip }: TourProps) {
     };
 
     const getPopoverStyle = (): React.CSSProperties => {
-        if (!targetRect) {
+        if (!targetRect || windowSize.width === 0) {
             return {
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
+                opacity: 0,
             };
         }
 
         const padding = 16;
+        const popoverWidth = Math.min(320, windowSize.width - 32);
+
         let top = 0;
         let left = 0;
+        let transform = "";
 
-        switch (currentStepData.placement) {
+        let placement = currentStepData.placement;
+
+        // Auto-adjust placement for mobile (screen width < 640px)
+        if (windowSize.width < 640) {
+            // Default to bottom unless target is too close to the bottom edge
+            if (targetRect.bottom + 200 > windowSize.height) {
+                placement = "top";
+            } else {
+                placement = "bottom";
+            }
+        }
+
+        switch (placement) {
             case "top":
                 top = targetRect.top - padding;
                 left = targetRect.left + (targetRect.width / 2);
-                return { top, left, transform: "translate(-50%, -100%)" };
+                transform = "translate(-50%, -100%)";
+                break;
             case "bottom":
                 top = targetRect.bottom + padding;
                 left = targetRect.left + (targetRect.width / 2);
-                return { top, left, transform: "translate(-50%, 0)" };
+                transform = "translate(-50%, 0)";
+                break;
             case "left":
                 top = targetRect.top + (targetRect.height / 2);
                 left = targetRect.left - padding;
-                return { top, left, transform: "translate(-100%, -50%)" };
+                transform = "translate(-100%, -50%)";
+                break;
             case "right":
                 top = targetRect.top + (targetRect.height / 2);
                 left = targetRect.right + padding;
-                return { top, left, transform: "translate(0, -50%)" };
+                transform = "translate(0, -50%)";
+                break;
             default:
-                return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+                top = windowSize.height / 2;
+                left = windowSize.width / 2;
+                transform = "translate(-50%, -50%)";
         }
+
+        // Horizontal overflow protection
+        if (placement === "top" || placement === "bottom") {
+            const halfWidth = popoverWidth / 2;
+            if (left - halfWidth < padding) {
+                left = padding + halfWidth; // Push right
+            } else if (left + halfWidth > windowSize.width - padding) {
+                left = windowSize.width - padding - halfWidth; // Push left
+            }
+        }
+
+        // Vertical overflow protection (basic fallback)
+        if (placement === "left" || placement === "right") {
+            const popoverHeightEst = 150; // estimated max height
+            const halfHeight = popoverHeightEst / 2;
+            if (top - halfHeight < padding) top = padding + halfHeight;
+            if (top + halfHeight > windowSize.height - padding) top = windowSize.height - padding - halfHeight;
+        }
+
+        return { top, left, transform };
     };
 
     const getClipPath = () => {

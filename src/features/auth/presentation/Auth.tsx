@@ -6,12 +6,39 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { useToast } from "@/shared/hooks/use-toast";
+import { ToastAction } from "@/shared/components/ui/toast";
 import { z } from "zod";
 import logo from "@/assets/logo.png";
 import authIllustration from "@/assets/auth-illustration.png";
 
 const emailSchema = z.string().email("Please enter a valid email address");
-const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const passwordSchema = z
+  .string()
+  .min(6, "Password must be at least 6 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number");
+
+const getMailUrl = (email: string) => {
+  const lowercaseEmail = email.toLowerCase();
+  if (lowercaseEmail.endsWith("@gmail.com")) return "https://mail.google.com/";
+  if (
+    lowercaseEmail.endsWith("@outlook.com") ||
+    lowercaseEmail.endsWith("@hotmail.com") ||
+    lowercaseEmail.endsWith("@live.com")
+  ) {
+    return "https://outlook.live.com/";
+  }
+  if (lowercaseEmail.endsWith("@yahoo.com")) return "https://mail.yahoo.com/";
+  if (
+    lowercaseEmail.endsWith("@icloud.com") ||
+    lowercaseEmail.endsWith("@me.com") ||
+    lowercaseEmail.endsWith("@mac.com")
+  ) {
+    return "https://www.icloud.com/mail";
+  }
+  return `mailto:${email}`;
+};
 
 type AuthMode = "signin" | "signup" | "reset" | "update-password";
 
@@ -102,6 +129,14 @@ export default function Auth() {
           toast({
             title: "Check your email",
             description: "We've sent you a confirmation link. Please check your email to complete registration.",
+            action: (
+              <ToastAction
+                altText="Open email app"
+                onClick={() => window.open(getMailUrl(email), "_blank")}
+              >
+                Open Email App
+              </ToastAction>
+            ),
           });
         }
       } else if (mode === "reset") {
@@ -240,6 +275,11 @@ export default function Auth() {
                 />
                 {errors.password && (
                   <p className="text-sm text-destructive">{errors.password}</p>
+                )}
+                {(mode === "signup" || mode === "update-password") && (
+                  <p className="text-[11px] text-muted-foreground leading-tight">
+                    Password must contain at least 6 characters, one uppercase, one lowercase, and one number.
+                  </p>
                 )}
               </div>
             )}

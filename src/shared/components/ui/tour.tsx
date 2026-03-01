@@ -27,10 +27,16 @@ export function Tour({ steps, isOpen, onComplete, onSkip }: TourProps) {
     useEffect(() => {
         if (!isOpen) return;
 
+        // Auto-scroll the target element into view when the step changes
+        const el = document.querySelector(currentStepData.target);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
         const updatePosition = () => {
-            const el = document.querySelector(currentStepData.target);
-            if (el) {
-                setTargetRect(el.getBoundingClientRect());
+            const currentEl = document.querySelector(currentStepData.target);
+            if (currentEl) {
+                setTargetRect(currentEl.getBoundingClientRect());
             } else {
                 setTargetRect(null);
             }

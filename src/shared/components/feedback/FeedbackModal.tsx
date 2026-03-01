@@ -16,7 +16,7 @@ import {
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Button } from "@/shared/components/ui/button";
 import { useToast } from "@/shared/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/shared/integrations/supabase/client";
 
 interface FeedbackModalProps {
     open: boolean;

@@ -142,8 +142,18 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                 onChange={(e) => handleNumericInput(e.target.value, setInputIncome, setMonthlyIncome)}
                 onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                 onBlur={() => triggerSave({ monthlyIncome })}
-                className="pl-10 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
+                className="peer pl-10 pr-16 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
               />
+              <Button
+                size="sm"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                }}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-3 font-bold text-xs opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+              >
+                Save
+              </Button>
             </div>
           </div>
           <div className="space-y-2">
@@ -160,9 +170,19 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                 onChange={(e) => handleNumericInput(e.target.value, setInputHousing, setHousingCost)}
                 onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                 onBlur={() => triggerSave({ housingCost })}
-                className="pl-10 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
+                className="peer pl-10 pr-16 text-lg font-bold h-12 border border-border focus-visible:ring-primary/20"
                 placeholder="0"
               />
+              <Button
+                size="sm"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                }}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-3 font-bold text-xs opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+              >
+                Save
+              </Button>
             </div>
           </div>
         </div>
@@ -194,8 +214,18 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                   onChange={(e) => handleNumericInput(e.target.value, setInputFood, (v) => setExpenses(prev => ({ ...prev, food: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
-                  className="pl-12 text-sm"
+                  className="peer pl-12 pr-16 text-sm"
                 />
+                <Button
+                  size="sm"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                >
+                  Save
+                </Button>
               </div>
             </div>
             {/* Transport */}
@@ -210,8 +240,18 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                   onChange={(e) => handleNumericInput(e.target.value, setInputTransport, (v) => setExpenses(prev => ({ ...prev, transport: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
-                  className="pl-12 text-sm"
+                  className="peer pl-12 pr-16 text-sm"
                 />
+                <Button
+                  size="sm"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                >
+                  Save
+                </Button>
               </div>
             </div>
             {/* Utilities */}
@@ -226,8 +266,18 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                   onChange={(e) => handleNumericInput(e.target.value, setInputUtilities, (v) => setExpenses(prev => ({ ...prev, utilities: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
-                  className="pl-12 text-sm"
+                  className="peer pl-12 pr-16 text-sm"
                 />
+                <Button
+                  size="sm"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                >
+                  Save
+                </Button>
               </div>
             </div>
             {/* Others */}
@@ -242,8 +292,18 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                   onChange={(e) => handleNumericInput(e.target.value, setInputOthers, (v) => setExpenses(prev => ({ ...prev, others: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
-                  className="pl-12 text-sm"
+                  className="peer pl-12 pr-16 text-sm"
                 />
+                <Button
+                  size="sm"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                >
+                  Save
+                </Button>
               </div>
             </div>
             {/* Entertainment / Travel */}
@@ -258,8 +318,18 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
                   onChange={(e) => handleNumericInput(e.target.value, setInputEntertainment, (v) => setExpenses(prev => ({ ...prev, entertainment: v })))}
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   onBlur={() => triggerSave()}
-                  className="pl-12 text-sm"
+                  className="peer pl-12 pr-16 text-sm"
                 />
+                <Button
+                  size="sm"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                >
+                  Save
+                </Button>
               </div>
             </div>
             {isCustomExpenses && (

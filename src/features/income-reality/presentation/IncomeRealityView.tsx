@@ -121,6 +121,33 @@ const IncomeRealityView: React.FC<IncomeRealityViewProps> = ({
             <div className="mb-3 sm:mb-4">
               <h2 className="text-lg sm:text-xl font-bold text-foreground">Can your income support your life?</h2>
             </div>
+
+            {result && inputs.monthlyIncome > 0 && (
+              <div className="bg-secondary/20 border border-border/50 rounded-xl p-4 shadow-sm relative group hover:border-border transition-colors mb-4">
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${(result.baselineLifeCost / inputs.monthlyIncome) > 0.8
+                    ? "bg-amber-500/10 text-amber-600"
+                    : "bg-emerald-500/10 text-emerald-600"
+                    }`}>
+                    <span className="text-lg">{(result.baselineLifeCost / inputs.monthlyIncome) > 0.8 ? "⚠️" : "✅"}</span>
+                  </div>
+                  <div className="flex-1 min-w-0 flex items-center h-10">
+                    <div className="text-sm text-foreground leading-relaxed">
+                      {(result.baselineLifeCost / inputs.monthlyIncome) > 0.8 ? (
+                        <span>
+                          Your expenses of <span className="font-bold text-amber-600">RM {Math.round(result.baselineLifeCost).toLocaleString()}</span> are <span className="font-bold text-amber-600">{Math.round((result.baselineLifeCost / inputs.monthlyIncome) * 100)}%</span> of your income, exceeding the recommended 80% limit.
+                        </span>
+                      ) : (
+                        <span>
+                          Great job! Your expenses of <span className="font-bold text-emerald-600">RM {Math.round(result.baselineLifeCost).toLocaleString()}</span> are <span className="font-bold text-emerald-600">{Math.round((result.baselineLifeCost / inputs.monthlyIncome) * 100)}%</span> of your income, leaving a healthy buffer.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="relative overflow-hidden rounded-xl bg-secondary/10 border border-border p-2 sm:p-4 h-[320px] sm:h-[400px]">
               <IncomeRealityChart
                 result={result}

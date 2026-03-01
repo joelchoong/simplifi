@@ -204,22 +204,34 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
               <Label htmlFor="age" className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">
                 Current Age
               </Label>
-              <Input
-                id="age"
-                type="number"
-                min="18"
-                max="60"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                onBlur={handleAgeBlur}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
-                }}
-                placeholder="25"
-                className="text-base"
-              />
+              <div className="relative">
+                <Input
+                  id="age"
+                  type="number"
+                  min="18"
+                  max="60"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  onBlur={handleAgeBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  placeholder="25"
+                  className="peer text-base pr-16"
+                />
+                <Button
+                  size="sm"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                  }}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-3 font-bold text-xs opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                >
+                  Save
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -244,8 +256,18 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                     }
                   }}
                   placeholder="5,000"
-                  className="text-base pl-12"
+                  className="peer text-base pl-12 pr-16"
                 />
+                <Button
+                  size="sm"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                  }}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-3 font-bold text-xs opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                >
+                  Save
+                </Button>
               </div>
             </div>
 
@@ -271,8 +293,18 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                     }
                   }}
                   placeholder="50,000"
-                  className="text-base pl-12"
+                  className="peer text-base pl-12 pr-16"
                 />
+                <Button
+                  size="sm"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                  }}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-3 font-bold text-xs opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                >
+                  Save
+                </Button>
               </div>
               <p className="text-xs text-muted-foreground">Your total EPF savings (Account 1, 2 & 3)</p>
             </div>
@@ -298,18 +330,30 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                 <Label htmlFor="retirement-age" className="text-xs font-medium">
                   Retirement Age
                 </Label>
-                <Input
-                  id="retirement-age"
-                  type="number"
-                  min={parseInt(age) || 18}
-                  max="80"
-                  value={retirementAge}
-                  onChange={(e) => setRetirementAge(e.target.value)}
-                  onBlur={handleRetirementAgeBlur}
-                  onKeyDown={(e) => e.key === "Enter" && handleRetirementAgeBlur()}
-                  placeholder="60"
-                  className="text-sm"
-                />
+                <div className="relative">
+                  <Input
+                    id="retirement-age"
+                    type="number"
+                    min={parseInt(age) || 18}
+                    max="80"
+                    value={retirementAge}
+                    onChange={(e) => setRetirementAge(e.target.value)}
+                    onBlur={handleRetirementAgeBlur}
+                    onKeyDown={(e) => e.key === "Enter" && handleRetirementAgeBlur()}
+                    placeholder="60"
+                    className="peer text-sm pr-12"
+                  />
+                  <Button
+                    size="sm"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                    }}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                  >
+                    Save
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -350,8 +394,18 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                     onBlur={handleExpensesBlur}
                     onKeyDown={(e) => e.key === "Enter" && handleExpensesBlur()}
                     placeholder="3,500"
-                    className="text-sm pl-12"
+                    className="peer text-sm pl-12 pr-12"
                   />
+                  <Button
+                    size="sm"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                    }}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                  >
+                    Save
+                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">Default: Max sustainable spend (RM {Math.round(maxSpendAmount).toLocaleString()}/mo)</p>
               </div>
@@ -362,52 +416,88 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                   <Label htmlFor="employee-rate" className="text-xs font-medium">
                     Employee Contribution (%)
                   </Label>
-                  <Input
-                    id="employee-rate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={employeeRate}
-                    onChange={(e) => setEmployeeRate(e.target.value)}
-                    onBlur={handleRateChange}
-                    onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
-                    className="text-sm"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="employee-rate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={employeeRate}
+                      onChange={(e) => setEmployeeRate(e.target.value)}
+                      onBlur={handleRateChange}
+                      onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
+                      className="peer text-sm pr-12"
+                    />
+                    <Button
+                      size="sm"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                      }}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                    >
+                      Save
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="employer-rate" className="text-xs font-medium">
                     Employer Contribution (%)
                   </Label>
-                  <Input
-                    id="employer-rate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={employerRate}
-                    onChange={(e) => setEmployerRate(e.target.value)}
-                    onBlur={handleRateChange}
-                    onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
-                    className="text-sm"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="employer-rate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={employerRate}
+                      onChange={(e) => setEmployerRate(e.target.value)}
+                      onBlur={handleRateChange}
+                      onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
+                      className="peer text-sm pr-12"
+                    />
+                    <Button
+                      size="sm"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                      }}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                    >
+                      Save
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dividend-rate" className="text-xs font-medium">
                     Annual Dividend Rate (%)
                   </Label>
-                  <Input
-                    id="dividend-rate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={dividendRate}
-                    onChange={(e) => setDividendRate(e.target.value)}
-                    onBlur={handleRateChange}
-                    onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
-                    className="text-sm"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="dividend-rate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={dividendRate}
+                      onChange={(e) => setDividendRate(e.target.value)}
+                      onBlur={handleRateChange}
+                      onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
+                      className="peer text-sm pr-12"
+                    />
+                    <Button
+                      size="sm"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                      }}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                    >
+                      Save
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Default: Employee 11%, Employer 13-12% (based on salary), Dividend 5.5%

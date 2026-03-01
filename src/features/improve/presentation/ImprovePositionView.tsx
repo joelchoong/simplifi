@@ -217,11 +217,10 @@ const AdvisorCard: React.FC<{ advisor: Advisor }> = ({ advisor }) => (
       {advisor.tags.map((tag) => (
         <span
           key={tag.label}
-          className={`text-[11px] font-medium px-2.5 py-1 rounded-full border ${
-            tag.isMatch
+          className={`text-[11px] font-medium px-2.5 py-1 rounded-full border ${tag.isMatch
               ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/20 dark:border-emerald-800 dark:text-emerald-300"
               : "bg-secondary/50 border-border/40 text-muted-foreground"
-          }`}
+            }`}
         >
           {tag.label}
         </span>
@@ -298,11 +297,10 @@ const InterestCapture: React.FC = () => {
                 setIsCustom(false);
                 setCustomValue("");
               }}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
-                !isCustom && selectedPrice === price
+              className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${!isCustom && selectedPrice === price
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-secondary/50 text-muted-foreground border-border/60 hover:border-primary/40 hover:text-foreground"
-              }`}
+                }`}
             >
               {price}
             </button>
@@ -312,11 +310,10 @@ const InterestCapture: React.FC = () => {
               setIsCustom(true);
               setSelectedPrice(null);
             }}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
-              isCustom
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${isCustom
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-secondary/50 text-muted-foreground border-border/60 hover:border-primary/40 hover:text-foreground"
-            }`}
+              }`}
           >
             Other
           </button>
@@ -344,11 +341,10 @@ const InterestCapture: React.FC = () => {
               <button
                 key={f}
                 onClick={() => setFrequency(f)}
-                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
-                  frequency === f
+                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${frequency === f
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-secondary/50 text-muted-foreground border-border/60 hover:border-primary/40 hover:text-foreground"
-                }`}
+                  }`}
               >
                 {f === "once" ? "One-time" : "Per month"}
               </button>
@@ -483,13 +479,12 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                       )}
                       <div className="flex flex-col items-center gap-1.5">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
-                            isCompleted
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${isCompleted
                               ? "bg-phase-stabilise text-white border-transparent"
                               : isCurrent
                                 ? "border-transparent text-white"
                                 : "border-border bg-secondary/50 text-muted-foreground"
-                          }`}
+                            }`}
                           style={
                             isCompleted
                               ? { backgroundColor: `hsl(var(--phase-${p}))` }
@@ -564,7 +559,9 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                      <button type="button" onClick={(e) => e.preventDefault()}>
+                        <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-[220px] p-2">
                       <p className="text-xs">
@@ -604,6 +601,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div
+                                  onClick={(e) => e.preventDefault()}
                                   className="h-full bg-orange-500/75 flex items-center justify-center first:rounded-l-lg cursor-default hover:brightness-110 transition-all"
                                   style={{ width: `${housingPct * scale}%` }}
                                 >
@@ -624,6 +622,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div
+                                onClick={(e) => e.preventDefault()}
                                 className="h-full bg-destructive/65 flex items-center justify-center cursor-default hover:brightness-110 transition-all"
                                 style={{ width: `${essentialsPct * scale}%` }}
                               >
@@ -644,6 +643,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div
+                                  onClick={(e) => e.preventDefault()}
                                   className="h-full bg-purple-500/70 flex items-center justify-center cursor-default hover:brightness-110 transition-all"
                                   style={{ width: `${entertainmentPct * scale}%` }}
                                 >
@@ -665,6 +665,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div
+                                  onClick={(e) => e.preventDefault()}
                                   className="h-full bg-amber-500/70 flex items-center justify-center cursor-default hover:brightness-110 transition-all"
                                   style={{ width: `${othersPct * scale}%` }}
                                 >
@@ -686,6 +687,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div
+                                  onClick={(e) => e.preventDefault()}
                                   className="h-full rounded-r-lg bg-primary/35 flex items-center justify-center cursor-default hover:brightness-110 transition-all"
                                   style={{ width: `${surplusPct}%` }}
                                 >
@@ -707,6 +709,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div
+                                  onClick={(e) => e.preventDefault()}
                                   className="h-full rounded-r-lg bg-destructive/90 border-l-2 border-dashed border-white/30 flex items-center justify-center cursor-default"
                                   style={{ width: `${deficitReserve}%` }}
                                 >
@@ -792,7 +795,7 @@ const ImprovePositionView: React.FC<ImprovePositionViewProps> = ({
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40 cursor-help">
+                    <div onClick={(e) => e.preventDefault()} className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-secondary/30 border border-border/40 cursor-help">
                       <span className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
                         Primary Constraint
                         <Info className="w-3.5 h-3.5 text-muted-foreground/50" />

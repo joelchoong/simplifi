@@ -107,9 +107,9 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
                 You earn more than{" "}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="underline decoration-dotted decoration-primary/50 cursor-help hover:decoration-primary transition-colors">
+                    <button type="button" onClick={(e) => e.preventDefault()} className="underline decoration-dotted decoration-primary/50 cursor-help hover:decoration-primary transition-colors">
                       {100 - Math.round(hi)}% of households
-                    </span>
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>For self-employed or combined family income ranking.</p>
@@ -118,9 +118,9 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
                 {" "}and{" "}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="underline decoration-dotted decoration-indigo-500/50 cursor-help hover:decoration-indigo-500 transition-colors">
+                    <button type="button" onClick={(e) => e.preventDefault()} className="underline decoration-dotted decoration-indigo-500/50 cursor-help hover:decoration-indigo-500 transition-colors">
                       {100 - Math.round(empHi)}% of employees
-                    </span>
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>For individual salaried employees ranking.</p>

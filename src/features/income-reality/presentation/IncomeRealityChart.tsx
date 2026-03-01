@@ -135,7 +135,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
             {/* 3. Sustainable Spend (Max Spend) */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
+                <div onClick={(e) => e.preventDefault()} className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(sustainableWithdrawal)}</span>
                   <div
                     className="w-full rounded-t-lg bg-indigo-600/80 dark:bg-indigo-600/70 shadow-sm transition-opacity group-hover:opacity-80 flex items-center justify-center"
@@ -154,7 +154,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
             {/* 4. Recommended Breakdown */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
+                <div onClick={(e) => e.preventDefault()} className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(recommendedBarTotal)}</span>
                   <div
                     className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm transition-opacity group-hover:opacity-80"

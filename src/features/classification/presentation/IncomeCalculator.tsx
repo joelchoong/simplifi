@@ -258,7 +258,9 @@ export function IncomeCalculator({ initialGross = 0, onSave, saving = false }: I
                                                 {item.tooltip && (
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <Info className="h-3 w-3 text-muted-foreground/60 hover:text-primary transition-colors cursor-help" />
+                                                            <button type="button" onClick={(e) => e.preventDefault()}>
+                                                                <Info className="h-3 w-3 text-muted-foreground/60 hover:text-primary transition-colors cursor-help" />
+                                                            </button>
                                                         </TooltipTrigger>
                                                         <TooltipContent side="right">
                                                             <p className="text-xs max-w-[200px]">{item.tooltip}</p>

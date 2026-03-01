@@ -364,7 +364,9 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                     </Label>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Info className="h-3 w-3 text-muted-foreground/60 hover:text-primary transition-colors cursor-help" />
+                        <button type="button" onClick={(e) => e.preventDefault()}>
+                          <Info className="h-3 w-3 text-muted-foreground/60 hover:text-primary transition-colors cursor-help" />
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
                         <p className="text-xs max-w-[250px]">The estimated monthly amount you expect to spend during retirement to maintain your desired lifestyle.</p>

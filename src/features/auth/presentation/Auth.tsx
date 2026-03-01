@@ -107,22 +107,26 @@ export default function Auth() {
       if (mode === "signin") {
         const { error } = await signIn(email, password);
         if (error) {
+          console.error("Sign in error:", error);
+          const isInvalidCredentials = error.message === "Invalid login credentials";
           toast({
             title: "Sign in failed",
-            description: error.message === "Invalid login credentials"
+            description: isInvalidCredentials
               ? "Invalid email or password. Please try again."
-              : error.message,
+              : "Something went wrong. Please try again later.",
             variant: "destructive",
           });
         }
       } else if (mode === "signup") {
         const { error } = await signUp(email, password, fullName);
         if (error) {
+          console.error("Sign up error:", error);
+          const isAlreadyRegistered = error.message.includes("already registered");
           toast({
             title: "Sign up failed",
-            description: error.message.includes("already registered")
+            description: isAlreadyRegistered
               ? "This email is already registered. Please sign in instead."
-              : error.message,
+              : "Something went wrong. Please try again later.",
             variant: "destructive",
           });
         } else {
@@ -142,9 +146,10 @@ export default function Auth() {
       } else if (mode === "reset") {
         const { error } = await resetPassword(email);
         if (error) {
+          console.error("Password reset error:", error);
           toast({
             title: "Reset failed",
-            description: error.message,
+            description: "Something went wrong. Please try again later.",
             variant: "destructive",
           });
         } else {
@@ -157,9 +162,10 @@ export default function Auth() {
       } else if (mode === "update-password") {
         const { error } = await updatePassword(password);
         if (error) {
+          console.error("Password update error:", error);
           toast({
             title: "Update failed",
-            description: error.message,
+            description: "Something went wrong. Please try again later.",
             variant: "destructive",
           });
         } else {

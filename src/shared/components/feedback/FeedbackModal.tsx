@@ -16,6 +16,7 @@ import {
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Button } from "@/shared/components/ui/button";
 import { useToast } from "@/shared/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FeedbackModalProps {
     open: boolean;
@@ -32,17 +33,33 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onOpenChange
         if (!message.trim()) return;
 
         setIsSubmitting(true);
-        // Mock submission - in a real app this would call an API
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("Not authenticated");
 
-        toast({
-            title: "Feedback sent",
-            description: "Thank you for helping us improve SimpliFi!",
-        });
+            const { error } = await supabase.from("feedback" as any).insert({
+                user_id: user.id,
+                type,
+                message: message.trim(),
+            } as any);
 
-        setIsSubmitting(false);
-        setMessage("");
-        onOpenChange(false);
+            if (error) throw error;
+
+            toast({
+                title: "Feedback sent",
+                description: "Thank you for helping us improve SimpliFi!",
+            });
+            setMessage("");
+            onOpenChange(false);
+        } catch (err) {
+            toast({
+                title: "Error",
+                description: "Failed to send feedback. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (

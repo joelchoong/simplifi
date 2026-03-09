@@ -10,6 +10,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { User, Mail, Banknote, ShieldCheck, Save, Loader2, KeyRound, AlertCircle } from "lucide-react";
 import { z } from "zod";
 import { profileUpdateSchema } from "@/shared/lib/validation";
+import { captureError } from "@/shared/lib/sentry";
 
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 

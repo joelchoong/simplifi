@@ -10,6 +10,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { User, Mail, Banknote, ShieldCheck, Save, Loader2, KeyRound, AlertCircle } from "lucide-react";
 import { z } from "zod";
 import { profileUpdateSchema } from "@/shared/lib/validation";
+import { captureError } from "@/shared/lib/sentry";
 
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
@@ -92,9 +93,10 @@ export default function Profile() {
       .eq("user_id", user.id);
 
     if (error) {
+      captureError(error as Error, { context: 'profile_save' });
       toast({
         title: "Error saving profile",
-        description: error.message,
+        description: "An error occurred while saving. Please try again.",
         variant: "destructive",
       });
     } else {
@@ -125,9 +127,10 @@ export default function Profile() {
     const { error } = await updatePassword(newPassword);
 
     if (error) {
+      captureError(error as Error, { context: 'password_update' });
       toast({
         title: "Error updating password",
-        description: error.message,
+        description: "An error occurred while updating your password. Please try again.",
         variant: "destructive",
       });
     } else {
@@ -240,7 +243,8 @@ export default function Profile() {
                             setSavingEmail(true);
                             const { error } = await supabase.auth.updateUser({ email: newEmail });
                             if (error) {
-                              toast({ title: "Error", description: error.message, variant: "destructive" });
+                              captureError(error as Error, { context: 'email_update' });
+                              toast({ title: "Error", description: "An error occurred while updating your email. Please try again.", variant: "destructive" });
                             } else {
                               toast({
                                 title: "Verification email sent",

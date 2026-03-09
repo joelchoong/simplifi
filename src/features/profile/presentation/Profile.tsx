@@ -93,9 +93,10 @@ export default function Profile() {
       .eq("user_id", user.id);
 
     if (error) {
+      captureError(error as Error, { context: 'profile_save' });
       toast({
         title: "Error saving profile",
-        description: error.message,
+        description: "An error occurred while saving. Please try again.",
         variant: "destructive",
       });
     } else {

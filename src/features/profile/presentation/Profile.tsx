@@ -243,7 +243,8 @@ export default function Profile() {
                             setSavingEmail(true);
                             const { error } = await supabase.auth.updateUser({ email: newEmail });
                             if (error) {
-                              toast({ title: "Error", description: error.message, variant: "destructive" });
+                              captureError(error as Error, { context: 'email_update' });
+                              toast({ title: "Error", description: "An error occurred while updating your email. Please try again.", variant: "destructive" });
                             } else {
                               toast({
                                 title: "Verification email sent",

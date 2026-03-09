@@ -127,9 +127,10 @@ export default function Profile() {
     const { error } = await updatePassword(newPassword);
 
     if (error) {
+      captureError(error as Error, { context: 'password_update' });
       toast({
         title: "Error updating password",
-        description: error.message,
+        description: "An error occurred while updating your password. Please try again.",
         variant: "destructive",
       });
     } else {

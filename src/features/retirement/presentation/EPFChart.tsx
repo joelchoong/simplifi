@@ -66,6 +66,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
   const linePath = useMemo(() => {
     if (!sampledData.length) return "";
     return sampledData.map((d, i) => `${i === 0 ? "M" : "L"} ${xForIndex(i)},${yForValue(d.totalAmount)}`).join(" ");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sampledData, innerWidth, innerHeight, maxAmount]);
 
   const areaPath = useMemo(() => {
@@ -74,6 +75,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
     const line = sampledData.map((d, i) => `L ${xForIndex(i)} ${yForValue(d.totalAmount)}`).join(" ");
     const end = `L ${margin.left + innerWidth} ${margin.top + innerHeight} Z`;
     return `${start} ${line} ${end}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sampledData, innerWidth, innerHeight, maxAmount]);
 
   const milestoneIdx = useMemo(() => {

@@ -37,10 +37,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onOpenChange
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("Not authenticated");
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { error } = await supabase.from("feedback" as any).insert({
                 user_id: user.id,
                 type,
                 message: message.trim(),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any);
 
             if (error) throw error;

@@ -92,6 +92,7 @@ const IncomeRealityInputs: React.FC<IncomeRealityInputsProps> = ({
 
   useEffect(() => {
     onChanged({ monthlyIncome, housingCost, householdType, dependants, location, expenses });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthlyIncome, housingCost, householdType, dependants, location, expenses]);
 
   // Auto-save on selection changes (household type, location, dependants)

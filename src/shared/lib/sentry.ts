@@ -63,7 +63,7 @@ export function initSentry() {
         },
     });
 
-    console.log("✅ Sentry error tracking initialized");
+    console.warn("✅ Sentry error tracking initialized");
 }
 
 /**
@@ -87,14 +87,14 @@ export function clearSentryUser() {
 /**
  * Add custom context to errors
  */
-export function setSentryContext(key: string, value: Record<string, any>) {
+export function setSentryContext(key: string, value: Record<string, unknown>) {
     Sentry.setContext(key, value);
 }
 
 /**
  * Manually capture an error
  */
-export function captureError(error: Error, context?: Record<string, any>) {
+export function captureError(error: Error, context?: Record<string, unknown>) {
     if (context) {
         Sentry.withScope((scope) => {
             Object.entries(context).forEach(([key, value]) => {

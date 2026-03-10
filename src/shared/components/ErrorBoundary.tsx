@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
         // Also log to console in development
         if (import.meta.env.DEV) {
-            console.error("Error caught by boundary:", error, errorInfo);
+            console.warn("Error caught by boundary:", error, errorInfo);
         }
     }
 

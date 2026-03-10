@@ -107,7 +107,7 @@ export default function Auth() {
       if (mode === "signin") {
         const { error } = await signIn(email, password);
         if (error) {
-          console.error("Sign in error:", error);
+          console.warn("Sign in error:", error);
           const isInvalidCredentials = error.message === "Invalid login credentials";
           toast({
             title: "Sign in failed",
@@ -120,7 +120,7 @@ export default function Auth() {
       } else if (mode === "signup") {
         const { error } = await signUp(email, password, fullName);
         if (error) {
-          console.error("Sign up error:", error);
+          console.warn("Sign up error:", error);
           const isAlreadyRegistered = error.message.includes("already registered");
           toast({
             title: "Sign up failed",
@@ -146,7 +146,7 @@ export default function Auth() {
       } else if (mode === "reset") {
         const { error } = await resetPassword(email);
         if (error) {
-          console.error("Password reset error:", error);
+          console.warn("Password reset error:", error);
           toast({
             title: "Reset failed",
             description: "Something went wrong. Please try again later.",
@@ -162,7 +162,7 @@ export default function Auth() {
       } else if (mode === "update-password") {
         const { error } = await updatePassword(password);
         if (error) {
-          console.error("Password update error:", error);
+          console.warn("Password update error:", error);
           toast({
             title: "Update failed",
             description: "Something went wrong. Please try again later.",

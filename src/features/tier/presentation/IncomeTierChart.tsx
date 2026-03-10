@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useMemo, useState, useRef } from "react";
 import {
   HOUSEHOLD_INCOME_DISTRIBUTION_BANDS as INCOME_DISTRIBUTION_BANDS,

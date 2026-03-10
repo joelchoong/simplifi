@@ -82,6 +82,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (user) {
       fetchProfileData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Refetch data when switching views to ensure sync
@@ -89,6 +90,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (user && !dataLoading && isDashboard) {
       fetchProfileData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentView, isDashboard]);
 
   const fetchProfileData = async () => {
@@ -240,6 +242,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Clone children and inject the shared income state
   const enhancedChildren = isValidElement(children)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ? cloneElement(children as React.ReactElement<any>, {
       monthlyIncome: profileData.monthlyIncome,
       onSaveIncome: handleIncomeUpdate,

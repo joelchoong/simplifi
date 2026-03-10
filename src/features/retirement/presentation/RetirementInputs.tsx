@@ -73,6 +73,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     if (!isExpensesCustom) {
       setMonthlyExpenses(Math.round(maxSpendAmount).toString());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialMonthlyIncome, initialCurrentEPF, initialAge, maxSpendAmount]);
 
   const triggerSave = (

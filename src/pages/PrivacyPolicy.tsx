@@ -2,10 +2,16 @@ import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
+import SEO from "@/shared/components/SEO";
 
 export default function PrivacyPolicy() {
     return (
         <div className="min-h-screen bg-background">
+            <SEO 
+                title="Privacy Policy"
+                description="Learn how SimpliFi protects your personal and financial information. We are committed to data security and privacy."
+                canonical="https://simplifi.com.my/privacy-policy"
+            />
             <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
                 <div className="max-w-4xl mx-auto flex items-center justify-between px-6 py-3">
                     <Link to="/" className="flex items-center gap-2">

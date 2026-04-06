@@ -38,9 +38,15 @@ function DashboardContent({ monthlyIncome = 0, onSaveIncome }: DashboardContentP
   );
 }
 
+import SEO from "@/shared/components/SEO";
+
 export default function Dashboard() {
   return (
     <DashboardLayout>
+      <SEO 
+        title="Dashboard | SimpliFi"
+        description="View your personal financial snapshot and track your progress to financial freedom."
+      />
       <DashboardContent />
     </DashboardLayout>
   );

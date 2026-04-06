@@ -5,6 +5,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import logo from "@/assets/logo.png";
 import { ArrowRight, BarChart3, UserCircle, BookOpen } from "lucide-react";
+import SEO from "@/shared/components/SEO";
 
 export default function Index() {
   const { user, loading } = useAuth();
@@ -47,6 +48,10 @@ export default function Index() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO 
+        title="Plan Smarter, Invest Better"
+        description="SimpliFi is a personal finance tool designed for Malaysians. Plan your retirement, track your financial health, and achieve freedom step by step."
+      />
       {/* Navbar */}
       <nav className="w-full border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">

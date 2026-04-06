@@ -11,6 +11,7 @@ import { User, Mail, Banknote, ShieldCheck, Save, Loader2, KeyRound, AlertCircle
 import { z } from "zod";
 import { profileUpdateSchema } from "@/shared/lib/validation";
 import { captureError } from "@/shared/lib/sentry";
+import SEO from "@/shared/components/SEO";
 
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
@@ -147,6 +148,7 @@ export default function Profile() {
   if (loading) {
     return (
       <DashboardLayout>
+        <SEO title="Profile | SimpliFi" description="Manage your SimpliFi profile." />
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
         </div>
@@ -156,6 +158,10 @@ export default function Profile() {
 
   return (
     <DashboardLayout>
+      <SEO 
+        title={`${profile.full_name || "Profile"} | SimpliFi`}
+        description="Manage your SimpliFi account details and security preferences."
+      />
       <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
         <header className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Profile Settings</h1>

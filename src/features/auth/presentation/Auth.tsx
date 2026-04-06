@@ -10,6 +10,7 @@ import { ToastAction } from "@/shared/components/ui/toast";
 import { z } from "zod";
 import logo from "@/assets/logo.png";
 import authIllustration from "@/assets/auth-illustration.png";
+import SEO from "@/shared/components/SEO";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z
@@ -190,6 +191,15 @@ export default function Auth() {
     }
   };
 
+  const getPageTitle = () => {
+    switch (mode) {
+      case "signin": return "Log In | SimpliFi";
+      case "signup": return "Sign Up | SimpliFi";
+      case "reset": return "Reset Password | SimpliFi";
+      case "update-password": return "Update Password | SimpliFi";
+    }
+  };
+
   const getDescription = () => {
     switch (mode) {
       case "signin": return "Sign in to continue to SimpliFi";
@@ -201,6 +211,10 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex bg-white">
+      <SEO 
+        title={getPageTitle()}
+        description={getDescription() + " with SimpliFi. Plan smarter, invest better."}
+      />
       {/* Left panel - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary/5 items-center justify-center p-12 relative overflow-hidden">
         <div className="relative z-10 text-center max-w-md">

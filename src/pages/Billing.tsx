@@ -3,10 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Check, Rocket, Sparkles, Zap } from "lucide-react";
+import SEO from "@/shared/components/SEO";
 
 export default function Billing() {
   return (
     <DashboardLayout>
+      <SEO 
+        title="Billing & Subscription"
+        description="View your SimpliFi beta access plan and features. Current phase: Free Beta."
+      />
       <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
         <header className="flex flex-col gap-2 text-center sm:text-left">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Billing & Subscription</h1>

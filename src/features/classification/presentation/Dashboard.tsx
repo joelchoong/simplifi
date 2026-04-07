@@ -1,13 +1,14 @@
 import { DashboardLayout } from "@/features/dashboard/presentation/DashboardLayout";
 import { IncomeTierChart } from "@/features/tier/presentation/IncomeTierChart";
 import { IncomeCalculator } from "@/features/classification/presentation/IncomeCalculator";
+import SEO from "@/shared/components/SEO";
 
 interface DashboardContentProps {
   monthlyIncome?: number;
   onSaveIncome?: (income: number) => void;
 }
 
-function DashboardContent({ monthlyIncome = 0, onSaveIncome }: DashboardContentProps) {
+export function DashboardContent({ monthlyIncome = 0, onSaveIncome }: DashboardContentProps) {
   const handleSaveIncome = (newGrossIncome: number) => {
     if (onSaveIncome) {
       onSaveIncome(newGrossIncome);
@@ -38,8 +39,6 @@ function DashboardContent({ monthlyIncome = 0, onSaveIncome }: DashboardContentP
   );
 }
 
-import SEO from "@/shared/components/SEO";
-
 export default function Dashboard() {
   return (
     <DashboardLayout>
@@ -47,7 +46,6 @@ export default function Dashboard() {
         title="Dashboard | SimpliFi"
         description="View your personal financial snapshot and track your progress to financial freedom."
       />
-      <DashboardContent />
     </DashboardLayout>
   );
 }

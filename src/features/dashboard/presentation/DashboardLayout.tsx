@@ -1,11 +1,13 @@
-import { ReactNode, useEffect, useState, cloneElement, isValidElement } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/features/auth/data/useAuth";
 import { HeaderBar, View } from "@/shared/components/navigation/HeaderBar";
-import { Activity, LayoutGrid, Palmtree, Scale } from "lucide-react";
+import { Activity, BarChart3, LayoutGrid, Palmtree, Scale } from "lucide-react";
+import { DashboardContent } from "@/features/classification/presentation/Dashboard";
 import RetirementView from "@/features/retirement/presentation/RetirementView";
 import IncomeRealityView from "@/features/income-reality/presentation/IncomeRealityView";
 import ImprovePositionView from "@/features/improve/presentation/ImprovePositionView";
+import BenchmarkView from "@/features/benchmark/presentation/BenchmarkView";
 import { supabase } from "@/shared/integrations/supabase/client";
 import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
 import { DEFAULT_EXPENSES } from "@/features/income-reality/domain/incomeRealityCalculations";
@@ -240,14 +242,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return null;
   }
 
-  // Clone children and inject the shared income state
-  const enhancedChildren = isValidElement(children)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ? cloneElement(children as React.ReactElement<any>, {
-      monthlyIncome: profileData.monthlyIncome,
-      onSaveIncome: handleIncomeUpdate,
-    })
-    : children;
+
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-background">
@@ -293,6 +288,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Scale className="w-4 h-4 shrink-0" />
                     <span className={currentView === 'income-reality' ? 'inline whitespace-nowrap' : 'hidden sm:inline whitespace-nowrap'}>Income Reality</span>
                   </button>
+                  <button
+                    onClick={() => setCurrentView('benchmark')}
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${currentView === 'benchmark'
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                      }`}
+                  >
+                    <BarChart3 className="w-4 h-4 shrink-0" />
+                    <span className={currentView === 'benchmark' ? 'inline whitespace-nowrap' : 'hidden sm:inline whitespace-nowrap'}>Benchmark</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -317,7 +322,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               />
             ) : isDashboard ? (
               <>
-                {currentView === 'classification' && enhancedChildren}
+                {currentView === 'classification' && (
+                  <DashboardContent
+                    monthlyIncome={profileData.monthlyIncome}
+                    onSaveIncome={handleIncomeUpdate}
+                  />
+                )}
                 {currentView === 'retirement' && (
                   <RetirementView
                     initialMonthlyIncome={profileData.monthlyIncome}
@@ -355,9 +365,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     onSave={handleIncomeRealitySave}
                   />
                 )}
+                {currentView === 'benchmark' && (
+                  <BenchmarkView monthlyIncome={profileData.monthlyIncome} />
+                )}
               </>
             ) : (
-              enhancedChildren
+              children
             )}
           </div>
         </div>

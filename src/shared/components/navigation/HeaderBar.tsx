@@ -6,7 +6,7 @@ import logo from "@/assets/logo.png";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 
-export type View = "classification" | "retirement" | "income-reality" | "settings" | "billing";
+export type View = "classification" | "retirement" | "income-reality" | "settings" | "billing" | "benchmark";
 
 interface HeaderBarProps {
   currentView: View;

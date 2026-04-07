@@ -38,6 +38,9 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          benchmark_role?: string | null
+          benchmark_sector?: string | null
+          benchmark_specialisation?: string | null
           avatar_url?: string | null
           created_at?: string
           current_epf_amount?: number | null
@@ -59,6 +62,9 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          benchmark_role?: string | null
+          benchmark_sector?: string | null
+          benchmark_specialisation?: string | null
           avatar_url?: string | null
           created_at?: string
           current_epf_amount?: number | null

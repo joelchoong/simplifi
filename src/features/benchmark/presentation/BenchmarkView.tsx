@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SECTORS, SALARY_DATA, SalaryBenchmark, getRolesForSpecialisation, searchRoles } from '@/features/benchmark/domain/salaryData';
-import { Search, ChevronDown, Info, X, Layers } from 'lucide-react';
+import { Search, ChevronDown, Info, X, Layers, Globe, ArrowRight, ExternalLink } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
 
 /** Format MYR values */
 function formatMYR(value: number): string {
@@ -251,6 +252,167 @@ function CustomSelect({
   );
 }
 
+/** Global Comparison Modal */
+function GlobalComparisonModal({ 
+  isOpen, 
+  onClose, 
+  malaysiaBenchmark, 
+  userAnnualSalary 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  malaysiaBenchmark: SalaryBenchmark | null;
+  userAnnualSalary: number;
+}) {
+  if (!isOpen || !malaysiaBenchmark) return null;
+
+  // Countries data
+  const COUNTRIES = [
+    { id: 'sg', name: 'Singapore', flag: '🇸🇬', currency: 'SGD', symbol: 'S$', rate: 0.28, multiplier: 1.35 },
+    { id: 'uk', name: 'United Kingdom', flag: '🇬🇧', currency: 'GBP', symbol: '£', rate: 0.17, multiplier: 1.25 },
+    { id: 'us', name: 'United States', flag: '🇺🇸', currency: 'USD', symbol: '$', rate: 0.21, multiplier: 1.50 },
+    { id: 'au', name: 'Australia', flag: '🇦🇺', currency: 'AUD', symbol: 'A$', rate: 0.32, multiplier: 1.30 },
+    { id: 'ae', name: 'UAE', flag: '🇦🇪', currency: 'AED', symbol: 'د.إ', rate: 0.77, multiplier: 1.40 },
+  ];
+
+  const [selectedCountryId, setSelectedCountryId] = useState('sg');
+  
+  const country = COUNTRIES.find(c => c.id === selectedCountryId) || COUNTRIES[0];
+  
+  const localMin = malaysiaBenchmark.minAnnual * country.multiplier * country.rate;
+  const localAvg = malaysiaBenchmark.avgAnnual * country.multiplier * country.rate;
+  const localMax = malaysiaBenchmark.maxAnnual * country.multiplier * country.rate;
+  const localUserEquivalent = userAnnualSalary * country.rate;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+        <div className="sticky top-0 bg-card/80 backdrop-blur-md px-6 py-4 border-b border-border flex items-center justify-between z-10">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-xl font-bold">
+              <Globe className="w-5 h-5 text-primary" />
+              <span>Global Market Comparison</span>
+            </div>
+            
+            <div className="h-8 w-[1px] bg-border mx-2 hidden sm:block" />
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:block">Target Market:</span>
+              <select 
+                value={selectedCountryId}
+                onChange={(e) => setSelectedCountryId(e.target.value)}
+                className="bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all hover:bg-secondary"
+              >
+                {COUNTRIES.map(c => (
+                  <option key={c.id} value={c.id}>{c.flag} {c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-secondary rounded-full transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Column 1: Current Malaysia Data */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🇲🇾</span>
+                <h4 className="font-bold text-foreground">Malaysia (MYR)</h4>
+              </div>
+              <div className="bg-secondary/20 rounded-2xl p-5 border border-border/50">
+                <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Your Annual Salary</div>
+                <div className="text-2xl font-black text-foreground">{formatMYR(userAnnualSalary)}</div>
+                <div className="mt-4 pt-4 border-t border-border/30 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Market Average</span>
+                    <span className="font-bold">{formatMYR(malaysiaBenchmark.avgAnnual)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Selected Country Equivalent */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">{country.flag}</span>
+                <h4 className="font-bold text-foreground">{country.name} ({country.currency})</h4>
+              </div>
+              <div className="bg-emerald-500/5 rounded-2xl p-5 border border-emerald-500/20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 opacity-10">
+                  <Globe className="w-12 h-12" />
+                </div>
+                <div className="text-xs text-emerald-700/70 mb-1 uppercase tracking-wider font-semibold">Direct Equivalent</div>
+                <div className="text-2xl font-black text-emerald-600">{country.symbol} {Math.round(localUserEquivalent).toLocaleString()}</div>
+                <p className="text-[10px] text-emerald-600/60 mt-1 italic">Converted at 1 MYR = {country.rate} {country.currency}</p>
+
+              </div>
+            </div>
+
+            {/* Column 3: Michael Page Benchmark */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <ExternalLink className="w-4 h-4 text-primary" />
+                <h4 className="font-bold text-foreground text-sm uppercase tracking-tight">{country.currency} Market Index</h4>
+              </div>
+              <div className="bg-secondary/20 rounded-2xl p-4 border border-border/50">
+                <div className="mb-4">
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground">Estimated {country.currency} Benchmark</label>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="text-xl font-bold">{country.symbol} {Math.round(localAvg).toLocaleString()}</span>
+                    <span className="text-[11px] text-muted-foreground">average</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{country.currency} Range:</span>
+                    <span className="font-semibold">{country.symbol} {Math.round(localMin).toLocaleString()} - {Math.round(localMax).toLocaleString()}</span>
+                  </div>
+                  <div className="relative h-2 w-full bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className="absolute h-full bg-primary" 
+                      style={{ 
+                        left: '0%', 
+                        width: `${Math.min(100, (localUserEquivalent / localMax) * 100)}%` 
+                      }} 
+                    />
+                  </div>
+                  <div className="text-[10px] text-muted-foreground italic text-center">
+                    Based on Michael Page {country.name} 2025 cross-market delta
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Insights */}
+          <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+            <h5 className="font-bold text-primary mb-3 flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              Strategic Growth Insights
+            </h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-muted-foreground leading-relaxed">
+              <p>
+                Roles in <span className="text-foreground font-semibold">{malaysiaBenchmark.sector}</span> in {country.name} typically command a <span className="text-emerald-600 font-bold">{Math.round((country.multiplier - 1) * 100)}% premium</span> in base salary adjustment due to international market demand and local cost of living factors.
+              </p>
+              <p>
+                While the absolute amount is higher, remember to account for higher housing and transport costs in major hubs like {country.name === 'Singapore' ? 'Singapore' : country.name === 'United Kingdom' ? 'London' : country.name === 'UAE' ? 'Dubai' : country.name === 'United States' ? 'San Francisco/NY' : 'major cities'} when planning a potential relocation.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-border flex justify-end bg-secondary/5">
+          <Button onClick={onClose} className="rounded-xl px-8">Close Comparison</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BenchmarkView({ 
   monthlyIncome = 0,
   initialSector = "",
@@ -270,6 +432,7 @@ export default function BenchmarkView({
   const [roleSearch, setRoleSearch] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
+  const [showGlobalModal, setShowGlobalModal] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Sync initial props if they change externally (e.g. data load completes after mount)
@@ -444,6 +607,8 @@ export default function BenchmarkView({
                 </div>
               </div>
             )}
+
+
           </section>
         </div>
 
@@ -457,6 +622,8 @@ export default function BenchmarkView({
               </h3>
               <p className="text-xs text-muted-foreground">See how your compensation stacks up against market benchmarks.</p>
             </div>
+
+
 
             {/* Search bar */}
             <div ref={searchRef} className="relative">
@@ -583,6 +750,30 @@ export default function BenchmarkView({
               </div>
             )}
 
+            {/* Global Comparison CTA */}
+            {currentBenchmark && userAnnualSalary > 0 && (
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-700 rounded-2xl p-5 text-white shadow-lg shadow-emerald-100 relative overflow-hidden group">
+                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                  <Globe className="w-24 h-24" />
+                </div>
+                <div className="relative z-10">
+                  <h4 className="text-lg font-black mb-1 flex items-center gap-2">
+                     Go global? 🌏
+                  </h4>
+                  <p className="text-[11px] text-emerald-50 mb-3 leading-snug">
+                    Compare <span className="font-bold underline decoration-emerald-300">{selectedRole}</span> globally.
+                  </p>
+                  <button 
+                    onClick={() => setShowGlobalModal(true)}
+                    className="inline-flex items-center gap-2 bg-white text-emerald-700 px-4 py-2 rounded-xl font-bold text-[11px] hover:bg-emerald-50 transition-all active:scale-95 shadow-lg shadow-black/10"
+                  >
+                    Compare Globally 
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Info note */}
             <div className="flex items-start gap-2 text-[11px] text-muted-foreground/70">
               <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
@@ -591,6 +782,13 @@ export default function BenchmarkView({
           </section>
         </div>
       </div>
+
+      <GlobalComparisonModal 
+        isOpen={showGlobalModal} 
+        onClose={() => setShowGlobalModal(false)} 
+        malaysiaBenchmark={currentBenchmark}
+        userAnnualSalary={userAnnualSalary}
+      />
     </div>
   );
 }

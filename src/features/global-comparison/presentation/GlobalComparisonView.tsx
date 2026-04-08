@@ -29,13 +29,15 @@ interface GlobalComparisonViewProps {
     others: number;
     entertainment: number;
   };
+  monthlyVoluntaryContribution?: number;
 }
 
 export default function GlobalComparisonView({ 
   monthlyIncome = 8000,
   age = 30,
   housingCost = 0,
-  expenses
+  expenses,
+  monthlyVoluntaryContribution = 0
 }: GlobalComparisonViewProps) {
   const [salaryA, setSalaryA] = useState(monthlyIncome.toString());
   const [countryAId, setCountryAId] = useState('my');
@@ -91,7 +93,6 @@ export default function GlobalComparisonView({
   const targetSurvivalCost = Object.values(baseBreakdown).reduce((a, b) => a + b, 0);
   
   // Convert Home Commitments to Target Currency
-  // exchangeRate is 1 MYR to Country Currency
   const commitmentCostB = (homeCommitments.housing + homeCommitments.utilities) * countryB.exchangeRate;
   
   const customBaseLivingCost = targetSurvivalCost + commitmentCostB;
@@ -111,8 +112,15 @@ export default function GlobalComparisonView({
   }, [lifestyle]);
 
   const result = useMemo(() => {
+    const sA = parseFloat(salaryA) || 0;
+    
+    // Calculate Lost EPF Contribution (Employee 11% + Employer 12/13%)
+    const employerRate = sA <= 5000 ? 0.13 : 0.12;
+    const employeeRate = 0.11;
+    const lostMonthlyEPF = (sA * (employeeRate + employerRate)) + monthlyVoluntaryContribution;
+
     const baseResult = calculateGlobalComparison(
-      parseFloat(salaryA) || 0,
+      sA,
       countryA,
       { ...countryB, baseLivingCost: customBaseLivingCost },
       lifestyle
@@ -120,8 +128,13 @@ export default function GlobalComparisonView({
 
     const originDisposable = customDisposableIncomeA !== null ? customDisposableIncomeA : derivedDisposableA;
     const costIndex = countryB.colIndex / countryA.colIndex;
+    
+    // Scaled requirement for lost retirement contribution
+    const lostEPFRequirementB = lostMonthlyEPF * countryB.exchangeRate * costIndex;
     const disposableRequirementB = originDisposable * countryB.exchangeRate * costIndex * customMultiplier;
-    const netRequiredB = customBaseLivingCost + disposableRequirementB;
+    
+    const totalUpgradeB = disposableRequirementB + lostEPFRequirementB;
+    const netRequiredB = customBaseLivingCost + totalUpgradeB;
     const equivalentSalaryB = netRequiredB / (1 - countryB.taxRate);
 
     return {
@@ -129,9 +142,11 @@ export default function GlobalComparisonView({
       originDisposableActual: originDisposable,
       equivalentSalary: equivalentSalaryB,
       disposableRequirementB,
+      lostEPFRequirementB,
+      lostMonthlyEPF,
       costIndex
     };
-  }, [salaryA, countryA, countryB, lifestyle, customBaseLivingCost, customMultiplier, customDisposableIncomeA, derivedDisposableA]);
+  }, [salaryA, countryA, countryB, lifestyle, customBaseLivingCost, customMultiplier, customDisposableIncomeA, derivedDisposableA, monthlyVoluntaryContribution]);
 
   const formatCurrency = (val: number, country: any) => {
     return `${country.symbol}${Math.round(val).toLocaleString()}`;
@@ -230,11 +245,11 @@ export default function GlobalComparisonView({
                     <span className="text-[8px] bg-emerald-100 px-1 rounded">EDITABLE</span>
                   </h4>
                   <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
-                    Scaled disposable power ({customMultiplier.toFixed(2)}x). Click to edit.
+                    Scaled surplus + {formatCurrency(result.lostMonthlyEPF, countryA)} retirement gap.
                   </p>
                 </div>
                 <div className="text-lg font-black text-emerald-600">
-                  {formatCurrency(result.disposableRequirementB || 0, countryB)}
+                  {formatCurrency(result.disposableRequirementB + result.lostEPFRequirementB || 0, countryB)}
                 </div>
               </button>
 
@@ -259,7 +274,7 @@ export default function GlobalComparisonView({
 
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="text-[10px] text-muted-foreground bg-secondary/10 p-3 rounded-xl border border-border/30">
-                <span className="font-bold text-foreground">Variable A (Disposable):</span> Your current net surplus of {formatCurrency(result.originDisposableActual, countryA)} is scaled for the {countryB.name} cost index.
+                <span className="font-bold text-foreground">Retirement Gap Covered:</span> Target salary compensates for {formatCurrency(result.lostMonthlyEPF, countryA)} in lost EPF benefits.
               </div>
               <div className="text-[10px] text-muted-foreground bg-secondary/10 p-3 rounded-xl border border-border/30">
                 <span className="font-bold text-foreground">Global Scaling:</span> Multiplier of {customMultiplier.toFixed(2)}x applied for your "{lifestyle}" preference.
@@ -454,9 +469,6 @@ export default function GlobalComparisonView({
                   {formatCurrency(customBaseLivingCost, countryB)}
                 </div>
               </div>
-              <p className="text-[9px] text-muted-foreground italic leading-tight">
-                This floor covers both local survival and your {countryA.name} obligations (converted).
-              </p>
             </div>
 
             <div className="flex gap-2 pt-2">
@@ -500,7 +512,7 @@ export default function GlobalComparisonView({
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 max-h-[80vh] overflow-y-auto pr-1">
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 group hover:border-orange-500/30 transition-all">
                 <div className="space-y-1">
@@ -574,13 +586,29 @@ export default function GlobalComparisonView({
               </div>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl space-y-2">
-              <div className="flex justify-between items-center">
-                <div className="text-[10px] font-bold text-emerald-800 uppercase">Target Upgrade Value (B):</div>
-                <div className="text-xl font-black text-emerald-600">
-                  {formatCurrency(result.disposableRequirementB || 0, countryB)}
+            <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl space-y-3">
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-emerald-800">
+                  <span className="text-[10px] font-bold uppercase">Lifestyle Surplus:</span>
+                  <span className="text-sm font-bold">{formatCurrency(result.disposableRequirementB, countryB)}</span>
+                </div>
+                <div className="flex justify-between items-center text-emerald-800">
+                  <span className="text-[10px] font-bold uppercase">Retirement Gap (EPF):</span>
+                  <span className="text-sm font-bold">{formatCurrency(result.lostEPFRequirementB, countryB)}</span>
                 </div>
               </div>
+
+              <div className="pt-2 border-t border-emerald-200">
+                <div className="flex justify-between items-center">
+                  <div className="text-[10px] font-bold text-emerald-900 uppercase">Total Target Upgrade:</div>
+                  <div className="text-xl font-black text-emerald-600">
+                    {formatCurrency(result.disposableRequirementB + result.lostEPFRequirementB || 0, countryB)}
+                  </div>
+                </div>
+              </div>
+              <p className="text-[9px] text-emerald-700/60 italic leading-snug">
+                This compensates for your lost {countryA.name} retirement contribution ({formatCurrency(result.lostMonthlyEPF, countryA)}) scaled to {countryB.name}.
+              </p>
             </div>
 
             <div className="flex gap-2 pt-2">

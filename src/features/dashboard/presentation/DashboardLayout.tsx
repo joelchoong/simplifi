@@ -446,6 +446,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       entertainment: profileData.expenseEntertainment,
                     }}
                     monthlyVoluntaryContribution={profileData.monthlyVoluntaryContribution}
+                    benchmarkRole={profileData.benchmarkRole}
                   />
                 )}
               </>

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Globe, ArrowDown, TrendingUp, Landmark, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Globe, ArrowDown, TrendingUp, Landmark, ShieldCheck, HelpCircle, Briefcase } from 'lucide-react';
 import { COUNTRIES, LIFESTYLE_MULTIPLIERS, calculateGlobalComparison, LifestyleLevel } from '../domain/globalComparisonLogic';
+import { SALARY_DATA } from '@/features/benchmark/domain/salaryData';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Button } from '@/shared/components/ui/button';
@@ -30,6 +31,7 @@ interface GlobalComparisonViewProps {
     entertainment: number;
   };
   monthlyVoluntaryContribution?: number;
+  benchmarkRole?: string;
 }
 
 export default function GlobalComparisonView({ 
@@ -37,7 +39,8 @@ export default function GlobalComparisonView({
   age = 30,
   housingCost = 0,
   expenses,
-  monthlyVoluntaryContribution = 0
+  monthlyVoluntaryContribution = 0,
+  benchmarkRole = ''
 }: GlobalComparisonViewProps) {
   const [salaryA, setSalaryA] = useState(monthlyIncome.toString());
   const [countryAId, setCountryAId] = useState('my');
@@ -89,6 +92,11 @@ export default function GlobalComparisonView({
 
   const countryA = COUNTRIES.find(c => c.id === countryAId) || COUNTRIES[0];
   const countryB = COUNTRIES.find(c => c.id === countryBId) || COUNTRIES[1];
+
+  // Get Michael Page benchmark data for the note
+  const marketData = useMemo(() => {
+    return SALARY_DATA.find(d => d.role === benchmarkRole);
+  }, [benchmarkRole]);
 
   const targetSurvivalCost = Object.values(baseBreakdown).reduce((a, b) => a + b, 0);
   
@@ -193,6 +201,68 @@ export default function GlobalComparisonView({
               </div>
             </div>
           </div>
+
+          {/* 💎 Floating Market Reality Card */}
+          {marketData && (
+            <div className="lg:absolute bottom-6 right-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl min-w-[280px] animate-in slide-in-from-right-8 duration-1000 hidden lg:block">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-white/20 rounded-lg">
+                    <Briefcase className="w-3 h-3 text-emerald-100" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-50">{countryB.name} Market Check</span>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="text-white/40 hover:text-white transition-colors">
+                        <HelpCircle className="w-3 h-3" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-[10px] max-w-[200px]">
+                      Estimated {countryB.name} range for {marketData.role}, scaled from Michael Page benchmarks.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              {(() => {
+                const minB = (marketData.minAnnual / 12) * countryB.exchangeRate * result.costIndex;
+                const maxB = (marketData.maxAnnual / 12) * countryB.exchangeRate * result.costIndex;
+                const avgB = (marketData.avgAnnual / 12) * countryB.exchangeRate * result.costIndex;
+                const range = maxB - minB;
+                const position = ((result.equivalentSalary - minB) / range) * 100;
+                const clampedPosition = Math.min(Math.max(position, 0), 100);
+
+                return (
+                  <div className="space-y-3">
+                    <div className="relative h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                      <div className="absolute inset-y-0 bg-emerald-400/30" style={{ left: '0%', width: '100%' }} />
+                      <div className="absolute top-0 bottom-0 w-1 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] transition-all duration-1000" style={{ left: `${clampedPosition}%` }} />
+                    </div>
+                    
+                    <div className="flex justify-between items-end">
+                      <div className="space-y-0.5">
+                        <div className="text-[7px] font-black text-emerald-100/50 uppercase tracking-tighter">Market Range</div>
+                        <div className="text-[10px] font-bold text-white whitespace-nowrap">
+                          {formatCurrency(minB, countryB)} — {formatCurrency(maxB, countryB)}
+                        </div>
+                      </div>
+                      <div className="text-right space-y-0.5">
+                        <div className="text-[7px] font-black text-emerald-100/50 uppercase tracking-tighter">Market Avg</div>
+                        <div className="text-[10px] font-bold text-emerald-100/80">
+                          {formatCurrency(avgB, countryB)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-[8px] text-emerald-100/40 text-center font-medium italic border-t border-white/5 pt-2">
+                       {marketData.role}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       </section>
 

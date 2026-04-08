@@ -1,12 +1,12 @@
 import React from "react";
-import { Activity, TrendingUp } from "lucide-react";
+import { Activity, TrendingUp, Globe } from "lucide-react";
 import AvatarMenu from "./AvatarMenu";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 
-export type View = "classification" | "retirement" | "income-reality" | "settings" | "billing" | "benchmark";
+export type View = "classification" | "retirement" | "income-reality" | "settings" | "billing" | "benchmark" | "global-comparison";
 
 interface HeaderBarProps {
   currentView: View;

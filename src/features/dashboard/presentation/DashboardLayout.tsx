@@ -2,12 +2,13 @@ import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/features/auth/data/useAuth";
 import { HeaderBar, View } from "@/shared/components/navigation/HeaderBar";
-import { Activity, BarChart3, LayoutGrid, Palmtree, Scale } from "lucide-react";
+import { Activity, BarChart3, LayoutGrid, Palmtree, Scale, Globe } from "lucide-react";
 import { DashboardContent } from "@/features/classification/presentation/Dashboard";
 import RetirementView from "@/features/retirement/presentation/RetirementView";
 import IncomeRealityView from "@/features/income-reality/presentation/IncomeRealityView";
 import ImprovePositionView from "@/features/improve/presentation/ImprovePositionView";
 import BenchmarkView from "@/features/benchmark/presentation/BenchmarkView";
+import GlobalComparisonView from "@/features/global-comparison/presentation/GlobalComparisonView";
 import { supabase } from "@/shared/integrations/supabase/client";
 import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
 import { DEFAULT_EXPENSES } from "@/features/income-reality/domain/incomeRealityCalculations";
@@ -344,6 +345,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <BarChart3 className="w-4 h-4 shrink-0" />
                     <span className={currentView === 'benchmark' ? 'inline whitespace-nowrap' : 'hidden sm:inline whitespace-nowrap'}>Benchmark</span>
                   </button>
+                  <button
+                    onClick={() => setCurrentView('global-comparison')}
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${currentView === 'global-comparison'
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                      }`}
+                  >
+                    <Globe className="w-4 h-4 shrink-0" />
+                    <span className={currentView === 'global-comparison' ? 'inline whitespace-nowrap' : 'hidden sm:inline whitespace-nowrap'}>Global Comparison</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -419,6 +430,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     initialSpecialisation={profileData.benchmarkSpecialisation}
                     initialRole={profileData.benchmarkRole}
                     onSaveRole={handleBenchmarkSave}
+                    onOpenGlobal={() => setCurrentView('global-comparison')}
+                  />
+                )}
+                {currentView === 'global-comparison' && (
+                  <GlobalComparisonView 
+                    monthlyIncome={profileData.monthlyIncome}
+                    age={profileData.age}
+                    housingCost={profileData.housingCost}
+                    expenses={{
+                      food: profileData.expenseFood,
+                      transport: profileData.expenseTransport,
+                      utilities: profileData.expenseUtilities,
+                      others: profileData.expenseOthers,
+                      entertainment: profileData.expenseEntertainment,
+                    }}
                   />
                 )}
               </>

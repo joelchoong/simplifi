@@ -17,6 +17,7 @@ interface EPFProjectionParams {
     annualDividendRate?: number; // e.g., 0.055 for 5.5%
     employeeRate?: number; // Custom employee contribution rate (default 0.11 = 11%)
     employerRate?: number; // Custom employer contribution rate (default auto-calculated)
+    monthlyVoluntaryContribution?: number; // Monthly voluntary contribution (default 0)
     monthlyExpenses?: number; // Post-retirement monthly expenses (deducted after retirement)
 }
 
@@ -42,6 +43,7 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
         annualDividendRate = 0.055, // Default 5.5% based on recent EPF dividends
         employeeRate: customEmployeeRate,
         employerRate: customEmployerRate,
+        monthlyVoluntaryContribution = 0,
         monthlyExpenses = 0,
     } = params;
 
@@ -53,7 +55,7 @@ export function calculateEPFProjection(params: EPFProjectionParams): EPFData[] {
     const employeeRate = customEmployeeRate ?? 0.11;
 
     // Monthly contribution (only until retirement)
-    const monthlyContribution = monthlyIncome * (employeeRate + employerRate);
+    const monthlyContribution = (monthlyIncome * (employeeRate + employerRate)) + monthlyVoluntaryContribution;
 
     let totalAmount = currentEPFAmount;
     let totalContribution = 0;
@@ -106,7 +108,10 @@ export function calculateSustainableWithdrawal(params: Omit<EPFProjectionParams,
     // Binary search for the maximum sustainable monthly withdrawal
     for (let i = 0; i < 20; i++) { // 20 iterations gives ~RM1 precision for 1M range
         const mid = (min + max) / 2;
-        const projection = calculateEPFProjection({ ...params, monthlyExpenses: mid });
+        const projection = calculateEPFProjection({ 
+            ...params, 
+            monthlyExpenses: mid 
+        });
 
         // Safety check: if projection is empty, something is wrong with inputs (e.g. currentAge > targetAge)
         if (!projection.length) break;

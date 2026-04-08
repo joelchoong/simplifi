@@ -8,20 +8,28 @@ interface RetirementViewProps {
     initialMonthlyIncome?: number;
     initialCurrentEPF?: number;
     initialAge?: number;
+    initialMonthlyVoluntaryContribution?: number;
     maxSpendAmount?: number;
-    onSave: (data: { monthlyIncome: number; currentEPF: number; age: number }) => void;
+    onSave: (data: { 
+        monthlyIncome: number; 
+        currentEPF: number; 
+        age: number;
+        monthlyVoluntaryContribution?: number;
+    }) => void;
 }
 
 const RetirementView: React.FC<RetirementViewProps> = ({
     initialMonthlyIncome = 5000,
     initialCurrentEPF = 50000,
     initialAge = 25,
+    initialMonthlyVoluntaryContribution = 0,
     maxSpendAmount = 0,
     onSave,
 }) => {
     const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome);
     const [currentEPF, setCurrentEPF] = useState(initialCurrentEPF);
     const [age, setAge] = useState(initialAge);
+    const [monthlyVoluntaryContribution, setMonthlyVoluntaryContribution] = useState(initialMonthlyVoluntaryContribution);
     const [retirementAge, setRetirementAge] = useState(60);
 
     // Use income reality baseline life cost as default monthly expenses
@@ -33,6 +41,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         employeeRate?: number;
         employerRate?: number;
         dividendRate?: number;
+        monthlyVoluntaryContribution?: number;
     }>({});
 
     // Sync state with props when they change (e.g., after data loads)
@@ -40,7 +49,8 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         setMonthlyIncome(initialMonthlyIncome);
         setCurrentEPF(initialCurrentEPF);
         setAge(initialAge);
-    }, [initialMonthlyIncome, initialCurrentEPF, initialAge]);
+        setMonthlyVoluntaryContribution(initialMonthlyVoluntaryContribution);
+    }, [initialMonthlyIncome, initialCurrentEPF, initialAge, initialMonthlyVoluntaryContribution]);
 
     // Sync monthlyExpenses with maxSpendAmount when it changes (unless user customized)
     useEffect(() => {
@@ -61,11 +71,12 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                 employeeRate: customRates.employeeRate,
                 employerRate: customRates.employerRate,
                 annualDividendRate: customRates.dividendRate,
+                monthlyVoluntaryContribution: customRates.monthlyVoluntaryContribution ?? monthlyVoluntaryContribution,
                 monthlyExpenses,
             });
         }
         return [];
-    }, [monthlyIncome, currentEPF, age, retirementAge, monthlyExpenses, customRates.employeeRate, customRates.employerRate, customRates.dividendRate]);
+    }, [monthlyIncome, currentEPF, age, retirementAge, monthlyExpenses, customRates.employeeRate, customRates.employerRate, customRates.dividendRate, customRates.monthlyVoluntaryContribution, monthlyVoluntaryContribution]);
 
     // Calculate key metrics for green highlights
     const epfAtRetirement = useMemo(() => {
@@ -87,25 +98,33 @@ const RetirementView: React.FC<RetirementViewProps> = ({
         isExpensesCustom?: boolean;
         employeeRate?: number;
         employerRate?: number;
+        monthlyVoluntaryContribution?: number;
         dividendRate?: number;
     }) => {
         setMonthlyIncome(data.monthlyIncome);
         setCurrentEPF(data.currentEPF);
         setAge(data.age);
+        if (data.monthlyVoluntaryContribution !== undefined) setMonthlyVoluntaryContribution(data.monthlyVoluntaryContribution);
         if (data.retirementAge !== undefined) setRetirementAge(data.retirementAge);
         if (data.monthlyExpenses !== undefined) setMonthlyExpenses(data.monthlyExpenses);
         if (data.isExpensesCustom !== undefined) setIsExpensesCustom(data.isExpensesCustom);
 
         // Update custom rates if provided
-        if (data.employeeRate !== undefined || data.employerRate !== undefined || data.dividendRate !== undefined) {
+        if (data.employeeRate !== undefined || data.employerRate !== undefined || data.dividendRate !== undefined || data.monthlyVoluntaryContribution !== undefined) {
             setCustomRates({
                 employeeRate: data.employeeRate,
                 employerRate: data.employerRate,
                 dividendRate: data.dividendRate,
+                monthlyVoluntaryContribution: data.monthlyVoluntaryContribution,
             });
         }
 
-        onSave({ monthlyIncome: data.monthlyIncome, currentEPF: data.currentEPF, age: data.age });
+        onSave({ 
+            monthlyIncome: data.monthlyIncome, 
+            currentEPF: data.currentEPF, 
+            age: data.age,
+            monthlyVoluntaryContribution: data.monthlyVoluntaryContribution,
+        });
     };
 
     return (
@@ -181,6 +200,7 @@ const RetirementView: React.FC<RetirementViewProps> = ({
                         initialMonthlyIncome={initialMonthlyIncome}
                         initialCurrentEPF={initialCurrentEPF}
                         initialAge={initialAge}
+                        initialMonthlyVoluntaryContribution={initialMonthlyVoluntaryContribution}
                         maxSpendAmount={maxSpendAmount}
                         onSave={handleSave}
                     />

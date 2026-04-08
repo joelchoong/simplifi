@@ -18,6 +18,7 @@ interface RetirementInputsProps {
   initialMonthlyIncome?: number;
   initialCurrentEPF?: number;
   initialAge?: number;
+  initialMonthlyVoluntaryContribution?: number;
   maxSpendAmount?: number;
   onSave: (data: {
     monthlyIncome: number;
@@ -28,6 +29,7 @@ interface RetirementInputsProps {
     isExpensesCustom?: boolean;
     employeeRate?: number;
     employerRate?: number;
+    monthlyVoluntaryContribution?: number;
     dividendRate?: number;
   }) => void;
 }
@@ -36,12 +38,14 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
   initialMonthlyIncome = 0,
   initialCurrentEPF = 0,
   initialAge = 25,
+  initialMonthlyVoluntaryContribution = 0,
   maxSpendAmount = 0,
   onSave,
 }) => {
   const [monthlyIncome, setMonthlyIncome] = useState(initialMonthlyIncome.toString());
   const [currentEPF, setCurrentEPF] = useState(initialCurrentEPF.toString());
   const [age, setAge] = useState(initialAge.toString());
+  const [monthlyVoluntaryContribution, setMonthlyVoluntaryContribution] = useState(initialMonthlyVoluntaryContribution.toString());
   const [retirementAge, setRetirementAge] = useState("60");
   const [monthlyExpenses, setMonthlyExpenses] = useState("");
   const [isExpensesCustom, setIsExpensesCustom] = useState(false);
@@ -63,6 +67,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     setMonthlyIncome(initialMonthlyIncome.toString());
     setCurrentEPF(initialCurrentEPF.toString());
     setAge(initialAge.toString());
+    setMonthlyVoluntaryContribution(initialMonthlyVoluntaryContribution.toString());
     initialValuesRef.current = { monthlyIncome: initialMonthlyIncome, currentEPF: initialCurrentEPF, age: initialAge };
 
     // Set default employer rate based on income
@@ -82,6 +87,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     userAge: number,
     empRate?: number,
     emplRate?: number,
+    monthlyVoluntary?: number,
     divRate?: number,
     retAge?: number,
     expenses?: number,
@@ -96,6 +102,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
       isExpensesCustom: expensesCustom !== undefined ? expensesCustom : isExpensesCustom,
       employeeRate: empRate,
       employerRate: emplRate,
+      monthlyVoluntaryContribution: monthlyVoluntary !== undefined ? monthlyVoluntary : (parseFloat(monthlyVoluntaryContribution) || 0),
       dividendRate: divRate,
     });
     initialValuesRef.current = { monthlyIncome: income, currentEPF: epf, age: userAge };
@@ -137,28 +144,28 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
       setMonthlyExpenses(Math.round(newMaxSpend).toString());
     }
 
-    triggerSave(num, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, activeExpenses, false);
+    triggerSave(num, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, parseFloat(monthlyVoluntaryContribution) || 0, rates.dividendRate, undefined, activeExpenses, false);
   };
 
   const handleEPFBlur = () => {
     const num = parseFloat(currentEPF) || 0;
     setCurrentEPF(Math.round(num).toString());
     const rates = getCurrentRates();
-    triggerSave(parseFloat(monthlyIncome) || 0, num, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate);
+    triggerSave(parseFloat(monthlyIncome) || 0, num, parseInt(age) || 25, rates.employeeRate, rates.employerRate, parseFloat(monthlyVoluntaryContribution) || 0, rates.dividendRate);
   };
 
   const handleAgeBlur = () => {
     const userAge = parseInt(age) || 25;
     setAge(userAge.toString());
     const rates = getCurrentRates();
-    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, userAge, rates.employeeRate, rates.employerRate, rates.dividendRate);
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, userAge, rates.employeeRate, rates.employerRate, parseFloat(monthlyVoluntaryContribution) || 0, rates.dividendRate);
   };
 
   const handleRetirementAgeBlur = () => {
     const retAge = parseInt(retirementAge) || 60;
     setRetirementAge(retAge.toString());
     const rates = getCurrentRates();
-    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, retAge);
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, parseFloat(monthlyVoluntaryContribution) || 0, rates.dividendRate, retAge);
   };
 
   const handleExpensesBlur = () => {
@@ -166,7 +173,7 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     setMonthlyExpenses(Math.round(num).toString());
     setIsExpensesCustom(true);
     const rates = getCurrentRates();
-    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, num, true);
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, parseFloat(monthlyVoluntaryContribution) || 0, rates.dividendRate, undefined, num, true);
   };
 
   const handleResetExpenses = () => {
@@ -174,19 +181,27 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
     setMonthlyExpenses(defaultExpenses.toString());
     setIsExpensesCustom(false);
     const rates = getCurrentRates();
-    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate, undefined, defaultExpenses, false);
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, parseFloat(monthlyVoluntaryContribution) || 0, rates.dividendRate, undefined, defaultExpenses, false);
   };
 
   const handleRateChange = () => {
     const rates = getCurrentRates();
-    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, rates.dividendRate);
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, parseFloat(monthlyVoluntaryContribution) || 0, rates.dividendRate);
+  };
+
+  const handleVoluntaryContributionBlur = () => {
+    const voluntary = parseFloat(monthlyVoluntaryContribution) || 0;
+    setMonthlyVoluntaryContribution(Math.round(voluntary).toString());
+    const rates = getCurrentRates();
+    triggerSave(parseFloat(monthlyIncome) || 0, parseFloat(currentEPF) || 0, parseInt(age) || 25, rates.employeeRate, rates.employerRate, voluntary, rates.dividendRate);
   };
 
   const monthlyContribution = () => {
     const income = parseFloat(monthlyIncome) || 0;
     const empRate = parseFloat(employeeRate) / 100 || 0.11;
     const emplRate = parseFloat(employerRate) / 100 || (income <= 5000 ? 0.13 : 0.12);
-    return income * (empRate + emplRate);
+    const voluntary = parseFloat(monthlyVoluntaryContribution) || 0;
+    return (income * (empRate + emplRate)) + voluntary;
   };
 
   return (
@@ -431,6 +446,35 @@ const RetirementInputs: React.FC<RetirementInputsProps> = ({
                       onBlur={handleRateChange}
                       onKeyDown={(e) => e.key === "Enter" && handleRateChange()}
                       className="peer text-sm pr-12"
+                    />
+                    <Button
+                      size="sm"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur();
+                      }}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 font-bold text-[10px] opacity-0 pointer-events-none peer-focus:opacity-100 peer-focus:pointer-events-auto transition-opacity"
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="voluntary-contribution" className="text-xs font-medium">
+                    Monthly Voluntary Contribution (RM)
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-xs">RM</span>
+                    <Input
+                      id="voluntary-contribution"
+                      type="text"
+                      inputMode="numeric"
+                      value={formatNumberInput(monthlyVoluntaryContribution)}
+                      onChange={(e) => setMonthlyVoluntaryContribution(parseNumberInput(e.target.value))}
+                      onBlur={handleVoluntaryContributionBlur}
+                      onKeyDown={(e) => e.key === "Enter" && handleVoluntaryContributionBlur()}
+                      placeholder="0"
+                      className="peer text-sm pl-10 pr-12"
                     />
                     <Button
                       size="sm"

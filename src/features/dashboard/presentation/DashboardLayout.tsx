@@ -55,6 +55,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     benchmarkSector: '' as string,
     benchmarkSpecialisation: '' as string,
     benchmarkRole: '' as string,
+    monthlyVoluntaryContribution: 0,
   });
   const [dataLoading, setDataLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);
@@ -104,7 +105,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('monthly_income, current_epf_amount, age, housing_cost, household_type, dependants, location, expense_food, expense_transport, expense_utilities, expense_others, expense_entertainment, benchmark_sector, benchmark_specialisation, benchmark_role')
+        .select('monthly_income, current_epf_amount, age, housing_cost, household_type, dependants, location, expense_food, expense_transport, expense_utilities, expense_others, expense_entertainment, benchmark_sector, benchmark_specialisation, benchmark_role, monthly_voluntary_contribution')
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -127,6 +128,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           benchmarkSector: d.benchmark_sector || '',
           benchmarkSpecialisation: d.benchmark_specialisation || '',
           benchmarkRole: d.benchmark_role || '',
+          monthlyVoluntaryContribution: d.monthly_voluntary_contribution || 0,
         });
       }
     } catch (error) {
@@ -163,7 +165,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   };
 
-  const handleRetirementSave = async (data: { monthlyIncome: number; currentEPF: number; age: number }) => {
+  const handleProfileUpdate = async (data: { 
+    monthlyIncome: number; 
+    currentEPF: number; 
+    age: number;
+    monthlyVoluntaryContribution?: number;
+  }) => {
     if (!user) return;
 
     try {
@@ -173,21 +180,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           monthly_income: data.monthlyIncome,
           current_epf_amount: data.currentEPF,
           age: data.age,
+          monthly_voluntary_contribution: data.monthlyVoluntaryContribution,
         })
         .eq('user_id', user.id);
 
       if (error) throw error;
 
-      setProfileData(prev => ({ ...prev, ...data }));
-
-      toast({
-        title: "Saved",
-        description: "Your retirement data has been updated.",
-      });
+      setProfileData(prev => ({ 
+        ...prev, 
+        monthlyIncome: data.monthlyIncome,
+        currentEPF: data.currentEPF,
+        age: data.age,
+        monthlyVoluntaryContribution: data.monthlyVoluntaryContribution ?? prev.monthlyVoluntaryContribution,
+      }));
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save retirement data. Please try again.",
+        description: "Failed to update profile. Please try again.",
         variant: "destructive",
       });
     }
@@ -366,10 +375,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   />
                 )}
                 {currentView === 'retirement' && (
-                  <RetirementView
-                    initialMonthlyIncome={profileData.monthlyIncome}
+                  <RetirementView 
+                    initialMonthlyIncome={profileData.monthlyIncome} 
                     initialCurrentEPF={profileData.currentEPF}
                     initialAge={profileData.age}
+                    initialMonthlyVoluntaryContribution={profileData.monthlyVoluntaryContribution}
                     maxSpendAmount={(() => {
                       if (!profileData.age || profileData.age < 18 || profileData.age > 60 || !profileData.monthlyIncome) return 0;
                       return calculateSustainableWithdrawal({
@@ -380,7 +390,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         currentEPFAmount: profileData.currentEPF,
                       });
                     })()}
-                    onSave={handleRetirementSave}
+                    onSave={handleProfileUpdate}
                   />
                 )}
                 {currentView === 'income-reality' && (

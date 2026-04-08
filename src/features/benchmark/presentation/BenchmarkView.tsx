@@ -387,7 +387,7 @@ export default function BenchmarkView({
     <div className="max-w-6xl mx-auto space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left: Gauge & Result */}
-        <div className="lg:col-span-7 xl:col-span-8 order-2 lg:order-1">
+        <div className="lg:col-span-7 xl:col-span-8">
           <section className="bg-card border border-border rounded-2xl shadow-sm p-3 sm:p-4">
             <div className="mb-3 sm:mb-4">
               <h2 className="text-lg sm:text-xl font-bold text-foreground">Compare your role across markets</h2>
@@ -448,7 +448,7 @@ export default function BenchmarkView({
         </div>
 
         {/* Right: Controls */}
-        <div className="lg:col-span-5 xl:col-span-4 order-1 lg:order-2">
+        <div className="lg:col-span-5 xl:col-span-4">
           <section className="bg-card border border-border rounded-2xl shadow-sm p-4 space-y-4">
             <div className="mb-2">
               <h3 className="flex items-center gap-2 text-xl font-semibold text-foreground tracking-tight mb-1.5">

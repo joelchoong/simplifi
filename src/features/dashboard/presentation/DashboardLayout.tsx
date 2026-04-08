@@ -52,6 +52,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     expenseUtilities: DEFAULT_EXPENSES.utilities,
     expenseOthers: DEFAULT_EXPENSES.others,
     expenseEntertainment: DEFAULT_EXPENSES.entertainment,
+    benchmarkSector: '' as string,
+    benchmarkSpecialisation: '' as string,
+    benchmarkRole: '' as string,
   });
   const [dataLoading, setDataLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);
@@ -101,7 +104,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('monthly_income, current_epf_amount, age, housing_cost, household_type, dependants, location, expense_food, expense_transport, expense_utilities, expense_others, expense_entertainment')
+        .select('monthly_income, current_epf_amount, age, housing_cost, household_type, dependants, location, expense_food, expense_transport, expense_utilities, expense_others, expense_entertainment, benchmark_sector, benchmark_specialisation, benchmark_role')
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -121,6 +124,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           expenseUtilities: d.expense_utilities ?? DEFAULT_EXPENSES.utilities,
           expenseOthers: d.expense_others ?? DEFAULT_EXPENSES.others,
           expenseEntertainment: d.expense_entertainment ?? DEFAULT_EXPENSES.entertainment,
+          benchmarkSector: d.benchmark_sector || '',
+          benchmarkSpecialisation: d.benchmark_specialisation || '',
+          benchmarkRole: d.benchmark_role || '',
         });
       }
     } catch (error) {
@@ -225,6 +231,37 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       toast({
         title: "Error",
         description: "Failed to save data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBenchmarkSave = async (sector: string, specialisation: string, role: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          benchmark_sector: sector,
+          benchmark_specialisation: specialisation,
+          benchmark_role: role,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setProfileData(prev => ({ 
+        ...prev, 
+        benchmarkSector: sector,
+        benchmarkSpecialisation: specialisation,
+        benchmarkRole: role 
+      }));
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save job role. Please try again.",
         variant: "destructive",
       });
     }
@@ -366,7 +403,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   />
                 )}
                 {currentView === 'benchmark' && (
-                  <BenchmarkView monthlyIncome={profileData.monthlyIncome} />
+                  <BenchmarkView 
+                    monthlyIncome={profileData.monthlyIncome}
+                    initialSector={profileData.benchmarkSector}
+                    initialSpecialisation={profileData.benchmarkSpecialisation}
+                    initialRole={profileData.benchmarkRole}
+                    onSaveRole={handleBenchmarkSave}
+                  />
                 )}
               </>
             ) : (

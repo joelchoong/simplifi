@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SECTORS, SALARY_DATA, SalaryBenchmark, getRolesForSpecialisation, searchRoles } from '@/features/benchmark/domain/salaryData';
-import { Search, ChevronDown, Info } from 'lucide-react';
+import { Search, ChevronDown, Info, X, Layers } from 'lucide-react';
 
 /** Format MYR values */
 function formatMYR(value: number): string {
@@ -269,6 +269,7 @@ export default function BenchmarkView({
   const [selectedRole, setSelectedRole] = useState(initialRole);
   const [roleSearch, setRoleSearch] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [showBrowse, setShowBrowse] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Sync initial props if they change externally (e.g. data load completes after mount)
@@ -460,7 +461,7 @@ export default function BenchmarkView({
             {/* Search bar */}
             <div ref={searchRef} className="relative">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                Search by job title
+                Quick search by job title
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -476,6 +477,8 @@ export default function BenchmarkView({
                   className="w-full bg-secondary/30 border border-border/60 rounded-lg pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-colors"
                 />
               </div>
+
+              {/* Search results dropdown */}
               {showSearchResults && searchResults.length > 0 && (
                 <div className="absolute z-20 top-full mt-1 w-full bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                   {searchResults.map((r) => (
@@ -494,40 +497,77 @@ export default function BenchmarkView({
               )}
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">or browse</span>
-              <div className="flex-1 h-px bg-border" />
+            {/* Selected role pill — shown after a search selection */}
+            {selectedRole && sector && specialisation && (
+              <div className="flex items-start gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold text-emerald-700 truncate">{selectedRole}</div>
+                  <div className="text-[11px] text-emerald-600/80 truncate">{sector} · {specialisation}</div>
+                </div>
+                <button
+                  onClick={() => {
+                    setSector('');
+                    setSpecialisation('');
+                    setSelectedRole('');
+                    if (onSaveRole) onSaveRole('', '', '');
+                  }}
+                  className="shrink-0 mt-0.5 text-emerald-500 hover:text-emerald-700 transition-colors"
+                  aria-label="Clear selection"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Browse toggle */}
+            <div>
+              <button
+                onClick={() => setShowBrowse((prev) => !prev)}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border/60 bg-secondary/20 hover:bg-secondary/40 transition-colors text-sm font-medium text-foreground"
+              >
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-muted-foreground" />
+                  <span>Browse by sector</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${showBrowse ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {/* Collapsible browse dropdowns */}
+              {showBrowse && (
+                <div className="mt-2 space-y-3 p-3 rounded-lg border border-border/40 bg-secondary/10">
+                  {/* Sector */}
+                  <CustomSelect
+                    label="Sector"
+                    value={sector}
+                    options={SECTORS.map((s) => s.name)}
+                    onChange={handleSectorChange}
+                    placeholder="Select a sector"
+                  />
+
+                  {/* Specialisation */}
+                  <CustomSelect
+                    label="Specialisation"
+                    value={specialisation}
+                    options={availableSpecialisations}
+                    onChange={handleSpecialisationChange}
+                    placeholder="Select a specialisation"
+                    disabled={!sector}
+                  />
+
+                  {/* Role */}
+                  <CustomSelect
+                    label="Job Role"
+                    value={selectedRole}
+                    options={availableRoles.map((r) => r.role)}
+                    onChange={handleRoleChange}
+                    placeholder="Select a role"
+                    disabled={!specialisation}
+                  />
+                </div>
+              )}
             </div>
-
-            {/* Sector */}
-            <CustomSelect
-              label="Sector"
-              value={sector}
-              options={SECTORS.map((s) => s.name)}
-              onChange={handleSectorChange}
-              placeholder="Select a sector"
-            />
-
-            {/* Specialisation */}
-            <CustomSelect
-              label="Specialisation"
-              value={specialisation}
-              options={availableSpecialisations}
-              onChange={handleSpecialisationChange}
-              placeholder="Select a specialisation"
-              disabled={!sector}
-            />
-
-            {/* Role */}
-            <CustomSelect
-              label="Job Role"
-              value={selectedRole}
-              options={availableRoles.map((r) => r.role)}
-              onChange={handleRoleChange}
-              placeholder="Select a role"
-              disabled={!specialisation}
-            />
 
             {/* Current income display */}
             {userAnnualSalary > 0 && (

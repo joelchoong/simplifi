@@ -18,6 +18,9 @@ export type Database = {
         Row: {
           age: number | null
           avatar_url: string | null
+          benchmark_role: string | null
+          benchmark_sector: string | null
+          benchmark_specialisation: string | null
           created_at: string
           current_epf_amount: number | null
           dependants: number | null

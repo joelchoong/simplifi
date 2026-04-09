@@ -119,11 +119,21 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
               <stop offset="100%" stopColor="#10b981" stopOpacity="0.06" />
             </linearGradient>
           </defs>
-          <path d={areaPath} fill="url(#areaGradient)" />
-          <path d={linePath} stroke="#10b981" strokeWidth={3} fill="none" />
+          <path 
+            d={areaPath} 
+            fill="url(#areaGradient)" 
+            className="animate-reveal origin-left"
+          />
+          <path 
+            d={linePath} 
+            stroke="#10b981" 
+            strokeWidth={3} 
+            fill="none" 
+            className="animate-reveal origin-left"
+          />
 
           {milestoneIdx >= 0 && (
-            <>
+            <g>
               <line
                 x1={xForIndex(milestoneIdx)}
                 y1={margin.top - 12}
@@ -143,12 +153,12 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
               >
                 RM1M
               </text>
-            </>
+            </g>
           )}
 
           {/* Retirement age marker */}
           {retirementIdx >= 0 && (
-            <>
+            <g>
               <line
                 x1={xForIndex(retirementIdx)}
                 y1={margin.top}
@@ -168,7 +178,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
               >
                 Retire ({retirementAge})
               </text>
-            </>
+            </g>
           )}
 
           {sampledData.map((d, i) => {
@@ -191,13 +201,23 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
                 key={d.age}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                className="cursor-pointer"
+                className="cursor-pointer group"
               >
                 {/* Larger invisible hit area */}
                 <circle cx={cx} cy={cy} r={14} fill="transparent" />
-                <circle cx={cx} cy={cy} r={isHovered ? 6 : 4} fill="#10b981" className="transition-all" />
+                <circle 
+                  cx={cx} cy={cy} 
+                  r={isHovered ? 6 : 4} 
+                  fill={isHovered ? "#059669" : "#10b981"} 
+                  className="transition-all duration-300 animate-in zoom-in fade-in"
+                  style={{ animationDelay: `${i * 30}ms` }}
+                />
                 {showX && (
-                  <text x={cx} y={margin.top + innerHeight + 20} textAnchor="middle" fontSize="11" fill="#4b5563">
+                  <text 
+                    x={cx} y={margin.top + innerHeight + 20} 
+                    textAnchor="middle" fontSize="11" 
+                    fill="#4b5563"
+                  >
                     {d.age}
                   </text>
                 )}
@@ -217,9 +237,9 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
             const ty = Math.max(margin.top, Math.min(cy - tooltipH / 2, margin.top + innerHeight - tooltipH));
 
             return (
-              <g>
+              <g className="animate-in fade-in zoom-in-95 duration-200">
                 <line x1={cx} y1={margin.top} x2={cx} y2={margin.top + innerHeight} stroke="#10b981" strokeWidth={1} strokeOpacity={0.4} strokeDasharray="3,3" />
-                <rect x={tx} y={ty} width={tooltipW} height={tooltipH} rx={8} fill="white" stroke="#e5e7eb" strokeWidth={1} filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+                <rect x={tx} y={ty} width={tooltipW} height={tooltipH} rx={8} fill="white" stroke="#e5e7eb" strokeWidth={1} filter="drop-shadow(0 4px 6px rgba(0,0,0,0.05))" />
                 <text x={tx + 10} y={ty + 18} fontSize="12" fontWeight={700} fill="#111827">
                   Age {d.age} · {formatCurrency(d.totalAmount)}
                 </text>

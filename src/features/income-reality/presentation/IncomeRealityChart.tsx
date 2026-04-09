@@ -74,11 +74,11 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
           {/* GROUP: TODAY */}
           <div className="flex items-end justify-center gap-1.5 sm:gap-3 px-1.5 sm:px-2 py-2 sm:py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 h-full flex-1">
             {/* 1. Current Income */}
-            <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end">
+            <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end group">
               <span className="text-[10px] font-bold text-foreground">{formatRM(displayIncome)}</span>
               <div
-                className="w-full rounded-t-lg bg-emerald-500/80 dark:bg-emerald-500/70 shadow-sm flex items-center justify-center"
-                style={{ height: `${Math.max(incomeHeight, 4)}%` }}
+                className="w-full rounded-t-lg bg-emerald-500/80 dark:bg-emerald-500/70 shadow-sm flex items-center justify-center animate-grow-y transition-all duration-300 group-hover:bg-emerald-500 group-hover:shadow-md"
+                style={{ height: `${Math.max(incomeHeight, 4)}%`, animationDelay: '100ms' }}
               >
                 {Math.max(incomeHeight, 4) > 15 && <span className="text-[9px] font-bold text-white/90">Nett Pay</span>}
               </div>
@@ -86,15 +86,15 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
             </div>
 
             {/* 2. Today's Life Cost */}
-            <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end">
+            <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end group">
               <span className="text-[10px] font-bold text-foreground">{formatRM(baselineLifeCost)}</span>
               <div
-                className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm"
-                style={{ height: `${Math.max(totalCostHeight, 4)}%` }}
+                className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm animate-grow-y"
+                style={{ height: `${Math.max(totalCostHeight, 4)}%`, animationDelay: '200ms' }}
               >
                 {housingCost > 0 && (
                   <div
-                    className="w-full bg-orange-400/80 dark:bg-orange-400/70 flex items-center justify-center border-b border-white/10"
+                    className="w-full bg-orange-400/80 dark:bg-orange-400/70 flex items-center justify-center border-b border-white/10 transition-all cursor-default hover:brightness-110"
                     style={{ height: `${(housingHeight / totalCostHeight) * 100}%` }}
                   >
                     {housingHeight / totalCostHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Housing</span>}
@@ -102,7 +102,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                 )}
                 {othersCost > 0 && (
                   <div
-                    className="w-full bg-amber-500/80 dark:bg-amber-500/70 flex items-center justify-center border-b border-white/10"
+                    className="w-full bg-amber-500/80 dark:bg-amber-500/70 flex items-center justify-center border-b border-white/10 transition-all cursor-default hover:brightness-110"
                     style={{ height: `${(othersHeight / totalCostHeight) * 100}%` }}
                   >
                     {othersHeight / totalCostHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Others</span>}
@@ -110,14 +110,14 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                 )}
                 {entertainmentCost > 0 && (
                   <div
-                    className="w-full bg-purple-400/80 dark:bg-purple-400/70 flex items-center justify-center border-b border-white/10"
+                    className="w-full bg-purple-400/80 dark:bg-purple-400/70 flex items-center justify-center border-b border-white/10 transition-all cursor-default hover:brightness-110"
                     style={{ height: `${(entertainmentHeight / totalCostHeight) * 100}%` }}
                   >
                     <span className="text-[8px] font-bold text-white/90">Entertain</span>
                   </div>
                 )}
                 <div
-                  className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center"
+                  className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center transition-all cursor-default hover:brightness-110"
                   style={{ height: `${(pureEssentialsHeight / totalCostHeight) * 100}%` }}
                 >
                   {pureEssentialsHeight / totalCostHeight > 0.12 && <span className="text-[8px] font-bold text-white/90">Essentials</span>}
@@ -138,8 +138,8 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                 <div onClick={(e) => e.preventDefault()} className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(sustainableWithdrawal)}</span>
                   <div
-                    className="w-full rounded-t-lg bg-indigo-600/80 dark:bg-indigo-600/70 shadow-sm transition-opacity group-hover:opacity-80 flex items-center justify-center"
-                    style={{ height: `${Math.max(sustainableSpendHeight, 4)}%` }}
+                    className="w-full rounded-t-lg bg-indigo-600/80 dark:bg-indigo-600/70 shadow-sm transition-all duration-300 animate-grow-y group-hover:bg-indigo-600 group-hover:shadow-md flex items-center justify-center"
+                    style={{ height: `${Math.max(sustainableSpendHeight, 4)}%`, animationDelay: '300ms' }}
                   >
                     {Math.max(sustainableSpendHeight, 4) > 15 && <span className="text-[8px] font-bold text-white/90 text-center px-1 leading-tight">Post Retirement Income</span>}
                   </div>
@@ -157,12 +157,12 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                 <div onClick={(e) => e.preventDefault()} className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(recommendedBarTotal)}</span>
                   <div
-                    className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm transition-opacity group-hover:opacity-80"
-                    style={{ height: `${Math.max(recTotalHeight, 4)}%` }}
+                    className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm animate-grow-y group-hover:shadow-md transition-all duration-300"
+                    style={{ height: `${Math.max(recTotalHeight, 4)}%`, animationDelay: '400ms' }}
                   >
                     {housingCost > 0 && (
                       <div
-                        className="w-full bg-orange-400/80 dark:bg-orange-400/70 flex items-center justify-center border-b border-white/10"
+                        className="w-full bg-orange-400/80 dark:bg-orange-400/70 flex items-center justify-center border-b border-white/10 transition-all hover:brightness-110"
                         style={{ height: `${(recHousingHeight / recTotalHeight) * 100}%` }}
                       >
                         <span className="text-[8px] font-bold text-white/90">Housing</span>
@@ -170,7 +170,7 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                     )}
                     {recommendedOthers > 0 && (
                       <div
-                        className="w-full bg-amber-500/80 dark:bg-amber-500/70 flex items-center justify-center border-b border-white/10"
+                        className="w-full bg-amber-500/80 dark:bg-amber-500/70 flex items-center justify-center border-b border-white/10 transition-all hover:brightness-110"
                         style={{ height: `${(recOthersHeight / recTotalHeight) * 100}%` }}
                       >
                         {recOthersHeight / recTotalHeight > 0.15 && <span className="text-[8px] font-bold text-white/90">Others</span>}
@@ -178,14 +178,14 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                     )}
                     {entertainmentCost > 0 && (
                       <div
-                        className="w-full bg-purple-400/80 dark:bg-purple-400/70 flex items-center justify-center border-b border-white/10"
+                        className="w-full bg-purple-400/80 dark:bg-purple-400/70 flex items-center justify-center border-b border-white/10 transition-all hover:brightness-110"
                         style={{ height: `${(recEntertainmentHeight / recTotalHeight) * 100}%` }}
                       >
                         <span className="text-[8px] font-bold text-white/90">Entertain</span>
                       </div>
                     )}
                     <div
-                      className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center"
+                      className="w-full bg-red-400/80 dark:bg-red-400/70 flex items-center justify-center transition-all hover:brightness-110"
                       style={{ height: `${(recEssentialsHeight / recTotalHeight) * 100}%` }}
                     >
                       {recEssentialsHeight / recTotalHeight > 0.12 && <span className="text-[8px] font-bold text-white/90">Essentials</span>}

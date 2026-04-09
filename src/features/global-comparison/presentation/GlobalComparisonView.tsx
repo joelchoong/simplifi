@@ -183,7 +183,7 @@ export default function GlobalComparisonView({
     <div className="max-w-6xl mx-auto space-y-6 pb-20">
       {/* Hero Output */}
       <section className="bg-gradient-to-br from-emerald-500 to-teal-700 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
+        <div className="absolute top-0 right-0 p-8 opacity-10 animate-float">
           <Globe className="w-64 h-64 -mr-20 -mt-20" />
         </div>
         
@@ -204,7 +204,7 @@ export default function GlobalComparisonView({
             </div>
 
             <div className="space-y-1 group">
-              <div className="text-6xl sm:text-7xl font-black tracking-tight drop-shadow-xl animate-in zoom-in duration-500">
+              <div className="text-6xl sm:text-7xl font-black tracking-tight drop-shadow-xl">
                 {formatCurrency(result.equivalentSalary, countryB)}
               </div>
               <div className="flex justify-center">
@@ -289,7 +289,7 @@ export default function GlobalComparisonView({
 
               <button 
                 onClick={() => setIsTaxModalOpen(true)}
-                className="text-left space-y-3 p-4 bg-purple-500/5 rounded-2xl border border-purple-500/10 relative overflow-hidden group hover:bg-purple-500/10 transition-all active:scale-95"
+                className="text-left space-y-3 p-4 bg-purple-500/5 rounded-2xl border border-purple-500/10 relative overflow-hidden group hover:bg-orange-500/10 transition-all active:scale-95"
               >
                 <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                   <HelpCircle className="w-4 h-4 text-purple-600" />

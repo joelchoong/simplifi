@@ -137,7 +137,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
           )}
-          <div className="mx-auto max-w-6xl">
+          <div 
+            key={`${currentView}-${location.pathname}`}
+            className="mx-auto max-w-6xl"
+          >
             {isImprove ? (
               <ImprovePositionView
                 monthlyIncome={profileData.monthlyIncome}

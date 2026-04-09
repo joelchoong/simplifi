@@ -159,7 +159,7 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
             </div>
           </div>
           <div className="absolute left-0 right-0 top-0 bottom-9 grid grid-cols-10 gap-3 px-2 items-end">
-            {cols.map(c => {
+            {cols.map((c, idx) => {
               // Stack labels directly above the bar without clamping
               const valueBottom = c.h + LABEL_GAP;
               const youBottom = valueBottom + VALUE_H + 2;
@@ -176,20 +176,24 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
                   </div>
                   {c.isCurrent && (
                     <div
-                      className="absolute left-1/2 -translate-x-1/2 transition-all duration-500"
+                      className="absolute left-1/2 -translate-x-1/2 transition-all duration-500 z-30"
                       style={{ bottom: youBottom }}
                     >
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-primary-foreground bg-primary shadow-md ring-2 ring-white">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-primary-foreground bg-primary shadow-md ring-2 ring-white whitespace-nowrap">
                         You
                       </span>
                     </div>
                   )}
                   <div
-                    className={`w-full bg-gradient-to-t ${c.grad} shadow-sm border border-white/20 ${c.isCurrent
+                    className={`w-full bg-gradient-to-t ${c.grad} shadow-sm border border-white/20 animate-grow-y transition-all duration-300 hover:brightness-110 hover:scale-x-105 active:scale-95 ${c.isCurrent
                       ? "ring-[3px] ring-primary/40 ring-offset-2 ring-offset-background z-20 shadow-[0_0_15px_rgba(16,185,129,0.3)] brightness-110"
                       : "opacity-80"
                       }`}
-                    style={{ height: c.h, borderRadius: RADIUS }}
+                    style={{ 
+                      height: c.h, 
+                      borderRadius: RADIUS,
+                      animationDelay: `${idx * 40}ms`
+                    }}
                     title={`${c.code} • ${c.v}`}
                     aria-label={`${c.code} mean income ${c.v}`}
                   />
@@ -198,12 +202,12 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
             })}
           </div>
 
-          <div className="absolute left-0 right-0 bottom-9 h-px bg-border" />
+          <div className="absolute left-0 right-0 bottom-9 h-px bg-border animate-in fade-in duration-1000" />
           <div className="absolute left-0 right-0 bottom-1 grid grid-cols-10 gap-3 px-2">
-            {cols.map(c => (
+            {cols.map((c, idx) => (
               <div
                 key={c.code}
-                className={`text-[10px] sm:text-xs text-center font-semibold ${c.isCurrent ? "text-primary" : "text-muted-foreground"
+                className={`text-[10px] sm:text-xs text-center font-semibold transition-colors ${c.isCurrent ? "text-primary" : "text-muted-foreground"
                   }`}
               >
                 {c.code}

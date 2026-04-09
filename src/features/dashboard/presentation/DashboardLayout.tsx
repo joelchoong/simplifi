@@ -1,19 +1,16 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/features/auth/data/useAuth";
 import { HeaderBar, View } from "@/shared/components/navigation/HeaderBar";
-import { Activity, BarChart3, LayoutGrid, Palmtree, Scale, Globe } from "lucide-react";
+import { BarChart3, LayoutGrid, Palmtree, Scale, Globe } from "lucide-react";
 import { DashboardContent } from "@/features/classification/presentation/Dashboard";
 import RetirementView from "@/features/retirement/presentation/RetirementView";
 import IncomeRealityView from "@/features/income-reality/presentation/IncomeRealityView";
 import ImprovePositionView from "@/features/improve/presentation/ImprovePositionView";
 import BenchmarkView from "@/features/benchmark/presentation/BenchmarkView";
 import GlobalComparisonView from "@/features/global-comparison/presentation/GlobalComparisonView";
-import { supabase } from "@/shared/integrations/supabase/client";
 import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
-import { DEFAULT_EXPENSES } from "@/features/income-reality/domain/incomeRealityCalculations";
-import { useToast } from "@/shared/hooks/use-toast";
 import { Tour, TourStep } from "@/shared/components/ui/tour";
+import { useProfileData } from "@/features/profile/hooks/useProfileData";
 
 const TOUR_STEPS: TourStep[] = [
   {
@@ -35,39 +32,17 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, loading } = useAuth();
+  const { profileData, loading, user, updateIncome, updateProfile, updateBenchmark } = useProfileData();
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   const [currentView, setCurrentView] = useState<View>('classification');
-  const [profileData, setProfileData] = useState({
-    monthlyIncome: 0,
-    currentEPF: 0,
-    age: 25,
-    housingCost: 0,
-    householdType: 'alone' as string,
-    dependants: 1,
-    location: 'kl' as string,
-    expenseFood: DEFAULT_EXPENSES.food,
-    expenseTransport: DEFAULT_EXPENSES.transport,
-    expenseUtilities: DEFAULT_EXPENSES.utilities,
-    expenseOthers: DEFAULT_EXPENSES.others,
-    expenseEntertainment: DEFAULT_EXPENSES.entertainment,
-    benchmarkSector: '' as string,
-    benchmarkSpecialisation: '' as string,
-    benchmarkRole: '' as string,
-    monthlyVoluntaryContribution: 0,
-  });
-  const [dataLoading, setDataLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);
 
   const isDashboard = location.pathname === "/money-health";
   const isImprove = location.pathname === "/improve";
 
   useEffect(() => {
-    // Check if user has completed the tour
     if (isDashboard && !localStorage.getItem("simplifi_tour_completed")) {
-      // Small delay to let the UI settle
       const timer = setTimeout(() => setShowTour(true), 500);
       return () => clearTimeout(timer);
     }
@@ -84,200 +59,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [user, loading, navigate]);
 
-  // Fetch profile data once on mount
-  useEffect(() => {
-    if (user) {
-      fetchProfileData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  // Refetch data when switching views to ensure sync
-  useEffect(() => {
-    if (user && !dataLoading && isDashboard) {
-      fetchProfileData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentView, isDashboard]);
-
-  const fetchProfileData = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('monthly_income, current_epf_amount, age, housing_cost, household_type, dependants, location, expense_food, expense_transport, expense_utilities, expense_others, expense_entertainment, benchmark_sector, benchmark_specialisation, benchmark_role, monthly_voluntary_contribution')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const d = data[0];
-        setProfileData({
-          monthlyIncome: d.monthly_income || 0,
-          currentEPF: d.current_epf_amount || 0,
-          age: d.age || 25,
-          housingCost: d.housing_cost || 0,
-          householdType: d.household_type || 'alone',
-          dependants: d.dependants || 1,
-          location: d.location || 'kl',
-          expenseFood: d.expense_food ?? DEFAULT_EXPENSES.food,
-          expenseTransport: d.expense_transport ?? DEFAULT_EXPENSES.transport,
-          expenseUtilities: d.expense_utilities ?? DEFAULT_EXPENSES.utilities,
-          expenseOthers: d.expense_others ?? DEFAULT_EXPENSES.others,
-          expenseEntertainment: d.expense_entertainment ?? DEFAULT_EXPENSES.entertainment,
-          benchmarkSector: d.benchmark_sector || '',
-          benchmarkSpecialisation: d.benchmark_specialisation || '',
-          benchmarkRole: d.benchmark_role || '',
-          monthlyVoluntaryContribution: d.monthly_voluntary_contribution || 0,
-        });
-      }
-    } catch (error) {
-      // Error fetching profile data - silent fail
-    } finally {
-      setDataLoading(false);
-    }
-  };
-
-  const handleIncomeUpdate = async (newIncome: number) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ monthly_income: newIncome })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      // Update local state immediately
-      setProfileData(prev => ({ ...prev, monthlyIncome: newIncome }));
-
-      toast({
-        title: "Income updated",
-        description: "Your financial profile has been updated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save income. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleProfileUpdate = async (data: { 
-    monthlyIncome: number; 
-    currentEPF: number; 
-    age: number;
-    monthlyVoluntaryContribution?: number;
-  }) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          monthly_income: data.monthlyIncome,
-          current_epf_amount: data.currentEPF,
-          age: data.age,
-          monthly_voluntary_contribution: data.monthlyVoluntaryContribution,
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setProfileData(prev => ({ 
-        ...prev, 
-        monthlyIncome: data.monthlyIncome,
-        currentEPF: data.currentEPF,
-        age: data.age,
-        monthlyVoluntaryContribution: data.monthlyVoluntaryContribution ?? prev.monthlyVoluntaryContribution,
-      }));
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleIncomeRealitySave = async (data: {
-    monthlyIncome: number;
-    housingCost: number;
-    householdType: string;
-    dependants: number;
-    location: string;
-    expenseFood: number;
-    expenseTransport: number;
-    expenseUtilities: number;
-    expenseOthers: number;
-    expenseEntertainment: number;
-  }) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          monthly_income: data.monthlyIncome,
-          housing_cost: data.housingCost,
-          household_type: data.householdType,
-          dependants: data.dependants,
-          location: data.location,
-          expense_food: data.expenseFood,
-          expense_transport: data.expenseTransport,
-          expense_utilities: data.expenseUtilities,
-          expense_others: data.expenseOthers,
-          expense_entertainment: data.expenseEntertainment,
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setProfileData(prev => ({ ...prev, ...data }));
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save data. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleBenchmarkSave = async (sector: string, specialisation: string, role: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          benchmark_sector: sector,
-          benchmark_specialisation: specialisation,
-          benchmark_role: role,
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setProfileData(prev => ({ 
-        ...prev, 
-        benchmarkSector: sector,
-        benchmarkSpecialisation: specialisation,
-        benchmarkRole: role 
-      }));
-
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save job role. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (loading || dataLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -285,11 +67,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
-
+  if (!user) return null;
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-background">
@@ -382,7 +160,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 {currentView === 'classification' && (
                   <DashboardContent
                     monthlyIncome={profileData.monthlyIncome}
-                    onSaveIncome={handleIncomeUpdate}
+                    onSaveIncome={updateIncome}
                   />
                 )}
                 {currentView === 'retirement' && (
@@ -401,7 +179,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         currentEPFAmount: profileData.currentEPF,
                       });
                     })()}
-                    onSave={handleProfileUpdate}
+                    onSave={updateProfile}
                   />
                 )}
                 {currentView === 'income-reality' && (
@@ -420,7 +198,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       others: profileData.expenseOthers,
                       entertainment: profileData.expenseEntertainment,
                     }}
-                    onSave={handleIncomeRealitySave}
+                    onSave={updateProfile}
                   />
                 )}
                 {currentView === 'benchmark' && (
@@ -429,7 +207,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     initialSector={profileData.benchmarkSector}
                     initialSpecialisation={profileData.benchmarkSpecialisation}
                     initialRole={profileData.benchmarkRole}
-                    onSaveRole={handleBenchmarkSave}
+                    onSaveRole={updateBenchmark}
                     onOpenGlobal={() => setCurrentView('global-comparison')}
                   />
                 )}

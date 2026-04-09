@@ -19,7 +19,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-10 w-full bg-background border-b border-border/40">
+    <header className="sticky top-0 z-50 w-full bg-background border-b border-border/40">
       <div className="w-full px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between relative">
         {/* Far Left: Logo */}
         <Link to="/money-health" className="flex items-center group">

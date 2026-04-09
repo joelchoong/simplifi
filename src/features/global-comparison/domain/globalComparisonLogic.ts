@@ -82,3 +82,48 @@ export function calculateGlobalComparison(
     netIncomeA
   };
 }
+
+/**
+ * Calculates the approximate effective tax rate for Singapore non-residents
+ * (typical for new relocators) based on the IRAS reference table.
+ * Non-residents are generally taxed at a flat 15% or the resident rate,
+ * whichever is higher.
+ */
+export function getSingaporeEffectiveTaxRate(annualIncome: number): number {
+  if (annualIncome <= 0) return 0;
+  
+  // Non-resident floor is 15%
+  const nonResidentFloor = 0.15;
+  
+  // Table-based resident rates
+  const residentBrackets = [
+    { income: 20000, rate: 0.000 },
+    { income: 30000, rate: 0.007 },
+    { income: 40000, rate: 0.014 },
+    { income: 80000, rate: 0.042 },
+    { income: 120000, rate: 0.066 },
+    { income: 160000, rate: 0.087 },
+    { income: 200000, rate: 0.106 },
+    { income: 240000, rate: 0.120 },
+    { income: 280000, rate: 0.131 },
+    { income: 320000, rate: 0.139 },
+    { income: 500000, rate: 0.168 },
+    { income: 1000000, rate: 0.194 },
+  ];
+
+  let residentRate = 0.194;
+  if (annualIncome <= 1000000) {
+    for (let i = 0; i < residentBrackets.length - 1; i++) {
+        const low = residentBrackets[i];
+        const high = residentBrackets[i+1];
+        if (annualIncome >= low.income && annualIncome <= high.income) {
+          const ratio = (annualIncome - low.income) / (high.income - low.income);
+          residentRate = low.rate + ratio * (high.rate - low.rate);
+          break;
+        }
+    }
+  }
+
+  // Non-residents pay the higher of 15% or the resident rate
+  return Math.max(nonResidentFloor, residentRate);
+}

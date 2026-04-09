@@ -1,23 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { Globe, ArrowDown, TrendingUp, Landmark, ShieldCheck, HelpCircle, Briefcase } from 'lucide-react';
-import { COUNTRIES, LIFESTYLE_MULTIPLIERS, calculateGlobalComparison, LifestyleLevel } from '../domain/globalComparisonLogic';
+import { Globe, ArrowDown, TrendingUp, Landmark, ShieldCheck, HelpCircle } from 'lucide-react';
+import { COUNTRIES, LIFESTYLE_MULTIPLIERS, calculateGlobalComparison, LifestyleLevel, getSingaporeEffectiveTaxRate } from '../domain/globalComparisonLogic';
 import { SALARY_DATA } from '@/features/benchmark/domain/salaryData';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Button } from '@/shared/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
 } from "@/shared/components/ui/tooltip";
 import { calculateNettPay } from '@/features/classification/domain/nettPayCalculation';
+import { BaseCommitmentsModal } from './components/BaseCommitmentsModal';
+import { LifestyleUpgradeModal } from './components/LifestyleUpgradeModal';
+import { TaxRateModal } from './components/TaxRateModal';
+import { MarketRealityCard } from './components/MarketRealityCard';
 
 interface GlobalComparisonViewProps {
   monthlyIncome?: number;
@@ -48,6 +46,8 @@ export default function GlobalComparisonView({
   const [lifestyle, setLifestyle] = useState<LifestyleLevel>('balanced');
   const [isBaseModalOpen, setIsBaseModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
+  const [customTaxRate, setCustomTaxRate] = useState<number | null>(null);
   const [customMultiplier, setCustomMultiplier] = useState(1.0);
   const [customDisposableIncomeA, setCustomDisposableIncomeA] = useState<number | null>(null);
 
@@ -98,7 +98,7 @@ export default function GlobalComparisonView({
     return SALARY_DATA.find(d => d.role === benchmarkRole);
   }, [benchmarkRole]);
 
-  const targetSurvivalCost = Object.values(baseBreakdown).reduce((a, b) => a + b, 0);
+  const targetSurvivalCost = Object.values(baseBreakdown).reduce((a, b) => (a as number) + (b as number), 0) as number;
   
   // Convert Home Commitments to Target Currency
   const commitmentCostB = (homeCommitments.housing + homeCommitments.utilities) * countryB.exchangeRate;
@@ -113,6 +113,10 @@ export default function GlobalComparisonView({
       transport: Math.round(countryBase * 0.1),
       utilities: Math.round(countryBase * 0.1)
     });
+  }, [countryBId]);
+
+  React.useEffect(() => {
+    setCustomTaxRate(null);
   }, [countryBId]);
 
   React.useEffect(() => {
@@ -143,10 +147,25 @@ export default function GlobalComparisonView({
     
     const totalUpgradeB = disposableRequirementB + lostEPFRequirementB;
     const netRequiredB = customBaseLivingCost + totalUpgradeB;
-    const equivalentSalaryB = netRequiredB / (1 - countryB.taxRate);
+    
+    let effectiveTaxRateB: number;
+    if (customTaxRate !== null) {
+      effectiveTaxRateB = customTaxRate / 100;
+    } else if (countryB.id === 'sg') {
+      // Progressive lookup for Singapore
+      // Step 1: Initial guess of gross salary
+      const roughGrossAnnual = (netRequiredB / (1 - countryB.taxRate)) * 12;
+      // Step 2: Get effective rate for that income level
+      effectiveTaxRateB = getSingaporeEffectiveTaxRate(roughGrossAnnual);
+    } else {
+      effectiveTaxRateB = countryB.taxRate;
+    }
+
+    const equivalentSalaryB = netRequiredB / (1 - effectiveTaxRateB);
 
     return {
       ...baseResult,
+      effectiveTaxRateB,
       originDisposableActual: originDisposable,
       equivalentSalary: equivalentSalaryB,
       disposableRequirementB,
@@ -202,67 +221,12 @@ export default function GlobalComparisonView({
             </div>
           </div>
 
-          {/* 💎 Floating Market Reality Card */}
-          {marketData && (
-            <div className="lg:absolute bottom-6 right-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl min-w-[280px] animate-in slide-in-from-right-8 duration-1000 hidden lg:block">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-white/20 rounded-lg">
-                    <Briefcase className="w-3 h-3 text-emerald-100" />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-50">{countryB.name} Market Check</span>
-                </div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-white/40 hover:text-white transition-colors">
-                        <HelpCircle className="w-3 h-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-[10px] max-w-[200px]">
-                      Estimated {countryB.name} range for {marketData.role}, scaled from Michael Page benchmarks.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              {(() => {
-                const minB = (marketData.minAnnual / 12) * countryB.exchangeRate * result.costIndex;
-                const maxB = (marketData.maxAnnual / 12) * countryB.exchangeRate * result.costIndex;
-                const avgB = (marketData.avgAnnual / 12) * countryB.exchangeRate * result.costIndex;
-                const range = maxB - minB;
-                const position = ((result.equivalentSalary - minB) / range) * 100;
-                const clampedPosition = Math.min(Math.max(position, 0), 100);
-
-                return (
-                  <div className="space-y-3">
-                    <div className="relative h-1 w-full bg-white/10 rounded-full overflow-hidden">
-                      <div className="absolute inset-y-0 bg-emerald-400/30" style={{ left: '0%', width: '100%' }} />
-                      <div className="absolute top-0 bottom-0 w-1 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] transition-all duration-1000" style={{ left: `${clampedPosition}%` }} />
-                    </div>
-                    
-                    <div className="flex justify-between items-end">
-                      <div className="space-y-0.5">
-                        <div className="text-[7px] font-black text-emerald-100/50 uppercase tracking-tighter">Market Range</div>
-                        <div className="text-[10px] font-bold text-white whitespace-nowrap">
-                          {formatCurrency(minB, countryB)} — {formatCurrency(maxB, countryB)}
-                        </div>
-                      </div>
-                      <div className="text-right space-y-0.5">
-                        <div className="text-[7px] font-black text-emerald-100/50 uppercase tracking-tighter">Market Avg</div>
-                        <div className="text-[10px] font-bold text-emerald-100/80">
-                          {formatCurrency(avgB, countryB)}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-[8px] text-emerald-100/40 text-center font-medium italic border-t border-white/5 pt-2">
-                       {marketData.role}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+          <MarketRealityCard 
+            countryB={countryB}
+            marketData={marketData}
+            result={result}
+            formatCurrency={formatCurrency}
+          />
         </div>
       </section>
 
@@ -275,29 +239,29 @@ export default function GlobalComparisonView({
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <button 
-                  onClick={() => setIsBaseModalOpen(true)}
-                  className="text-left space-y-3 p-4 bg-orange-500/5 rounded-2xl border border-orange-500/10 relative overflow-hidden group hover:bg-orange-500/10 transition-all active:scale-95"
-                >
-                  <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <HelpCircle className="w-4 h-4 text-orange-600" />
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-600">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs uppercase tracking-wider text-orange-700 flex items-center gap-1">
-                      1. Fixed & Commitments
-                      <span className="text-[8px] bg-orange-100 px-1 rounded">EDITABLE</span>
-                    </h4>
-                    <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
-                      Local survival floor + home obligations.
-                    </p>
-                  </div>
-                  <div className="text-lg font-black text-orange-600">
-                    {formatCurrency(customBaseLivingCost, countryB)}
-                  </div>
-                </button>
+              <button 
+                onClick={() => setIsBaseModalOpen(true)}
+                className="text-left space-y-3 p-4 bg-orange-500/5 rounded-2xl border border-orange-500/10 relative overflow-hidden group hover:bg-orange-500/10 transition-all active:scale-95"
+              >
+                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <HelpCircle className="w-4 h-4 text-orange-600" />
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-600">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-orange-700 flex items-center gap-1">
+                    1. Fixed & Commitments
+                    <span className="text-[8px] bg-orange-100 px-1 rounded">EDITABLE</span>
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
+                    Local survival floor + home obligations.
+                  </p>
+                </div>
+                <div className="text-lg font-black text-orange-600">
+                  {formatCurrency(customBaseLivingCost, countryB)}
+                </div>
+              </button>
 
               <button 
                 onClick={() => setIsUpgradeModalOpen(true)}
@@ -323,23 +287,29 @@ export default function GlobalComparisonView({
                 </div>
               </button>
 
-              <div className="space-y-3 p-4 bg-purple-500/5 rounded-2xl border border-purple-500/10 relative overflow-hidden group hover:bg-purple-500/10 transition-all cursor-default">
-                <div className="absolute top-0 right-0 p-2 opacity-5 scale-150">
-                  <Landmark className="w-12 h-12" />
+              <button 
+                onClick={() => setIsTaxModalOpen(true)}
+                className="text-left space-y-3 p-4 bg-purple-500/5 rounded-2xl border border-purple-500/10 relative overflow-hidden group hover:bg-purple-500/10 transition-all active:scale-95"
+              >
+                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <HelpCircle className="w-4 h-4 text-purple-600" />
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600">
                   <Landmark className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs uppercase tracking-wider text-purple-700">3. Target Tax Load</h4>
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-purple-700 flex items-center gap-1">
+                    3. Target Tax Load
+                    <span className="text-[8px] bg-purple-100 px-1 rounded text-purple-600">EDITABLE</span>
+                  </h4>
                   <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
                     Effective rate at this income tier.
                   </p>
                 </div>
                 <div className="text-lg font-black text-purple-600">
-                  {Math.round(countryB.taxRate * 100)}%
+                  {Math.round(result.effectiveTaxRateB * 100)}%
                 </div>
-              </div>
+              </button>
             </div>
 
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -426,282 +396,49 @@ export default function GlobalComparisonView({
         </div>
       </div>
 
-      {/* Survival Base Editor Modal */}
-      <Dialog open={isBaseModalOpen} onOpenChange={setIsBaseModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-orange-600" />
-              Survival Base & Commitments
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 px-1">
-                <Globe className="w-3 h-3 text-muted-foreground" />
-                <h4 className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground">{countryB.name} Local Survival Costs</h4>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-4 p-2.5 rounded-xl bg-secondary/10 border border-border/50 group hover:border-orange-500/30 transition-all">
-                  <div className="space-y-0.5">
-                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Local Housing</Label>
-                    <p className="text-[9px] text-muted-foreground/60 italic">Monthly rent in {countryB.name}</p>
-                  </div>
-                  <div className="relative w-28">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground">{countryB.symbol}</span>
-                    <Input 
-                      type="number" 
-                      value={baseBreakdown.housing}
-                      onChange={(e) => setBaseBreakdown(prev => ({ ...prev, housing: parseInt(e.target.value) || 0 }))}
-                      className="pl-7 text-xs font-bold h-8 text-right"
-                    />
-                  </div>
-                </div>
+      <BaseCommitmentsModal 
+        isOpen={isBaseModalOpen}
+        onOpenChange={setIsBaseModalOpen}
+        countryA={countryA}
+        countryB={countryB}
+        baseBreakdown={baseBreakdown}
+        setBaseBreakdown={setBaseBreakdown}
+        homeCommitments={homeCommitments}
+        setHomeCommitments={setHomeCommitments}
+        targetSurvivalCost={targetSurvivalCost}
+        commitmentCostB={commitmentCostB}
+        customBaseLivingCost={customBaseLivingCost}
+        housingCost={housingCost}
+        expenses={expenses}
+        formatCurrency={formatCurrency}
+      />
 
-                <div className="flex items-center justify-between gap-4 p-2.5 rounded-xl bg-secondary/10 border border-border/50 group hover:border-orange-500/30 transition-all">
-                  <div className="space-y-0.5">
-                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Food & Transp.</Label>
-                    <p className="text-[9px] text-muted-foreground/60 italic">Groceries + Commute</p>
-                  </div>
-                  <div className="relative w-28">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground">{countryB.symbol}</span>
-                    <Input 
-                      type="number"
-                      value={baseBreakdown.food + baseBreakdown.transport}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || 0;
-                        setBaseBreakdown(prev => ({ ...prev, food: Math.round(val * 0.7), transport: Math.round(val * 0.3) }));
-                      }}
-                      className="pl-7 text-xs font-bold h-8 text-right"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+      <LifestyleUpgradeModal 
+        isOpen={isUpgradeModalOpen}
+        onOpenChange={setIsUpgradeModalOpen}
+        countryA={countryA}
+        countryB={countryB}
+        lifestyle={lifestyle}
+        setLifestyle={setLifestyle}
+        customMultiplier={customMultiplier}
+        setCustomMultiplier={setCustomMultiplier}
+        customDisposableIncomeA={customDisposableIncomeA}
+        setCustomDisposableIncomeA={setCustomDisposableIncomeA}
+        derivedDisposableA={derivedDisposableA}
+        expenses={expenses}
+        result={result}
+        formatCurrency={formatCurrency}
+      />
 
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-2 px-1">
-                <Landmark className="w-3 h-3 text-orange-600" />
-                <h4 className="text-[10px] font-black uppercase tracking-tighter text-orange-600">Home Commitments (Carried Over)</h4>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-4 p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/10 group hover:border-orange-500/30 transition-all">
-                  <div className="space-y-0.5">
-                    <Label className="text-[10px] font-bold uppercase text-orange-700">Home Mortgage/Tax</Label>
-                    <p className="text-[9px] text-orange-600/60 italic">Obligations in {countryA.name}</p>
-                  </div>
-                  <div className="relative w-28">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-orange-700/60">{countryA.symbol}</span>
-                    <Input 
-                      type="number" 
-                      value={homeCommitments.housing}
-                      onChange={(e) => setHomeCommitments(prev => ({ ...prev, housing: parseInt(e.target.value) || 0 }))}
-                      className="pl-7 text-xs font-bold h-8 text-right border-orange-200"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-4 p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/10 group hover:border-orange-500/30 transition-all">
-                  <div className="space-y-0.5">
-                    <Label className="text-[10px] font-bold uppercase text-orange-700">Home Utilities/Others</Label>
-                    <p className="text-[9px] text-orange-600/60 italic">Fixed subs or family cost</p>
-                  </div>
-                  <div className="relative w-28">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-orange-700/60">{countryA.symbol}</span>
-                    <Input 
-                      type="number"
-                      value={homeCommitments.utilities}
-                      onChange={(e) => setHomeCommitments(prev => ({ ...prev, utilities: parseInt(e.target.value) || 0 }))}
-                      className="pl-7 text-xs font-bold h-8 text-right border-orange-200"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-secondary/20 p-4 rounded-xl space-y-3 border border-border mt-4">
-              <div className="flex items-center justify-between border-b border-border/50 pb-2">
-                <div className="text-[10px] font-bold text-muted-foreground uppercase">Local Survival ({countryB.currency}):</div>
-                <div className="text-sm font-black text-foreground">
-                  {formatCurrency(targetSurvivalCost, countryB)}
-                </div>
-              </div>
-              <div className="flex items-center justify-between border-b border-border/50 pb-2">
-                <div className="text-[10px] font-bold text-orange-600 uppercase">Commitments Converted:</div>
-                <div className="text-sm font-black text-orange-600">
-                  {formatCurrency(commitmentCostB, countryB)}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="text-[10px] font-bold text-orange-600 uppercase">Total Floor ({countryB.currency}):</div>
-                <div className="text-xl font-black text-orange-600">
-                  {formatCurrency(customBaseLivingCost, countryB)}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button 
-                variant="outline" 
-                className="flex-1 text-xs h-10 font-bold"
-                onClick={() => {
-                  const countryBase = countryB.baseLivingCost;
-                  setBaseBreakdown({
-                    housing: Math.round(countryBase * 0.6),
-                    food: Math.round(countryBase * 0.2),
-                    transport: Math.round(countryBase * 0.1),
-                    utilities: Math.round(countryBase * 0.1)
-                  });
-                  setHomeCommitments({
-                    housing: housingCost,
-                    utilities: expenses?.utilities || 0
-                  });
-                }}
-              >
-                Reset Defaults
-              </Button>
-              <Button 
-                className="flex-1 text-xs h-10 font-bold bg-orange-600 hover:bg-orange-700"
-                onClick={() => setIsBaseModalOpen(false)}
-              >
-                Apply Load
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Upgrade Modal */}
-      <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
-              Adjust Lifestyle Upgrade
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-4 max-h-[80vh] overflow-y-auto pr-1">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 group hover:border-orange-500/30 transition-all">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-[10px] font-bold uppercase text-orange-700">Origin Disposable</Label>
-                    {customDisposableIncomeA !== null && (
-                      <button 
-                        onClick={() => setCustomDisposableIncomeA(null)}
-                        className="text-[8px] bg-orange-100 text-orange-600 px-1 rounded uppercase font-black hover:bg-orange-200"
-                      >
-                        Reset to Auto
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground leading-tight max-w-[220px]">
-                    Your "fun money" in {countryA.name} based on your {expenses ? 'Income Reality' : 'baseline'} profile.
-                  </p>
-                </div>
-                <div className="relative w-32">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">{countryA.symbol}</span>
-                  <Input 
-                    type="number" 
-                    value={customDisposableIncomeA !== null ? customDisposableIncomeA : Math.round(derivedDisposableA)}
-                    onChange={(e) => setCustomDisposableIncomeA(parseInt(e.target.value) || 0)}
-                    className="text-sm font-bold h-10 text-right pr-4 pl-8 border-orange-200 focus:ring-orange-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 group hover:border-emerald-500/30 transition-all">
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold uppercase text-emerald-700">Lifestyle Multiplier</Label>
-                  <p className="text-[10px] text-muted-foreground leading-tight max-w-[200px]">
-                    How much of an "upgrade" you want for this surplus money in {countryB.name}.
-                  </p>
-                </div>
-                <div className="relative w-32">
-                  <Input 
-                    type="number" 
-                    step="0.05"
-                    value={customMultiplier}
-                    onChange={(e) => setCustomMultiplier(parseFloat(e.target.value) || 0)}
-                    className="text-sm font-bold h-10 text-right pr-8"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground italic">x</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3">
-                <Label className="text-[10px] font-bold uppercase text-muted-foreground pl-1">Lifestyle Level Presets</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button 
-                    onClick={() => { setLifestyle('frugal'); setCustomMultiplier(0.8); }}
-                    className={`p-2 rounded-lg border text-[10px] font-bold transition-all ${lifestyle === 'frugal' ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-border/50 hover:bg-secondary'}`}
-                  >
-                    Frugal (0.8x)
-                  </button>
-                  <button 
-                    onClick={() => { setLifestyle('balanced'); setCustomMultiplier(1.0); }}
-                    className={`p-2 rounded-lg border text-[10px] font-bold transition-all ${lifestyle === 'balanced' ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-border/50 hover:bg-secondary'}`}
-                  >
-                    Balanced (1.0x)
-                  </button>
-                  <button 
-                    onClick={() => { setLifestyle('comfortable'); setCustomMultiplier(1.3); }}
-                    className={`p-2 rounded-lg border text-[10px] font-bold transition-all ${lifestyle === 'comfortable' ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-border/50 hover:bg-secondary'}`}
-                  >
-                    Comfortable (1.3x)
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl space-y-3">
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-emerald-800">
-                  <span className="text-[10px] font-bold uppercase">Lifestyle Surplus:</span>
-                  <span className="text-sm font-bold">{formatCurrency(result.disposableRequirementB, countryB)}</span>
-                </div>
-                <div className="flex justify-between items-center text-emerald-800">
-                  <span className="text-[10px] font-bold uppercase">Retirement Gap (EPF):</span>
-                  <span className="text-sm font-bold">{formatCurrency(result.lostEPFRequirementB, countryB)}</span>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-emerald-200">
-                <div className="flex justify-between items-center">
-                  <div className="text-[10px] font-bold text-emerald-900 uppercase">Total Target Upgrade:</div>
-                  <div className="text-xl font-black text-emerald-600">
-                    {formatCurrency(result.disposableRequirementB + result.lostEPFRequirementB || 0, countryB)}
-                  </div>
-                </div>
-              </div>
-              <p className="text-[9px] text-emerald-700/60 italic leading-snug">
-                This compensates for your lost {countryA.name} retirement contribution ({formatCurrency(result.lostMonthlyEPF, countryA)}) scaled to {countryB.name}.
-              </p>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button 
-                variant="outline" 
-                className="flex-1 text-xs h-10 font-bold"
-                onClick={() => {
-                  setCustomMultiplier(LIFESTYLE_MULTIPLIERS[lifestyle]);
-                  setCustomDisposableIncomeA(null);
-                }}
-              >
-                Reset All
-              </Button>
-              <Button 
-                className="flex-1 text-xs h-10 font-bold bg-emerald-600 hover:bg-emerald-700"
-                onClick={() => setIsUpgradeModalOpen(false)}
-              >
-                Apply Changes
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TaxRateModal 
+        isOpen={isTaxModalOpen}
+        onOpenChange={setIsTaxModalOpen}
+        countryB={countryB}
+        customTaxRate={customTaxRate}
+        setCustomTaxRate={setCustomTaxRate}
+        result={result}
+        formatCurrency={formatCurrency}
+      />
     </div>
   );
 }

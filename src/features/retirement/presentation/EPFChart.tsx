@@ -20,6 +20,7 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(320);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isAnimated, setIsAnimated] = useState(false);
   const chartHeight = 240;
 
   useEffect(() => {
@@ -31,6 +32,17 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!data?.length) {
+      setIsAnimated(false);
+      return;
+    }
+
+    setIsAnimated(false);
+    const timeoutId = window.setTimeout(() => setIsAnimated(true), 40);
+    return () => window.clearTimeout(timeoutId);
+  }, [data, retirementAge]);
 
   // Sample data intelligently - always include ages ending in 0 or 5
   const sampledData = useMemo(() => {
@@ -122,14 +134,24 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
           <path 
             d={areaPath} 
             fill="url(#areaGradient)" 
-            className="animate-reveal origin-left"
+            style={{
+              clipPath: isAnimated ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+              transition: "clip-path 900ms cubic-bezier(0.165, 0.84, 0.44, 1)",
+              transitionDelay: "80ms",
+            }}
           />
           <path 
             d={linePath} 
             stroke="#10b981" 
             strokeWidth={3} 
             fill="none" 
-            className="animate-reveal origin-left"
+            pathLength={1}
+            strokeDasharray={1}
+            strokeDashoffset={isAnimated ? 0 : 1}
+            style={{
+              transition: "stroke-dashoffset 900ms cubic-bezier(0.165, 0.84, 0.44, 1)",
+              transitionDelay: "120ms",
+            }}
           />
 
           {milestoneIdx >= 0 && (
@@ -142,6 +164,11 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
                 stroke="#f59e0b"
                 strokeWidth={2}
                 strokeDasharray="6,6"
+                opacity={isAnimated ? 1 : 0}
+                style={{
+                  transition: "opacity 250ms ease-out",
+                  transitionDelay: "500ms",
+                }}
               />
               <text
                 x={xForIndex(milestoneIdx)}
@@ -167,6 +194,11 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
                 stroke="#6366f1"
                 strokeWidth={2}
                 strokeDasharray="4,4"
+                opacity={isAnimated ? 1 : 0}
+                style={{
+                  transition: "opacity 250ms ease-out",
+                  transitionDelay: "560ms",
+                }}
               />
               <text
                 x={xForIndex(retirementIdx)}
@@ -209,8 +241,15 @@ const EPFChart: React.FC<EPFChartProps> = ({ data, retirementAge = 60 }) => {
                   cx={cx} cy={cy} 
                   r={isHovered ? 6 : 4} 
                   fill={isHovered ? "#059669" : "#10b981"} 
-                  className="transition-all duration-300 animate-in zoom-in fade-in"
-                  style={{ animationDelay: `${i * 30}ms` }}
+                  className="transition-all duration-300"
+                  style={{
+                    opacity: isAnimated ? 1 : 0,
+                    transformBox: "fill-box",
+                    transformOrigin: "center",
+                    transform: isAnimated ? "scale(1)" : "scale(0.7)",
+                    transition: "transform 350ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease-out, r 300ms ease-out",
+                    transitionDelay: `${220 + i * 30}ms`,
+                  }}
                 />
                 {showX && (
                   <text 

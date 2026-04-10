@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   HOUSEHOLD_INCOME_DISTRIBUTION_BANDS as INCOME_DISTRIBUTION_BANDS,
   getIncomePercentileRange,
@@ -54,7 +54,19 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
   const CHART_H = 340, MIN_BAR = 8, RADIUS = 14, LABEL_GAP = 6, VALUE_H = 18, CURRENT_TAG_H = 22;
   const [showTable, setShowTable] = useState(false);
   const [tableKind, setTableKind] = useState<"household" | "employee">("household");
+  const [isAnimated, setIsAnimated] = useState(false);
   const tablesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (monthlyIncome <= 0) {
+      setIsAnimated(false);
+      return;
+    }
+
+    setIsAnimated(false);
+    const timeoutId = window.setTimeout(() => setIsAnimated(true), 40);
+    return () => window.clearTimeout(timeoutId);
+  }, [monthlyIncome]);
 
   const handleDetailsClick = () => {
     const newShowTable = !showTable;
@@ -167,7 +179,7 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
               return (
                 <div key={c.code} className="relative flex items-end justify-center">
                   <div
-                    className="absolute left-1/2 -translate-x-1/2 transition-all duration-500"
+                    className="absolute left-1/2 -translate-x-1/2"
                     style={{ bottom: valueBottom }}
                   >
                     <span className="px-1.5 py-0.5 rounded border bg-card text-[10px] font-medium text-primary border-primary/20 shadow-sm">
@@ -176,7 +188,7 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
                   </div>
                   {c.isCurrent && (
                     <div
-                      className="absolute left-1/2 -translate-x-1/2 transition-all duration-500 z-30"
+                      className="absolute left-1/2 -translate-x-1/2 z-30"
                       style={{ bottom: youBottom }}
                     >
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-primary-foreground bg-primary shadow-md ring-2 ring-white whitespace-nowrap">
@@ -185,14 +197,16 @@ export const IncomeTierChart: React.FC<{ monthlyIncome: number }> = ({ monthlyIn
                     </div>
                   )}
                   <div
-                    className={`w-full bg-gradient-to-t ${c.grad} shadow-sm border border-white/20 animate-grow-y transition-all duration-300 hover:brightness-110 hover:scale-x-105 active:scale-95 ${c.isCurrent
+                    className={`w-full bg-gradient-to-t ${c.grad} shadow-sm border border-white/20 transition-[height,opacity,filter,transform,box-shadow] duration-300 hover:brightness-110 hover:scale-x-105 active:scale-95 ${c.isCurrent
                       ? "ring-[3px] ring-primary/40 ring-offset-2 ring-offset-background z-20 shadow-[0_0_15px_rgba(16,185,129,0.3)] brightness-110"
                       : "opacity-80"
                       }`}
                     style={{ 
-                      height: c.h, 
+                      height: isAnimated ? c.h : 0,
                       borderRadius: RADIUS,
-                      animationDelay: `${idx * 40}ms`
+                      opacity: isAnimated ? 1 : 0.4,
+                      transition: "height 900ms cubic-bezier(0.165, 0.84, 0.44, 1), opacity 300ms ease-out, filter 300ms ease-out, transform 300ms ease-out, box-shadow 300ms ease-out",
+                      transitionDelay: `${idx * 40}ms`,
                     }}
                     title={`${c.code} • ${c.v}`}
                     aria-label={`${c.code} mean income ${c.v}`}

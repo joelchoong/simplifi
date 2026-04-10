@@ -13,7 +13,14 @@ function formatMYR(value: number): string {
 
 /** Salary gauge arc component */
 function SalaryGauge({ benchmark, userAnnualSalary }: { benchmark: SalaryBenchmark; userAnnualSalary: number }) {
+  const [isAnimated, setIsAnimated] = useState(false);
   const { minAnnual, avgAnnual, maxAnnual } = benchmark;
+
+  useEffect(() => {
+    setIsAnimated(false);
+    const timeoutId = window.setTimeout(() => setIsAnimated(true), 40);
+    return () => window.clearTimeout(timeoutId);
+  }, [benchmark, userAnnualSalary]);
 
   // Calculate position of user salary on the arc (0 to 1)
   const range = maxAnnual - minAnnual;
@@ -96,6 +103,13 @@ function SalaryGauge({ benchmark, userAnnualSalary }: { benchmark: SalaryBenchma
           stroke="url(#arcGradient)"
           strokeWidth="20"
           strokeLinecap="round"
+          pathLength={1}
+          strokeDasharray={1}
+          strokeDashoffset={isAnimated ? 0 : 1}
+          style={{
+            transition: 'stroke-dashoffset 900ms cubic-bezier(0.165, 0.84, 0.44, 1)',
+            transitionDelay: '120ms',
+          }}
         />
 
         {/* Average line */}
@@ -107,7 +121,11 @@ function SalaryGauge({ benchmark, userAnnualSalary }: { benchmark: SalaryBenchma
           stroke="hsl(var(--foreground))"
           strokeWidth="2"
           strokeDasharray="4 3"
-          opacity="0.6"
+          opacity={isAnimated ? 0.6 : 0}
+          style={{
+            transition: 'opacity 300ms ease-out',
+            transitionDelay: '420ms',
+          }}
         />
         <text
           x={avgPoint.x}
@@ -139,12 +157,28 @@ function SalaryGauge({ benchmark, userAnnualSalary }: { benchmark: SalaryBenchma
           stroke="white"
           strokeWidth="3"
           filter="url(#glow)"
+          opacity={isAnimated ? 1 : 0}
+          style={{
+            transformBox: 'fill-box',
+            transformOrigin: 'center',
+            transform: isAnimated ? 'scale(1)' : 'scale(0.65)',
+            transition: 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 250ms ease-out',
+            transitionDelay: '520ms',
+          }}
         />
         <circle
           cx={userPoint.x}
           cy={userPoint.y}
           r="5"
           fill="white"
+          opacity={isAnimated ? 1 : 0}
+          style={{
+            transformBox: 'fill-box',
+            transformOrigin: 'center',
+            transform: isAnimated ? 'scale(1)' : 'scale(0.65)',
+            transition: 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 250ms ease-out',
+            transitionDelay: '560ms',
+          }}
         />
 
         {/* Min label */}

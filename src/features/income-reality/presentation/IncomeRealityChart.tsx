@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { IncomeRealityResult } from "@/features/income-reality/domain/incomeRealityCalculations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/ui/tooltip";
 
@@ -12,7 +12,22 @@ interface IncomeRealityChartProps {
 const formatRM = (val: number) =>
   `RM ${Math.abs(val).toLocaleString("en-MY", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
+const BAR_TRANSITION = "height 900ms cubic-bezier(0.165, 0.84, 0.44, 1), opacity 300ms ease-out";
+
 const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustainableWithdrawal, retirementDividends, nettPay }) => {
+  const [isAnimated, setIsAnimated] = useState(false);
+
+  useEffect(() => {
+    if (!result || result.monthlyIncome <= 0) {
+      setIsAnimated(false);
+      return;
+    }
+
+    setIsAnimated(false);
+    const timeoutId = window.setTimeout(() => setIsAnimated(true), 40);
+    return () => window.clearTimeout(timeoutId);
+  }, [result, sustainableWithdrawal, retirementDividends, nettPay]);
+
   if (!result || result.monthlyIncome <= 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
@@ -77,8 +92,13 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
             <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end group">
               <span className="text-[10px] font-bold text-foreground">{formatRM(displayIncome)}</span>
               <div
-                className="w-full rounded-t-lg bg-emerald-500/80 dark:bg-emerald-500/70 shadow-sm flex items-center justify-center animate-grow-y transition-all duration-300 group-hover:bg-emerald-500 group-hover:shadow-md"
-                style={{ height: `${Math.max(incomeHeight, 4)}%`, animationDelay: '100ms' }}
+                className="w-full rounded-t-lg bg-emerald-500/80 dark:bg-emerald-500/70 shadow-sm flex items-center justify-center transition-[height,background-color,box-shadow] duration-300 group-hover:bg-emerald-500 group-hover:shadow-md"
+                style={{
+                  height: `${isAnimated ? Math.max(incomeHeight, 4) : 0}%`,
+                  opacity: isAnimated ? 1 : 0.4,
+                  transition: BAR_TRANSITION,
+                  transitionDelay: "100ms",
+                }}
               >
                 {Math.max(incomeHeight, 4) > 15 && <span className="text-[9px] font-bold text-white/90">Nett Pay</span>}
               </div>
@@ -89,8 +109,13 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
             <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end group">
               <span className="text-[10px] font-bold text-foreground">{formatRM(baselineLifeCost)}</span>
               <div
-                className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm animate-grow-y"
-                style={{ height: `${Math.max(totalCostHeight, 4)}%`, animationDelay: '200ms' }}
+                className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm"
+                style={{
+                  height: `${isAnimated ? Math.max(totalCostHeight, 4) : 0}%`,
+                  opacity: isAnimated ? 1 : 0.4,
+                  transition: BAR_TRANSITION,
+                  transitionDelay: "200ms",
+                }}
               >
                 {housingCost > 0 && (
                   <div
@@ -138,8 +163,13 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                 <div onClick={(e) => e.preventDefault()} className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(sustainableWithdrawal)}</span>
                   <div
-                    className="w-full rounded-t-lg bg-indigo-600/80 dark:bg-indigo-600/70 shadow-sm transition-all duration-300 animate-grow-y group-hover:bg-indigo-600 group-hover:shadow-md flex items-center justify-center"
-                    style={{ height: `${Math.max(sustainableSpendHeight, 4)}%`, animationDelay: '300ms' }}
+                    className="w-full rounded-t-lg bg-indigo-600/80 dark:bg-indigo-600/70 shadow-sm transition-[height,background-color,box-shadow] duration-300 group-hover:bg-indigo-600 group-hover:shadow-md flex items-center justify-center"
+                    style={{
+                      height: `${isAnimated ? Math.max(sustainableSpendHeight, 4) : 0}%`,
+                      opacity: isAnimated ? 1 : 0.4,
+                      transition: BAR_TRANSITION,
+                      transitionDelay: "300ms",
+                    }}
                   >
                     {Math.max(sustainableSpendHeight, 4) > 15 && <span className="text-[8px] font-bold text-white/90 text-center px-1 leading-tight">Post Retirement Income</span>}
                   </div>
@@ -157,8 +187,13 @@ const IncomeRealityChart: React.FC<IncomeRealityChartProps> = ({ result, sustain
                 <div onClick={(e) => e.preventDefault()} className="flex flex-col items-center gap-1 sm:gap-1.5 w-14 sm:w-20 h-full justify-end cursor-help group">
                   <span className="text-[10px] font-bold text-foreground">{formatRM(recommendedBarTotal)}</span>
                   <div
-                    className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm animate-grow-y group-hover:shadow-md transition-all duration-300"
-                    style={{ height: `${Math.max(recTotalHeight, 4)}%`, animationDelay: '400ms' }}
+                    className="w-full rounded-t-lg overflow-hidden flex flex-col justify-end shadow-sm group-hover:shadow-md transition-shadow duration-300"
+                    style={{
+                      height: `${isAnimated ? Math.max(recTotalHeight, 4) : 0}%`,
+                      opacity: isAnimated ? 1 : 0.4,
+                      transition: BAR_TRANSITION,
+                      transitionDelay: "400ms",
+                    }}
                   >
                     {housingCost > 0 && (
                       <div

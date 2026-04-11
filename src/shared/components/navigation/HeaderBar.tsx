@@ -1,9 +1,8 @@
 import React from "react";
-import { Activity, TrendingUp, Globe } from "lucide-react";
+import { Activity, TrendingUp, WalletCards } from "lucide-react";
 import AvatarMenu from "./AvatarMenu";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 
 export type View = "classification" | "retirement" | "income-reality" | "settings" | "billing" | "benchmark" | "global-comparison";
@@ -17,6 +16,9 @@ interface HeaderBarProps {
 
 export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentView, avatarUrl, fullName }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMoneyHealthActive = ["/money-health", "/improve"].includes(location.pathname);
+  const isFinancialRecordsActive = location.pathname === "/financial-records";
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background border-b border-border/40">
@@ -35,17 +37,39 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
           />
         </Link>
 
-        {/* Center: Page Title (clickable) */}
-        <Link
-          to="/money-health"
-          className="group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2"
-        >
-          <Activity className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110" />
-          <span className="relative text-m font-bold tracking-tight text-foreground hidden sm:inline">
-            Money Health
-            <span className="absolute left-0 -bottom-0.5 h-0.5 w-full origin-left scale-x-0 bg-primary transition-transform duration-300 group-hover:scale-x-100" />
-          </span>
-        </Link>
+        {/* Center: Primary Navigation */}
+        <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-5">
+          <Link
+            to="/money-health"
+            className={`group flex items-center gap-2 ${isMoneyHealthActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            aria-current={isMoneyHealthActive ? "page" : undefined}
+          >
+            <Activity className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110" />
+            <span className="relative hidden text-m font-bold tracking-tight sm:inline">
+              Money Health
+              <span
+                className={`absolute left-0 -bottom-0.5 h-0.5 w-full origin-left bg-primary transition-transform duration-300 ${
+                  isMoneyHealthActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                }`}
+              />
+            </span>
+          </Link>
+          <Link
+            to="/financial-records"
+            className={`group flex items-center gap-2 ${isFinancialRecordsActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            aria-current={isFinancialRecordsActive ? "page" : undefined}
+          >
+            <WalletCards className="h-5 w-5 text-primary transition-transform duration-200 group-hover:scale-110" />
+            <span className="relative hidden text-m font-bold tracking-tight sm:inline">
+              Financial Records
+              <span
+                className={`absolute left-0 -bottom-0.5 h-0.5 w-full origin-left bg-primary transition-transform duration-300 ${
+                  isFinancialRecordsActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                }`}
+              />
+            </span>
+          </Link>
+        </div>
 
         {/* Far Right: CTA + Avatar Menu */}
         <div className="flex items-center gap-2 sm:gap-3">

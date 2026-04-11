@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      net_worth_records: {
+        Row: {
+          created_at: string
+          epf_amount: number | null
+          entry_month: string
+          id: string
+          net_worth: number
+          total_cash: number
+          total_investments: number
+          total_liabilities: number
+          total_property: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          epf_amount?: number | null
+          entry_month: string
+          id?: string
+          net_worth: number
+          total_cash?: number
+          total_investments?: number
+          total_liabilities?: number
+          total_property?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          epf_amount?: number | null
+          entry_month?: string
+          id?: string
+          net_worth?: number
+          total_cash?: number
+          total_investments?: number
+          total_liabilities?: number
+          total_property?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null

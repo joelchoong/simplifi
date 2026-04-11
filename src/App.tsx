@@ -12,6 +12,7 @@ import Auth from "@/features/auth/presentation/Auth";
 import Dashboard from "@/features/classification/presentation/Dashboard";
 import Profile from "@/features/profile/presentation/Profile";
 import Billing from "./pages/Billing";
+import FinancialRecords from "./pages/FinancialRecords";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/money-health" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/financial-records" element={<ProtectedRoute><FinancialRecords /></ProtectedRoute>} />
               <Route path="/improve" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />

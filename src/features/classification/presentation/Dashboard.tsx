@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/features/dashboard/presentation/DashboardLayout";
 import { IncomeTierChart } from "@/features/tier/presentation/IncomeTierChart";
 import { IncomeCalculator } from "@/features/classification/presentation/IncomeCalculator";
 import SEO from "@/shared/components/SEO";
@@ -41,11 +40,11 @@ export function DashboardContent({ monthlyIncome = 0, onSaveIncome }: DashboardC
 
 export default function Dashboard() {
   return (
-    <DashboardLayout>
+    <>
       <SEO 
         title="Dashboard | SimpliFi"
         description="View your personal financial snapshot and track your progress to financial freedom."
       />
-    </DashboardLayout>
+    </>
   );
 }

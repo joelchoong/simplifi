@@ -16,6 +16,7 @@ import FinancialRecords from "./pages/FinancialRecords";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
+import { DashboardLayout } from "@/features/dashboard/presentation/DashboardLayout";
 
 const queryClient = new QueryClient();
 
@@ -31,11 +32,13 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/money-health" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/financial-records" element={<ProtectedRoute><FinancialRecords /></ProtectedRoute>} />
-              <Route path="/improve" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+              <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+                <Route path="/money-health" element={<Dashboard />} />
+                <Route path="/financial-records" element={<FinancialRecords />} />
+                <Route path="/improve" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/billing" element={<Billing />} />
+              </Route>
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { HeaderBar, View } from "@/shared/components/navigation/HeaderBar";
 import { BarChart3, LayoutGrid, Palmtree, Scale, Globe } from "lucide-react";
 import { DashboardContent } from "@/features/classification/presentation/Dashboard";
@@ -28,7 +28,7 @@ const TOUR_STEPS: TourStep[] = [
 ];
 
 interface DashboardLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -230,9 +230,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     benchmarkRole={profileData.benchmarkRole}
                   />
                 )}
+                {children || <Outlet />}
               </>
             ) : (
-              children
+              children || <Outlet />
             )}
           </div>
         </div>

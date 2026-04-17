@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/features/dashboard/presentation/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -7,7 +6,7 @@ import SEO from "@/shared/components/SEO";
 
 export default function Billing() {
   return (
-    <DashboardLayout>
+    <>
       <SEO 
         title="Billing & Subscription"
         description="View your SimpliFi beta access plan and features. Current phase: Free Beta."
@@ -91,6 +90,6 @@ export default function Billing() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

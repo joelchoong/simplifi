@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/features/dashboard/presentation/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
@@ -147,17 +146,17 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <>
         <SEO title="Profile | SimpliFi" description="Manage your SimpliFi profile." />
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <SEO 
         title={`${profile.full_name || "Profile"} | SimpliFi`}
         description="Manage your SimpliFi account details and security preferences."
@@ -380,6 +379,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

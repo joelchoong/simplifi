@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarPlus, PencilLine, RotateCcw, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarPlus, PencilLine, Trash2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import {
@@ -106,27 +106,6 @@ export function NetWorthRecordsEditor({
     );
   };
 
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [scrollTarget, setScrollTarget] = useState<"start" | "end" | null>(null);
-
-  // Reliable Auto-Scroll Effect: Fires after DOM layout is stable
-  useEffect(() => {
-    if (!scrollTarget || !tableContainerRef.current) return;
-
-    // We use a slightly longer timeout to ensure the DOM has finished adding the new column
-    const timeoutId = setTimeout(() => {
-      if (tableContainerRef.current) {
-        const target = scrollTarget === "start" ? 0 : tableContainerRef.current.scrollWidth + 1000;
-        tableContainerRef.current.scrollTo({
-          left: target,
-          behavior: "smooth"
-        });
-      }
-      setScrollTarget(null);
-    }, 150);
-
-    return () => clearTimeout(timeoutId);
-  }, [draftRecords.length, scrollTarget]);
 
   const handleAddPreviousMonth = () => {
     const firstRecord = totalRows[0];
@@ -140,7 +119,6 @@ export function NetWorthRecordsEditor({
     }
 
     setEditorMessage(null);
-    setScrollTarget("start");
     setDraftRecords((current) =>
       [...current, {
         id: `temp-${entryMonth}`,
@@ -168,7 +146,6 @@ export function NetWorthRecordsEditor({
     }
 
     setEditorMessage(null);
-    setScrollTarget("end");
     setDraftRecords((current) =>
       [...current, {
         id: `temp-${entryMonth}`,
@@ -245,7 +222,7 @@ export function NetWorthRecordsEditor({
             </div>
 
             <div className="rounded-xl border border-border overflow-hidden bg-card">
-              <div className="overflow-x-auto overflow-y-hidden max-w-full" ref={tableContainerRef}>
+              <div className="overflow-x-auto overflow-y-hidden max-w-full">
                 <Table className="border-collapse table-fixed min-w-max">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent bg-secondary/30 h-14">

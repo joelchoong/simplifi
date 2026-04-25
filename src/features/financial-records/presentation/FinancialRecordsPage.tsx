@@ -158,7 +158,7 @@ export function FinancialRecordsPage() {
               }`}
             >
               <WalletCards className="h-4 w-4 shrink-0" />
-              <span className="whitespace-nowrap">Net Worth <span className="hidden sm:inline">tracker</span></span>
+              <span className="whitespace-nowrap">Net Worth</span>
             </button>
           </div>
         </div>
@@ -180,9 +180,34 @@ export function FinancialRecordsPage() {
       {currentView === "net-worth" && (
         <div className="w-full">
           {loading || profileLoading ? (
-            <section className="rounded-xl border border-border/60 bg-card p-6 text-sm text-muted-foreground shadow-sm">
-              Loading your latest records...
-            </section>
+            <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-sm animate-pulse">
+              <div className="p-6 space-y-8">
+                {/* Header Skeleton */}
+                <div className="flex justify-between items-center">
+                  <div className="h-6 w-48 bg-secondary/20 rounded-md" />
+                  <div className="h-10 w-32 bg-secondary/20 rounded-full" />
+                </div>
+                
+                {/* Primary Figure Skeleton */}
+                <div className="space-y-3">
+                  <div className="h-12 w-64 bg-secondary/20 rounded-xl" />
+                  <div className="h-6 w-32 bg-secondary/20 rounded-full" />
+                </div>
+
+                {/* Chart Area Skeleton */}
+                <div className="h-[180px] w-full bg-secondary/10 rounded-2xl border border-border/40" />
+
+                {/* Metric Grid Skeleton */}
+                <div className="space-y-4">
+                  <div className="h-4 w-24 bg-secondary/20 rounded-md" />
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="h-24 bg-secondary/10 rounded-xl" />
+                    <div className="h-24 bg-secondary/10 rounded-xl" />
+                    <div className="h-24 bg-secondary/10 rounded-xl" />
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
             <NetWorthSummary
               latestRecord={selectedRecord}

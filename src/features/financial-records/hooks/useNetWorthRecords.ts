@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/shared/integrations/supabase/client";
 import { useAuth } from "@/features/auth/data/useAuth";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -45,49 +46,42 @@ function mapRecord(row: {
   };
 }
 
+async function fetchNetWorthRecords(userId: string): Promise<NetWorthRecord[]> {
+  const { data, error } = await supabase
+    .from("net_worth_records")
+    .select("*")
+    .eq("user_id", userId)
+    .order("entry_month", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map(mapRecord);
+}
+
 export function useNetWorthRecords(profileData?: Partial<ProfileData>) {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
-  const [records, setRecords] = useState<NetWorthRecord[]>([]);
 
-  const fetchRecords = useCallback(async () => {
-    if (!user) {
-      setRecords([]);
-      setLoading(false);
-      return;
-    }
+  const queryKey = ["net-worth-records", user?.id] as const;
 
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("net_worth_records")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("entry_month", { ascending: true });
+  const {
+    data: records = [],
+    isLoading,
+  } = useQuery({
+    queryKey,
+    queryFn: () => fetchNetWorthRecords(user!.id),
+    enabled: !!user && !authLoading,
+    staleTime: 5 * 60 * 1000,   // Data considered fresh for 5 minutes
+    gcTime: 30 * 60 * 1000,     // Keep in cache for 30 minutes
+  });
 
-      if (error) {
-        throw error;
-      }
-
-      setRecords((data ?? []).map(mapRecord));
-    } catch (error) {
-      console.error("Error fetching net worth records:", error);
-      toast({
-        title: "Unable to load records",
-        description: "Please try again in a moment.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast, user]);
-
-  useEffect(() => {
-    if (authLoading) return;
-    fetchRecords();
-  }, [authLoading, fetchRecords]);
+  const invalidateRecords = useCallback(() => {
+    return queryClient.invalidateQueries({ queryKey });
+  }, [queryClient, queryKey]);
 
   const latestRecord = useMemo(
     () => (records.length ? records[records.length - 1] : null),
@@ -159,6 +153,7 @@ export function useNetWorthRecords(profileData?: Partial<ProfileData>) {
       recordsWithEPF.map((record) => ({
         month: formatMonthLabel(record.entryMonth),
         netWorth: record.netWorth,
+        actualMonth: record.entryMonth,
       })),
     [recordsWithEPF],
   );
@@ -189,11 +184,11 @@ export function useNetWorthRecords(profileData?: Partial<ProfileData>) {
           throw error;
         }
 
-        await fetchRecords();
+        await invalidateRecords();
 
         toast({
           title: "Net worth saved",
-          description: "This month’s record has been updated.",
+          description: "This month's record has been updated.",
         });
       } catch (error) {
         console.error("Error saving net worth record:", error);
@@ -206,7 +201,7 @@ export function useNetWorthRecords(profileData?: Partial<ProfileData>) {
         setSaving(false);
       }
     },
-    [fetchRecords, toast, user],
+    [invalidateRecords, toast, user],
   );
 
   const updateRecords = useCallback(
@@ -231,7 +226,7 @@ export function useNetWorthRecords(profileData?: Partial<ProfileData>) {
         }
 
         if (!updatedRecords.length) {
-          await fetchRecords();
+          await invalidateRecords();
           toast({
             title: "Records updated",
             description: "Your net worth history has been saved.",
@@ -279,7 +274,7 @@ export function useNetWorthRecords(profileData?: Partial<ProfileData>) {
           }
         }
 
-        await fetchRecords();
+        await invalidateRecords();
 
         toast({
           title: "Records updated",
@@ -296,11 +291,11 @@ export function useNetWorthRecords(profileData?: Partial<ProfileData>) {
         setSaving(false);
       }
     },
-    [fetchRecords, toast, user],
+    [invalidateRecords, toast, user],
   );
 
   return {
-    loading: authLoading || loading,
+    loading: authLoading || isLoading,
     saving,
     records: recordsWithEPF,
     latestRecord: recordsWithEPF[recordsWithEPF.length - 1] ?? null,

@@ -1,8 +1,9 @@
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import {
   Area,
   AreaChart,
   CartesianGrid,
-  Label,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -12,8 +13,10 @@ import {
 interface NetWorthChartProps {
   data: Array<{
     month: string;
-    netWorth: number;
+    netWorth?: number;
+    projected?: number;
   }>;
+  height?: number;
 }
 
 const formatCurrency = (value: number) =>
@@ -22,70 +25,173 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 0,
   })}`;
 
-export function NetWorthChart({ data }: NetWorthChartProps) {
+export function NetWorthChart({ data, height = 180 }: NetWorthChartProps) {
+  const [range, setRange] = useState<string>("all");
+
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    data.forEach((d) => {
+      const parts = d.month.split(" ");
+      const year = parts[parts.length - 1];
+      if (year && !isNaN(parseInt(year, 10))) years.add(year);
+    });
+    return Array.from(years).sort();
+  }, [data]);
+
+  const filteredData = useMemo(() => {
+    if (range === "all" || !data.length) return data;
+    return data.filter(d => d.month.endsWith(range));
+  }, [data, range]);
+
+  const CustomXAxisTick = ({ x, y, payload }: any) => {
+    const [month, year] = payload.value.split(" ");
+    
+    // find all indices that belong to this year
+    const indicesForYear = filteredData.map((d, i) => d.month.endsWith(year) ? i : -1).filter(i => i !== -1);
+    // find the middle index for this year
+    const middleIndexForYear = indicesForYear[Math.floor(indicesForYear.length / 2)];
+    const showYear = payload.index === middleIndexForYear;
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text x={0} y={0} dy={12} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={11}>
+          {month}
+        </text>
+        {showYear && (
+          <text x={0} y={0} dy={26} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={11} fontWeight={500}>
+            {year}
+          </text>
+        )}
+      </g>
+    );
+  };
+
   if (!data.length) {
     return (
-      <section className="rounded-[10px] border border-dashed border-border/60 bg-card p-3 text-center text-sm text-muted-foreground shadow-sm">
-        Your net worth trend will appear here once you’ve saved at least one month.
+      <section className="rounded-lg border border-dashed border-border/60 p-4 text-center text-sm text-muted-foreground">
+        Your net worth trend will appear here.
       </section>
     );
   }
 
+
   return (
-    <section className="rounded-[10px] border border-border/60 bg-card p-3 shadow-sm">
-      <div className="mb-2">
-        <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Trend</h3>
+    <div className="w-full">
+      {/* Legend */}
+      <div className="flex items-center gap-4 mb-3">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
+          Net worth
+        </div>
+        {data.some(d => d.projected !== undefined) && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="w-2.5 h-[2px] bg-[#A3A3A3]" />
+            Projection
+          </div>
+        )}
       </div>
 
-      <div className="h-[150px] w-full">
+      {/* Chart container with left-to-right reveal animation */}
+      <motion.div 
+        key={range} // Re-run animation when range changes
+        initial={{ clipPath: "inset(0 100% 0 0)" }}
+        animate={{ clipPath: "inset(0 0% 0 0)" }}
+        transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{ height: `${height}px` }} 
+        className="w-full"
+      >
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 8, left: 6 }}>
+          <AreaChart data={filteredData} margin={{ top: 8, right: 8, bottom: 4, left: 4 }}>
             <defs>
-              <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10B981" stopOpacity={0.22} />
-                <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+              <linearGradient id="nwGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(158, 64%, 42%)" stopOpacity={0.12} />
+                <stop offset="100%" stopColor="hsl(158, 64%, 42%)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.45} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="hsl(var(--border))"
+              vertical={false}
+              opacity={0.5}
+            />
             <XAxis
               dataKey="month"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+              tick={<CustomXAxisTick />}
               axisLine={false}
               tickLine={false}
-              minTickGap={18}
-              height={20}
+              interval={0}
+              minTickGap={0}
+              height={40}
             />
             <YAxis
-              tickFormatter={(value) => `RM${Math.round(value / 1000)}k`}
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+              tickFormatter={(value) =>
+                value >= 1_000_000
+                  ? `${(value / 1_000_000).toFixed(1)}M`
+                  : `${Math.round(value / 1000)}k`
+              }
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              width={66}
+              width={64}
             />
             <Tooltip
-              formatter={(value: number) => [formatCurrency(value), "Net Worth"]}
-              labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
+              formatter={(value: number, name: string) => [
+                formatCurrency(value),
+                name === "netWorth" ? "Net Worth" : "Projected",
+              ]}
+              labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600, fontSize: 12 }}
               contentStyle={{
                 borderRadius: 10,
                 border: "1px solid hsl(var(--border))",
                 backgroundColor: "hsl(var(--card))",
-                boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
-                fontSize: "11px",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                fontSize: "12px",
+                padding: "8px 12px",
               }}
             />
             <Area
               type="monotone"
               dataKey="netWorth"
-              stroke="#10B981"
+              stroke="hsl(158, 64%, 42%)"
               strokeWidth={2}
-              fill="url(#netWorthGradient)"
+              fill="url(#nwGradient)"
               dot={false}
-              activeDot={{ r: 4, fill: "#059669", stroke: "hsl(var(--card))", strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: "hsl(var(--card))", stroke: "hsl(158, 64%, 42%)", strokeWidth: 2.5 }}
+              isAnimationActive={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="projected"
+              stroke="#A3A3A3"
+              strokeWidth={2}
+              strokeDasharray="4 4"
+              fill="transparent"
+              dot={false}
+              activeDot={{ r: 5, fill: "hsl(var(--card))", stroke: "#A3A3A3", strokeWidth: 2.5 }}
+              connectNulls={true}
+              isAnimationActive={false}
             />
           </AreaChart>
         </ResponsiveContainer>
+      </motion.div>
+
+      {/* Time tabs */}
+      <div className="flex gap-1 mt-3">
+        {["all", ...availableYears].map((t) => (
+          <button
+            key={t}
+            onClick={() => setRange(t)}
+            className={`text-xs px-3 py-1 rounded-full border transition-colors font-medium ${
+              range === t
+                ? "border-border text-foreground"
+                : "border-transparent text-muted-foreground hover:bg-secondary/60"
+            }`}
+          >
+            {t === "all" ? "All" : t}
+          </button>
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
 

@@ -95,6 +95,12 @@ export function getPreviousMonthStart(entryMonth: string): string {
   return getMonthStart(previous);
 }
 
+export function getNextMonthStart(entryMonth: string): string {
+  const [year, month] = entryMonth.split("-").map(Number);
+  const next = new Date(year, month, 1);
+  return getMonthStart(next);
+}
+
 export function calculateMonthlyChange(
   currentNetWorth: number | null,
   previousNetWorth: number | null,
@@ -120,4 +126,26 @@ export function formatMonthLabel(entryMonth: string): string {
     month: "short",
     year: "numeric",
   }).format(date);
+}
+
+export function calculateNettIncome(grossMonthly: number): number {
+  if (!grossMonthly || grossMonthly <= 0) return 0;
+  
+  // 1. EPF (11%)
+  const epf = grossMonthly * 0.11;
+  
+  // 2. SOCSO & EIS (Approx ~0.5% + ~0.2%, capped around RM5000-RM6000 salary)
+  // We'll use a simplified flat cap around RM30 for high income
+  const socsoEis = Math.min(grossMonthly, 6000) * 0.007;
+  
+  // 3. Tax / PCB (Approximate effective rates for monthly)
+  let pcb = 0;
+  if (grossMonthly > 3500) {
+    if (grossMonthly <= 5000) pcb = (grossMonthly - 3500) * 0.03;
+    else if (grossMonthly <= 8000) pcb = (1500 * 0.03) + ((grossMonthly - 5000) * 0.08);
+    else if (grossMonthly <= 15000) pcb = (1500 * 0.03) + (3000 * 0.08) + ((grossMonthly - 8000) * 0.15);
+    else pcb = (1500 * 0.03) + (3000 * 0.08) + (7000 * 0.15) + ((grossMonthly - 15000) * 0.24);
+  }
+  
+  return grossMonthly - epf - socsoEis - pcb;
 }

@@ -17,6 +17,8 @@ interface NetWorthFormProps {
   initialValues: NetWorthFormValues;
   saving?: boolean;
   onSubmit: (values: NetWorthFormValues) => Promise<void> | void;
+  hideSubmitButton?: boolean;
+  formId?: string;
 }
 
 const fields: Array<{
@@ -66,7 +68,7 @@ const helperFields = {
 type HelperKey = keyof typeof helperFields;
 type HelperValues = Record<HelperKey, Record<string, number>>;
 
-export function NetWorthForm({ initialValues, saving = false, onSubmit }: NetWorthFormProps) {
+export function NetWorthForm({ initialValues, saving = false, onSubmit, hideSubmitButton = false, formId }: NetWorthFormProps) {
   const [values, setValues] = useState<NetWorthFormValues>(initialValues);
   const [expandedHelpers, setExpandedHelpers] = useState<Record<HelperKey, boolean>>({
     totalCash: false,
@@ -121,21 +123,19 @@ export function NetWorthForm({ initialValues, saving = false, onSubmit }: NetWor
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+    if (event) event.preventDefault();
     await onSubmit(normaliseNetWorthValues(values));
   };
 
   return (
     <TooltipProvider delayDuration={100}>
-      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+      <form id={formId} onSubmit={handleSubmit} className="space-y-4">
         <div className="mb-4">
-          <h2 className="text-lg font-bold text-foreground">Update your net worth</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Four quick numbers. We’ll save one record for this month.
+          <h2 className="text-lg font-bold text-foreground">Financial Details</h2>
+          <p className="mt-1 text-sm text-muted-foreground text-xs">
+            Enter your balances for {formId ? "this selected period" : "this month"}.
           </p>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-3">
             {fields.map((field) => (
               <div key={field.key} className="space-y-2 rounded-xl border border-border/70 bg-secondary/10 p-3">
@@ -175,7 +175,7 @@ export function NetWorthForm({ initialValues, saving = false, onSubmit }: NetWor
                   <div className="space-y-2">
                     <button
                       type="button"
-                      onClick={() => handleHelperToggle(field.key)}
+                      onClick={() => handleHelperToggle(field.key as HelperKey)}
                       className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 transition-colors hover:text-emerald-800"
                     >
                       <ChevronDown
@@ -195,7 +195,7 @@ export function NetWorthForm({ initialValues, saving = false, onSubmit }: NetWor
                               step="0.01"
                               inputMode="decimal"
                               value={helperValues[field.key][helperField.key] || ""}
-                              onChange={(event) => handleHelperChange(field.key, helperField.key, event.target.value)}
+                              onChange={(event) => handleHelperChange(field.key as HelperKey, helperField.key, event.target.value)}
                               placeholder="0"
                               className="h-9"
                             />
@@ -209,6 +209,7 @@ export function NetWorthForm({ initialValues, saving = false, onSubmit }: NetWor
             ))}
           </div>
 
+        {!hideSubmitButton && (
           <Button
             type="submit"
             className="w-full rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
@@ -216,8 +217,8 @@ export function NetWorthForm({ initialValues, saving = false, onSubmit }: NetWor
           >
             {saving ? "Saving..." : "Save This Month"}
           </Button>
-        </form>
-      </section>
+        )}
+      </form>
     </TooltipProvider>
   );
 }

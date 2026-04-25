@@ -163,15 +163,17 @@ export function NetWorthSummary({
       {/* ════════════════════════════════════════════════════════
           1. HERO SECTION
          ════════════════════════════════════════════════════════ */}
-      <div className="p-6 pb-4">
-        <div className="grid grid-cols-3 items-center mb-3">
-          <div className="flex items-center gap-2">
+      <div className="p-6 pb-2">
+        <div className="flex flex-col sm:grid sm:grid-cols-3 items-center gap-5 sm:gap-2 mb-4">
+          {/* Header Title (Order 2 on mobile) */}
+          <div className="flex items-center gap-2 order-2 sm:order-1">
             <WalletCards className="w-5 h-5 text-emerald-500" />
-            <h2 className="text-xl font-bold text-foreground tracking-tight">Net Worth Overview</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Net Worth Overview</h2>
           </div>
           
-          <div className="flex justify-center">
-            <div className="inline-flex items-center gap-1 rounded-full bg-secondary/30 p-0.5 border border-border/40">
+          {/* Date Selector (Order 1 on mobile) */}
+          <div className="flex items-center justify-center gap-2 order-1 sm:order-2 w-full">
+            <div className="inline-flex items-center gap-1 rounded-full bg-secondary/35 p-1 border border-border/50 shadow-sm">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -179,11 +181,11 @@ export function NetWorthSummary({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-full hover:bg-background/80"
+                        className="h-8 w-8 rounded-full hover:bg-background/80"
                         onClick={onPrevMonth}
                         disabled={selectedMonth <= earliestMonth}
                       >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-5 w-5 text-muted-foreground" />
                       </Button>
                     </div>
                   </TooltipTrigger>
@@ -193,8 +195,8 @@ export function NetWorthSummary({
                 </Tooltip>
               </TooltipProvider>
 
-              <div className="px-2 min-w-[100px] text-center">
-                <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-muted-foreground/80">
+              <div className="px-3 min-w-[120px] text-center">
+                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-emerald-600/90 leading-none">
                   {monthLabel}
                 </span>
               </div>
@@ -206,11 +208,11 @@ export function NetWorthSummary({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-full hover:bg-background/80"
+                        className="h-8 w-8 rounded-full hover:bg-background/80"
                         onClick={onNextMonth}
                         disabled={selectedMonth >= currentMonth}
                       >
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
                       </Button>
                     </div>
                   </TooltipTrigger>
@@ -220,9 +222,22 @@ export function NetWorthSummary({
                 </Tooltip>
               </TooltipProvider>
             </div>
+
+            {/* Mobile Reset (Order 3 on mobile within this group) */}
+            {selectedMonth !== currentMonth && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full hover:bg-secondary/50 text-muted-foreground sm:hidden"
+                onClick={onResetMonth}
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
-          <div className="flex justify-end">
+          {/* Desktop Reset (Order 3) */}
+          <div className="hidden sm:flex justify-end order-3">
             {selectedMonth !== currentMonth && (
               <TooltipProvider>
                 <Tooltip>
@@ -230,10 +245,10 @@ export function NetWorthSummary({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 rounded-full hover:bg-background/80 text-muted-foreground hover:text-emerald-500"
+                      className="h-8 w-8 rounded-full hover:bg-background/80 text-muted-foreground hover:text-emerald-500 transition-colors"
                       onClick={onResetMonth}
                     >
-                      <RotateCcw className="h-3.5 w-3.5" />
+                      <RotateCcw className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="left">Reset to current month</TooltipContent>

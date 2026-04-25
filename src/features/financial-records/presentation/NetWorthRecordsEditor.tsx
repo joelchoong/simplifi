@@ -107,6 +107,28 @@ export function NetWorthRecordsEditor({
   };
 
 
+  const [scrollTargetMonth, setScrollTargetMonth] = useState<string | null>(null);
+
+  // High-Reliability Target-Based Scroll
+  useEffect(() => {
+    if (!scrollTargetMonth) return;
+
+    // Use a small timeout to ensure the DOM element with the new ID is physically present
+    const timer = setTimeout(() => {
+      const targetElement = document.getElementById(`col-${scrollTargetMonth}`);
+      if (targetElement) {
+        targetElement.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest"
+        });
+      }
+      setScrollTargetMonth(null);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [scrollTargetMonth, draftRecords.length]);
+
   const handleAddPreviousMonth = () => {
     const firstRecord = totalRows[0];
     const entryMonth = firstRecord 
@@ -119,6 +141,7 @@ export function NetWorthRecordsEditor({
     }
 
     setEditorMessage(null);
+    setScrollTargetMonth(entryMonth);
     setDraftRecords((current) =>
       [...current, {
         id: `temp-${entryMonth}`,
@@ -146,6 +169,7 @@ export function NetWorthRecordsEditor({
     }
 
     setEditorMessage(null);
+    setScrollTargetMonth(entryMonth);
     setDraftRecords((current) =>
       [...current, {
         id: `temp-${entryMonth}`,
@@ -230,7 +254,11 @@ export function NetWorthRecordsEditor({
                         Month
                       </TableHead>
                     {totalRows.map((record) => (
-                      <TableHead key={record.id} className="w-[180px] text-center border-r border-border/40 font-bold uppercase tracking-wider text-[10px]">
+                      <TableHead 
+                        key={record.id} 
+                        id={`col-${record.entryMonth}`}
+                        className="w-[180px] text-center border-r border-border/40 font-bold uppercase tracking-wider text-[10px]"
+                      >
                         <div className="flex items-center justify-between px-2">
                           <span className="flex-1">{formatMonthLabel(record.entryMonth)}</span>
                           <Button

@@ -284,7 +284,7 @@ export function NetWorthSummary({
             {formatCurrency(yearEndProjection)}
           </span>
           {remainingMonths > 0 && yearEndProjection > 0 && (
-            <span className={yearEndProjection >= netWorth ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
+            <span className={`${yearEndProjection >= netWorth ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"} hidden sm:inline`}>
               ({(yearEndProjection - netWorth) >= 0 ? "+" : "−"}{formatCompact(Math.abs(yearEndProjection - netWorth))} from now)
             </span>
           )}

@@ -1,10 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
-import { WalletCards, Edit3, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { WalletCards, Edit3, ChevronLeft, ChevronRight, RotateCcw, ReceiptText } from "lucide-react";
 import SEO from "@/shared/components/SEO";
-import NetWorthForm from "@/features/financial-records/presentation/NetWorthForm";
-import NetWorthSummary from "@/features/financial-records/presentation/NetWorthSummary";
-import NetWorthRecordsEditor from "@/features/financial-records/presentation/NetWorthRecordsEditor";
-import { calculateIncomeReality } from "@/features/income-reality/domain/incomeRealityCalculations";
+import NetWorthForm from "@/features/financial-records/net-worth/presentation/NetWorthForm";
+import NetWorthSummary from "@/features/financial-records/net-worth/presentation/NetWorthSummary";
+import NetWorthRecordsEditor from "@/features/financial-records/net-worth/presentation/NetWorthRecordsEditor";
+import MyTaxView from "@/features/financial-records/my-tax/presentation/MyTaxView";
+import { calculateIncomeReality } from "@/features/money-health/income-reality/domain/incomeRealityCalculations";
 import {
   Select,
   SelectContent,
@@ -21,7 +22,7 @@ import {
   SheetTrigger,
 } from "@/shared/components/ui/sheet";
 import { Button } from "@/shared/components/ui/button";
-import { useNetWorthRecords } from "@/features/financial-records/hooks/useNetWorthRecords";
+import { useNetWorthRecords } from "@/features/financial-records/net-worth/hooks/useNetWorthRecords";
 import { useProfileData } from "@/features/profile/hooks/useProfileData";
 import {
   calculateMonthlyChange,
@@ -29,9 +30,9 @@ import {
   getMonthStart,
   getPreviousMonthStart,
   getNextMonthStart,
-} from "@/features/financial-records/domain/netWorth";
+} from "@/features/financial-records/net-worth/domain/netWorth";
 
-type FinancialRecordsView = "net-worth";
+type FinancialRecordsView = "net-worth" | "my-tax";
 
 export function FinancialRecordsPage() {
   const [currentView, setCurrentView] = useState<FinancialRecordsView>("net-worth");
@@ -148,7 +149,7 @@ export function FinancialRecordsPage() {
       {/* ── Subheader bar (same pattern as Money Health tabs) ── */}
       <div className="flex flex-row items-center justify-between gap-4">
         <div className="flex justify-start">
-          <div className="flex items-center gap-2 rounded-full bg-secondary/20 p-1">
+          <div className="flex items-center gap-1 rounded-full bg-secondary/20 p-1">
             <button
               onClick={() => setCurrentView("net-worth")}
               className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
@@ -159,6 +160,17 @@ export function FinancialRecordsPage() {
             >
               <WalletCards className="h-4 w-4 shrink-0" />
               <span className="whitespace-nowrap">Net Worth</span>
+            </button>
+            <button
+              onClick={() => setCurrentView("my-tax")}
+              className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
+                currentView === "my-tax"
+                  ? "bg-emerald-500 text-white shadow-sm"
+                  : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+              }`}
+            >
+              <ReceiptText className="h-4 w-4 shrink-0" />
+              <span className="whitespace-nowrap">MyTax</span>
             </button>
           </div>
         </div>
@@ -226,6 +238,10 @@ export function FinancialRecordsPage() {
             />
           )}
         </div>
+      )}
+
+      {currentView === "my-tax" && (
+        <MyTaxView />
       )}
     </div>
   );

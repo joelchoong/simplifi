@@ -24,9 +24,9 @@ import {
   DEFAULT_EXPENSES,
   HouseholdType,
   Location,
-} from "@/features/income-reality/domain/incomeRealityCalculations";
-import { calculateSustainableWithdrawal } from "@/features/retirement/domain/epfCalculations";
-import { calculateNettPay } from "@/features/classification/domain/nettPayCalculation";
+} from "@/features/money-health/income-reality/domain/incomeRealityCalculations";
+import { calculateSustainableWithdrawal } from "@/features/money-health/retirement/domain/epfCalculations";
+import { calculateNettPay } from "@/features/money-health/classification/domain/nettPayCalculation";
 
 type Phase = "stabilise" | "strengthen" | "scale";
 

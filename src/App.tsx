@@ -9,14 +9,14 @@ import ScrollToTop from "@/shared/components/ScrollToTop";
 import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import Auth from "@/features/auth/presentation/Auth";
-import Dashboard from "@/features/classification/presentation/Dashboard";
+import Dashboard from "@/features/money-health/classification/presentation/Dashboard";
 import Profile from "@/features/profile/presentation/Profile";
 import Billing from "./pages/Billing";
 import FinancialRecords from "./pages/FinancialRecords";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
-import { DashboardLayout } from "@/features/dashboard/presentation/DashboardLayout";
+import { DashboardLayout } from "@/features/money-health/presentation/DashboardLayout";
 
 const queryClient = new QueryClient();
 

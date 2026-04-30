@@ -166,8 +166,8 @@ export function NetWorthSummary({
       {/* ════════════════════════════════════════════════════════
           1. HERO SECTION
          ════════════════════════════════════════════════════════ */}
-      <div className="p-6 pb-2">
-        <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 sm:gap-2 mb-6">
+      <div className="p-6 sm:p-8 space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 sm:gap-2">
           {/* ── Left: Title ── */}
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">

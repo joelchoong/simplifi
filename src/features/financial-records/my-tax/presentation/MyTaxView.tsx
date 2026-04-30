@@ -31,6 +31,7 @@ import {
   Download,
   Loader2,
   ReceiptText,
+  Info,
 } from "lucide-react";
 import JSZip from "jszip";
 import { Button } from "@/shared/components/ui/button";
@@ -160,23 +161,13 @@ function getCategoryCap(category: PlannerCategory) {
 }
 
 function detectSubItemId(fileName: string, categories: PlannerCategory[]) {
-  const normalizedName = fileName.toLowerCase();
-  const availableSubItemIds = new Set(categories.flatMap((category) => category.subItems.map((subItem) => subItem.id)));
-
-  for (const entry of DETECTION_KEYWORD_MAP) {
-    if (!availableSubItemIds.has(entry.subItemId)) continue;
-    if (entry.keys.some((keyword) => normalizedName.includes(keyword))) {
-      return entry.subItemId;
-    }
-  }
-
-  return DEFAULT_FALLBACKS.find((fallback) => availableSubItemIds.has(fallback)) || categories[0]?.subItems[0]?.id || "";
+  // Mock logic removed - we now wait for real OCR or user input
+  return "";
 }
 
 function detectAmount(fileName: string) {
-  const numbers = (fileName.match(/\d+/g) || []).map(Number).filter((value) => value >= 10 && value <= 5000);
-  if (numbers.length > 0) return numbers[numbers.length - 1];
-  return Math.round((Math.random() * 180 + 20) / 5) * 5;
+  // Mock logic removed - we now default to 0 for manual verification
+  return 0;
 }
 
 export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: number; age?: number }) {
@@ -194,6 +185,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
   const [flashCategoryId, setFlashCategoryId] = useState<string | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<PlannerReceipt | null>(null);
   const [pendingReceipt, setPendingReceipt] = useState<PlannerReceipt | null>(null);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [isReceiptsListOpen, setIsReceiptsListOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -401,14 +393,16 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
   return (
     <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-sm">
-      <div className="p-6 sm:p-8 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <ReceiptText className="w-5 h-5 text-emerald-500" />
-              <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Tax Relief Planner</h2>
+      <div className="p-6 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+              <ReceiptText className="w-5 h-5" />
             </div>
-            <p className="text-[13px] font-normal text-muted-foreground">Upload receipts to auto-suggest categories and track your YA {selectedYear} relief claims.</p>
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight truncate">Tax Relief Planner</h2>
+              <p className="text-[13px] font-normal text-muted-foreground truncate">YA {selectedYear} • Tax Relief Assessment</p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -443,11 +437,15 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           </div>
         </div>
 
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="grid grid-cols-2 gap-3">
-            <SummaryCard label="Total claimed" value={formatRM(totalClaimed)} helper={`${totalPercentage}% of max relief`} tone="green" />
-            <SummaryCard label="Remaining" value={formatRM(totalRemaining)} helper="available to claim" tone="amber" />
-          </div>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-6">
+          <SummaryCard label="Total claimed" value={formatRM(totalClaimed)} helper={`${totalPercentage}% of max relief`} tone="green" />
+          <SummaryCard label="Remaining" value={formatRM(totalRemaining)} helper="available to claim" tone="amber" />
+        </div>
+      </div>
+
+      <hr className="border-border/60" />
+
+      <div className="p-6 sm:p-8 space-y-6 bg-secondary/5 animate-in fade-in slide-in-from-bottom-2 duration-500">
 
           <div
             onDragOver={(event) => {
@@ -783,16 +781,32 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
               </div>
             </div>
           </DialogHeader>
-          <div className="relative flex min-h-[400px] items-center justify-center bg-zinc-900 p-4">
-            {viewingReceipt?.dataUrl ? (
-              viewingReceipt.dataUrl.startsWith("data:application/pdf") ? (
-                <iframe src={viewingReceipt.dataUrl} className="h-[600px] w-full rounded-lg" title="PDF Preview" />
+          <div className="flex flex-col">
+            {/* Mobile Preview Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full md:hidden rounded-none h-10 border-b border-border/50 text-emerald-600 bg-emerald-50/20"
+              onClick={() => setShowMobilePreview(!showMobilePreview)}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              {showMobilePreview ? "Hide Receipt Image" : "View Receipt Image"}
+            </Button>
+
+            <div className={cn(
+              "relative flex items-center justify-center bg-zinc-900 transition-all duration-300",
+              showMobilePreview ? "min-h-[300px] h-[50vh] md:h-auto p-4" : "h-0 md:h-auto md:min-h-[400px] overflow-hidden md:p-4"
+            )}>
+              {viewingReceipt?.dataUrl ? (
+                viewingReceipt.dataUrl.startsWith("data:application/pdf") ? (
+                  <iframe src={viewingReceipt.dataUrl} className="h-[600px] w-full rounded-lg" title="PDF Preview" />
+                ) : (
+                  <img src={viewingReceipt.dataUrl} alt={viewingReceipt.name} className="max-h-[70vh] w-auto rounded-lg shadow-2xl" />
+                )
               ) : (
-                <img src={viewingReceipt.dataUrl} alt={viewingReceipt.name} className="max-h-[70vh] w-auto rounded-lg shadow-2xl" />
-              )
-            ) : (
-              <div className="text-sm text-zinc-400">No preview available</div>
-            )}
+                <div className="text-sm text-zinc-400 py-20">No preview available</div>
+              )}
+            </div>
           </div>
           <div className="flex items-center justify-between bg-muted/30 p-4">
             <div className="text-xs text-muted-foreground">
@@ -818,27 +832,50 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!pendingReceipt} onOpenChange={(open) => !open && setPendingReceipt(null)}>
-        <DialogContent className="max-w-[800px] gap-0 overflow-hidden rounded-2xl p-0 sm:rounded-3xl">
+      <Dialog open={!!pendingReceipt} onOpenChange={(open) => {
+        if (!open) {
+          setPendingReceipt(null);
+          setShowMobilePreview(false);
+        }
+      }}>
+        <DialogContent className="max-w-[800px] gap-0 overflow-hidden rounded-2xl p-0 sm:rounded-3xl max-h-[95vh] flex flex-col sm:block">
           <DialogHeader className="border-b bg-muted/30 px-6 py-4">
             <DialogTitle className="text-lg font-medium">Confirm Receipt Details</DialogTitle>
-            <p className="text-xs text-muted-foreground">Verify the detected information and adjust if necessary.</p>
+            <div className="mt-2 p-3 rounded-lg bg-amber-50 border border-amber-100 flex gap-3">
+              <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-[11px] leading-relaxed text-amber-800">
+                <span className="font-bold">AI Scan Inconclusive:</span> We couldn't definitively extract all details from this document. Please verify the information and fill in any missing fields manually.
+              </p>
+            </div>
           </DialogHeader>
           
-          <div className="flex flex-col md:flex-row">
-            {/* Left side: Image preview */}
-            <div className="flex-1 bg-zinc-900 p-4 flex items-center justify-center min-h-[300px] md:min-h-[500px]">
+          <div className="flex flex-col md:flex-row overflow-hidden">
+            {/* Left side: Image preview - Collapsible on mobile */}
+            <div className={cn(
+              "flex-1 bg-zinc-900 flex items-center justify-center transition-all duration-300",
+              showMobilePreview ? "min-h-[300px] h-[50vh] md:h-auto" : "h-0 md:h-auto md:min-h-[500px] overflow-hidden"
+            )}>
               {pendingReceipt?.dataUrl ? (
                 pendingReceipt.dataUrl.startsWith("data:application/pdf") ? (
                   <iframe src={pendingReceipt.dataUrl} className="h-full w-full rounded-lg" title="PDF Preview" />
                 ) : (
-                  <img src={pendingReceipt.dataUrl} alt="Pending Receipt" className="max-h-[60vh] rounded-lg shadow-xl" />
+                  <img src={pendingReceipt.dataUrl} alt="Pending Receipt" className="max-h-[60vh] md:max-h-[70vh] rounded-lg shadow-xl p-4" />
                 )
               ) : null}
             </div>
 
             {/* Right side: Form */}
-            <div className="w-full md:w-[320px] p-6 space-y-6 bg-background border-l border-border/50">
+            <div className="w-full md:w-[320px] p-5 sm:p-6 space-y-5 sm:space-y-6 bg-background border-l border-border/50 overflow-y-auto">
+              {/* Mobile Preview Toggle */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full md:hidden mb-2 rounded-xl h-10 border-dashed border-emerald-500/30 text-emerald-600 bg-emerald-50/30"
+                onClick={() => setShowMobilePreview(!showMobilePreview)}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                {showMobilePreview ? "Hide Receipt Preview" : "View Receipt Image"}
+              </Button>
               <div className="space-y-2">
                 <Label htmlFor="amount" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Amount (RM)</Label>
                 <div className="relative">

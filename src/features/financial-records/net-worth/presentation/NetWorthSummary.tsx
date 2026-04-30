@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/ui/tooltip";
 import { Info, ChevronLeft, ChevronRight, RotateCcw, WalletCards } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
+import { cn } from "@/shared/lib/utils";
 import { NetWorthRecord, calculateNettIncome } from "@/features/financial-records/net-worth/domain/netWorth";
 import { NetWorthChart } from "./NetWorthChart";
 
@@ -38,6 +39,7 @@ interface NetWorthSummaryProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onResetMonth: () => void;
+  headerActions?: React.ReactNode;
 }
 
 export function NetWorthSummary({
@@ -54,6 +56,7 @@ export function NetWorthSummary({
   onPrevMonth,
   onNextMonth,
   onResetMonth,
+  headerActions,
 }: NetWorthSummaryProps) {
   if (!latestRecord) {
     return (
@@ -164,96 +167,116 @@ export function NetWorthSummary({
           1. HERO SECTION
          ════════════════════════════════════════════════════════ */}
       <div className="p-6 pb-2">
-        <div className="flex flex-col sm:grid sm:grid-cols-3 items-center gap-5 sm:gap-2 mb-4">
-          {/* Header Title (Order 2 on mobile) */}
-          <div className="flex items-center gap-2 order-2 sm:order-1">
-            <WalletCards className="w-5 h-5 text-emerald-500" />
-            <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Net Worth Overview</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 sm:gap-2 mb-6">
+          {/* ── Left: Title ── */}
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+              <WalletCards className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight truncate">Net Worth Overview</h2>
+              <p className="text-[13px] font-normal text-muted-foreground truncate">YA {yearStr} • {monthLabel}</p>
+            </div>
           </div>
           
-          {/* Date Selector (Order 1 on mobile) */}
-          <div className="flex items-center justify-center gap-2 order-1 sm:order-2 w-full">
-            <div className="inline-flex items-center gap-1 rounded-full bg-secondary/35 p-1 border border-border/50 shadow-sm">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className={selectedMonth <= earliestMonth ? "cursor-not-allowed" : ""}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-full hover:bg-background/80"
-                        onClick={onPrevMonth}
-                        disabled={selectedMonth <= earliestMonth}
-                      >
-                        <ChevronLeft className="h-5 w-5 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  {selectedMonth <= earliestMonth && (
-                    <TooltipContent>No earlier records available</TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
+          {/* ── Center: Date Selector ── */}
+          <div className="flex justify-center order-first sm:order-none h-10">
+            {/* Relative wrapper ensures absolute children are positioned relative to the pill */}
+            <div className="relative flex items-center">
+              {/* The pill is always perfectly centered */}
+              <div className="inline-flex items-center gap-1 rounded-full bg-background/50 p-1 border border-border/60 shadow-sm transition-all duration-300">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={selectedMonth <= earliestMonth ? "cursor-not-allowed" : ""}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full hover:bg-background/80"
+                          onClick={onPrevMonth}
+                          disabled={selectedMonth <= earliestMonth}
+                        >
+                          <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {selectedMonth <= earliestMonth && (
+                      <TooltipContent>No earlier records available</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
 
-              <div className="px-3 min-w-[120px] text-center">
-                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-emerald-600/90 leading-none">
-                  {monthLabel}
-                </span>
+                <div className="px-3 min-w-[120px] text-center flex items-center justify-center">
+                  <span className="text-[12px] font-medium text-foreground leading-none">
+                    {monthLabel}
+                  </span>
+                </div>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={selectedMonth >= currentMonth ? "cursor-not-allowed" : ""}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full hover:bg-background/80"
+                          onClick={onNextMonth}
+                          disabled={selectedMonth >= currentMonth}
+                        >
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {selectedMonth >= currentMonth && (
+                      <TooltipContent>Future records are not available yet</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className={selectedMonth >= currentMonth ? "cursor-not-allowed" : ""}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-full hover:bg-background/80"
-                        onClick={onNextMonth}
-                        disabled={selectedMonth >= currentMonth}
-                      >
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  {selectedMonth >= currentMonth && (
-                    <TooltipContent>Future records are not available yet</TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
+              {/* The reset button floats to the right without pushing the pill */}
+              {selectedMonth !== currentMonth && (
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden sm:block">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full hover:bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm animate-in zoom-in-50 fade-in duration-300"
+                          onClick={onResetMonth}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">Reset to current month</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+              
+              {/* Mobile Reset */}
+              {selectedMonth !== currentMonth && (
+                <div className="sm:hidden ml-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full bg-secondary/20"
+                    onClick={onResetMonth}
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
-
-            {/* Mobile Reset (Order 3 on mobile within this group) */}
-            {selectedMonth !== currentMonth && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full hover:bg-secondary/50 text-muted-foreground sm:hidden"
-                onClick={onResetMonth}
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-            )}
           </div>
 
-          {/* Desktop Reset (Order 3) */}
-          <div className="hidden sm:flex justify-end order-3">
-            {selectedMonth !== currentMonth && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full hover:bg-background/80 text-muted-foreground hover:text-emerald-500 transition-colors"
-                      onClick={onResetMonth}
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">Reset to current month</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+          {/* ── Right: Header Actions ── */}
+          <div className="flex justify-end">
+            {headerActions && (
+              <div className="flex items-center gap-2">
+                {headerActions}
+              </div>
             )}
           </div>
         </div>

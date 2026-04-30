@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { WalletCards, Edit3, ChevronLeft, ChevronRight, RotateCcw, ReceiptText } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 import SEO from "@/shared/components/SEO";
 import NetWorthForm from "@/features/financial-records/net-worth/presentation/NetWorthForm";
 import NetWorthSummary from "@/features/financial-records/net-worth/presentation/NetWorthSummary";
@@ -152,39 +153,36 @@ export function FinancialRecordsPage() {
           <div className="flex items-center gap-1 rounded-full bg-secondary/20 p-1">
             <button
               onClick={() => setCurrentView("net-worth")}
-              className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
+              className={`flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
                 currentView === "net-worth"
                   ? "bg-emerald-500 text-white shadow-sm"
                   : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
               }`}
             >
               <WalletCards className="h-4 w-4 shrink-0" />
-              <span className="whitespace-nowrap">Net Worth</span>
+              <span className={cn(
+                "whitespace-nowrap",
+                currentView !== "net-worth" && "hidden sm:inline"
+              )}>Net Worth</span>
             </button>
             <button
               onClick={() => setCurrentView("my-tax")}
-              className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
+              className={`flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
                 currentView === "my-tax"
                   ? "bg-emerald-500 text-white shadow-sm"
                   : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
               }`}
             >
               <ReceiptText className="h-4 w-4 shrink-0" />
-              <span className="whitespace-nowrap">MyTax</span>
+              <span className={cn(
+                "whitespace-nowrap",
+                currentView !== "my-tax" && "hidden sm:inline"
+              )}>MyTax</span>
             </button>
           </div>
         </div>
 
         <div className="flex flex-row items-center gap-2">
-          {currentView === "net-worth" && (
-            <ManageRecordsPanel
-              records={records}
-              saving={saving}
-              selectedMonth={selectedMonth}
-              onSaveCurrent={saveCurrentMonthRecord}
-              onSaveAll={updateRecords}
-            />
-          )}
         </div>
       </div>
 
@@ -235,13 +233,22 @@ export function FinancialRecordsPage() {
               onPrevMonth={handlePrevMonth}
               onNextMonth={handleNextMonth}
               onResetMonth={handleResetMonth}
+              headerActions={
+                <ManageRecordsPanel
+                  records={records}
+                  saving={saving}
+                  selectedMonth={selectedMonth}
+                  onSaveCurrent={saveCurrentMonthRecord}
+                  onSaveAll={updateRecords}
+                />
+              }
             />
           )}
         </div>
       )}
 
       {currentView === "my-tax" && (
-        <MyTaxView />
+        <MyTaxView monthlyIncome={profileData.monthlyIncome} age={profileData.age} />
       )}
     </div>
   );
@@ -293,9 +300,9 @@ function ManageRecordsPanel({ records, saving, selectedMonth: defaultSelected, o
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-2 rounded-full border-border/60 bg-background hover:bg-secondary/20 font-medium"
+            className="h-10 gap-2 rounded-full border-border/60 bg-background/50 hover:bg-secondary/20 font-medium px-4"
           >
-            <Edit3 className="w-3.5 h-3.5" />
+            <Edit3 className="w-4 h-4 text-emerald-600" />
             <span className="hidden sm:inline">Update records</span>
           </Button>
         </SheetTrigger>

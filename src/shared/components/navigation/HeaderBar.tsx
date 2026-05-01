@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity, TrendingUp, WalletCards } from "lucide-react";
+import { Activity, TrendingUp, WalletCards, ReceiptText, UserCircle } from "lucide-react";
 import AvatarMenu from "./AvatarMenu";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
@@ -14,31 +14,54 @@ interface HeaderBarProps {
   fullName: string | null;
 }
 
+import { cn } from "@/shared/lib/utils";
+
 export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentView, avatarUrl, fullName }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMoneyHealthActive = ["/money-health", "/improve"].includes(location.pathname);
   const isFinancialRecordsActive = location.pathname === "/financial-records";
+  const getPageTitle = () => {
+    if (location.pathname === "/profile") return "Profile";
+    if (location.pathname === "/financial-records") {
+      const searchParams = new URLSearchParams(location.search);
+      return searchParams.get("tab") === "my-tax" ? "MyTax" : "Net Worth";
+    }
+    if (location.pathname === "/billing") return "Billing";
+    return "";
+  };
+
+  const pageTitle = getPageTitle();
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background border-b border-border/40">
-      <div className="w-full px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between relative">
-        {/* Far Left: Logo */}
-        <Link to="/money-health" className="flex items-center group">
-          <img
-            src={logo}
-            alt="SimpliFi Logo"
-            className="hidden sm:block w-16 h-16 object-contain transition-transform group-hover:scale-110"
-          />
-          <img
-            src="/favicon.png"
-            alt="SimpliFi Logo"
-            className="block sm:hidden w-9 h-9 object-contain transition-transform group-hover:scale-110 mix-blend-multiply"
-          />
-        </Link>
+      <div className="w-full px-4 sm:px-6 py-2 sm:py-0 min-h-[56px] sm:h-16 flex flex-col sm:flex-row items-start sm:items-center justify-between relative">
+        {/* Far Left: Logo & Mobile Title */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-3">
+          <Link to="/money-health" className="flex items-center group">
+            <img
+              src={logo}
+              alt="SimpliFi Logo"
+              className="w-auto h-12 sm:h-16 object-contain transition-transform group-hover:scale-105"
+            />
+          </Link>
+          {/* Mobile Page Title or Greeting */}
+          <h1 className="text-2xl font-black text-foreground sm:hidden tracking-tight mt-1 mb-1 flex items-center gap-2">
+            {isMoneyHealthActive ? (
+              `Hi, ${fullName?.split(' ')[0] || 'there'} 👋`
+            ) : (
+              <>
+                {pageTitle === "Net Worth" && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600"><WalletCards className="w-4 h-4" /></div>}
+                {pageTitle === "MyTax" && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600"><ReceiptText className="w-4 h-4" /></div>}
+                {pageTitle === "Profile" && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600"><UserCircle className="w-4 h-4" /></div>}
+                {pageTitle}
+              </>
+            )}
+          </h1>
+        </div>
 
         {/* Center: Primary Navigation */}
-        <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-5">
+        <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-5">
           <Link
             to="/money-health"
             className={`group flex items-center gap-2 ${isMoneyHealthActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
@@ -72,7 +95,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
         </div>
 
         {/* Far Right: CTA + Avatar Menu */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="hidden sm:flex items-center gap-2 sm:gap-3">
           <AvatarMenu
             src={avatarUrl}
             name={fullName}

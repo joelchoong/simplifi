@@ -33,10 +33,19 @@ import {
   getNextMonthStart,
 } from "@/features/financial-records/net-worth/domain/netWorth";
 
+import { useSearchParams } from "react-router-dom";
+
 type FinancialRecordsView = "net-worth" | "my-tax";
 
 export function FinancialRecordsPage() {
-  const [currentView, setCurrentView] = useState<FinancialRecordsView>("net-worth");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const currentView: FinancialRecordsView = tabParam === "my-tax" ? "my-tax" : "net-worth";
+  
+  const setCurrentView = (view: FinancialRecordsView) => {
+    setSearchParams({ tab: view });
+  };
+  const [sheetOpen, setSheetOpen] = useState(false);
   const { profileData, loading: profileLoading } = useProfileData();
   const {
     loading,
@@ -147,7 +156,7 @@ export function FinancialRecordsPage() {
       />
 
       {/* ── Subheader bar (same pattern as Money Health tabs) ── */}
-      <div className="flex flex-row items-center justify-between gap-4">
+      <div className="hidden sm:flex flex-row items-center justify-between gap-4">
         <div className="flex justify-start">
           <div className="flex items-center gap-1 rounded-full bg-secondary/20 p-1">
             <button
@@ -239,6 +248,8 @@ export function FinancialRecordsPage() {
                   selectedMonth={selectedMonth}
                   onSaveCurrent={saveCurrentMonthRecord}
                   onSaveAll={updateRecords}
+                  open={sheetOpen}
+                  onOpenChange={setSheetOpen}
                 />
               }
             />
@@ -248,6 +259,19 @@ export function FinancialRecordsPage() {
 
       {currentView === "my-tax" && (
         <MyTaxView monthlyIncome={profileData.monthlyIncome} age={profileData.age} />
+      )}
+
+      {/* ── Mobile Footer CTA (Net Worth only) ── */}
+      {currentView === "net-worth" && !loading && !profileLoading && (
+        <div className="sm:hidden fixed bottom-16 left-0 right-0 z-40 px-4 pb-3 pt-2 bg-gradient-to-t from-background via-background to-transparent">
+          <Button
+            onClick={() => setSheetOpen(true)}
+            className="w-full h-12 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] gap-2 text-[15px]"
+          >
+            <Edit3 className="w-4 h-4" />
+            Update Records
+          </Button>
+        </div>
       )}
     </div>
   );
@@ -260,9 +284,11 @@ interface ManageRecordsPanelProps {
   selectedMonth: string;
   onSaveCurrent: (values: any) => Promise<void>;
   onSaveAll: (records: any[], deletedIds: string[]) => Promise<void>;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-function ManageRecordsPanel({ records, saving, selectedMonth: defaultSelected, onSaveCurrent, onSaveAll }: ManageRecordsPanelProps) {
+function ManageRecordsPanel({ records, saving, selectedMonth: defaultSelected, onSaveCurrent, onSaveAll, open, onOpenChange }: ManageRecordsPanelProps) {
   const [panelMonth, setPanelMonth] = useState(defaultSelected);
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -294,15 +320,15 @@ function ManageRecordsPanel({ records, saving, selectedMonth: defaultSelected, o
 
   return (
     <div className="flex items-center gap-2">
-      <Sheet>
+      <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetTrigger asChild>
           <Button
             variant="outline"
             size="sm"
-            className="h-10 gap-2 rounded-full border-border/60 bg-background/50 hover:bg-secondary/20 font-medium px-4"
+            className="hidden sm:inline-flex h-10 gap-2 rounded-full border-border/60 bg-background/50 hover:bg-secondary/20 font-medium px-4"
           >
             <Edit3 className="w-4 h-4 text-emerald-600" />
-            <span className="hidden sm:inline">Update records</span>
+            <span>Update records</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col h-full overflow-hidden">

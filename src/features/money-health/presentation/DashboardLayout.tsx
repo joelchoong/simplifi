@@ -1,7 +1,8 @@
 import { ReactNode, useEffect, useState } from "react";
-import { useNavigate, useLocation, Outlet } from "react-router-dom";
+import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
 import { HeaderBar, View } from "@/shared/components/navigation/HeaderBar";
-import { BarChart3, LayoutGrid, Palmtree, Scale, Globe } from "lucide-react";
+import { BarChart3, LayoutGrid, Palmtree, Scale, Globe, Home, WalletCards, ReceiptText, UserCircle } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 import { DashboardContent } from "@/features/money-health/classification/presentation/Dashboard";
 import RetirementView from "@/features/money-health/retirement/presentation/RetirementView";
 import IncomeRealityView from "@/features/money-health/income-reality/presentation/IncomeRealityView";
@@ -26,6 +27,40 @@ const TOUR_STEPS: TourStep[] = [
     placement: "left"
   }
 ];
+
+function BottomNav() {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tab = searchParams.get("tab");
+
+  const isHome = location.pathname === "/money-health" || location.pathname === "/";
+  const isNetWorth = location.pathname === "/financial-records" && tab !== "my-tax";
+  const isMyTax = location.pathname === "/financial-records" && tab === "my-tax";
+  const isProfile = location.pathname === "/profile";
+
+  return (
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/40 pb-safe">
+      <div className="flex justify-around items-center h-16 px-2">
+        <Link to="/money-health" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", isHome ? "text-emerald-600" : "text-muted-foreground hover:text-foreground")}>
+          <Home className="w-[22px] h-[22px]" />
+          <span className="text-[10px] font-medium">Home</span>
+        </Link>
+        <Link to="/financial-records?tab=net-worth" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", isNetWorth ? "text-emerald-600" : "text-muted-foreground hover:text-foreground")}>
+          <WalletCards className="w-[22px] h-[22px]" />
+          <span className="text-[10px] font-medium">Net Worth</span>
+        </Link>
+        <Link to="/financial-records?tab=my-tax" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", isMyTax ? "text-emerald-600" : "text-muted-foreground hover:text-foreground")}>
+          <ReceiptText className="w-[22px] h-[22px]" />
+          <span className="text-[10px] font-medium">MyTax</span>
+        </Link>
+        <Link to="/profile" className={cn("flex flex-col items-center justify-center w-full h-full gap-1 transition-colors", isProfile ? "text-emerald-600" : "text-muted-foreground hover:text-foreground")}>
+          <UserCircle className="w-[22px] h-[22px]" />
+          <span className="text-[10px] font-medium">Profile</span>
+        </Link>
+      </div>
+    </nav>
+  );
+}
 
 interface DashboardLayoutProps {
   children?: ReactNode;
@@ -77,7 +112,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         avatarUrl={user.user_metadata?.avatar_url}
         fullName={user.user_metadata?.full_name || user.email}
       />
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col pb-20 sm:pb-0">
         <div className="flex-1 p-4 bg-secondary/30">
           {isDashboard && (
             <div className="mx-auto max-w-6xl mb-4">
@@ -245,6 +280,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         onComplete={handleTourComplete}
         onSkip={handleTourComplete}
       />
+      
+      <BottomNav />
     </div>
   );
 }

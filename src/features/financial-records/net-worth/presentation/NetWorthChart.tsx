@@ -43,6 +43,13 @@ export function NetWorthChart({ data, height = 180 }: NetWorthChartProps) {
     return data.filter(d => d.month.endsWith(range));
   }, [data, range]);
 
+  const monthAbbrevToNum: Record<string, string> = {
+    "Jan": "1", "Feb": "2", "Mar": "3", "Apr": "4", "May": "5", "Jun": "6",
+    "Jul": "7", "Aug": "8", "Sep": "9", "Sept": "9", "Oct": "10", "Nov": "11", "Dec": "12",
+  };
+
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+
   const CustomXAxisTick = ({ x, y, payload }: any) => {
     const [month, year] = payload.value.split(" ");
     
@@ -52,13 +59,15 @@ export function NetWorthChart({ data, height = 180 }: NetWorthChartProps) {
     const middleIndexForYear = indicesForYear[Math.floor(indicesForYear.length / 2)];
     const showYear = payload.index === middleIndexForYear;
 
+    const displayMonth = isMobile ? (monthAbbrevToNum[month] || month) : month;
+
     return (
       <g transform={`translate(${x},${y})`}>
-        <text x={0} y={0} dy={12} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={11}>
-          {month}
+        <text x={0} y={0} dy={12} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={isMobile ? 10 : 11}>
+          {displayMonth}
         </text>
         {showYear && (
-          <text x={0} y={0} dy={26} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={11} fontWeight={500}>
+          <text x={0} y={0} dy={26} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={isMobile ? 10 : 11} fontWeight={500}>
             {year}
           </text>
         )}

@@ -203,10 +203,10 @@ export function NetWorthSummary({
       {/* ════════════════════════════════════════════════════════
           1. HERO SECTION
          ════════════════════════════════════════════════════════ */}
-      <div className="p-6 sm:p-8 space-y-6">
+      <div className="p-6 sm:p-8 space-y-2 sm:space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 sm:gap-2">
-          {/* ── Left: Title ── */}
-          <div className="flex items-center gap-3">
+          {/* ── Left: Title (hidden on mobile, shown in header instead) ── */}
+          <div className="hidden sm:flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
               <WalletCards className="w-5 h-5" />
             </div>
@@ -224,7 +224,7 @@ export function NetWorthSummary({
           </div>
           
           {/* ── Center: Date Selector ── */}
-          <div className="flex justify-center order-first sm:order-none h-10">
+          <div className="flex justify-center sm:order-none h-10">
             {/* Relative wrapper ensures absolute children are positioned relative to the pill */}
             <div className="relative flex items-center">
               {/* The pill is always perfectly centered */}
@@ -316,7 +316,7 @@ export function NetWorthSummary({
           </div>
 
           {/* ── Right: Header Actions ── */}
-          <div className="flex justify-end">
+          <div className="hidden sm:flex justify-end">
             {!isBaseline && headerActions && (
               <div className="flex items-center gap-2">
                 {headerActions}
@@ -325,6 +325,8 @@ export function NetWorthSummary({
           </div>
         </div>
 
+        {/* Mobile-only: subtle context label for the figure */}
+        <p className="sm:hidden text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest !mt-6">Your net worth</p>
         <div className="flex items-baseline gap-3 flex-wrap mb-2">
           <span className={cn(
             "text-4xl sm:text-[52px] font-medium tracking-tight leading-none text-foreground",

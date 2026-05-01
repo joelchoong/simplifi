@@ -546,42 +546,11 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
     <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-sm">
       <div className="p-6 sm:p-8 space-y-2 sm:space-y-6">
 
-        {/* ── Mobile: year picker centred on its own row ── */}
-        <div className="flex sm:hidden justify-center">
-          <div className="inline-flex items-center gap-1 rounded-full bg-background/50 p-1 border border-border/60 shadow-sm">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full hover:bg-background/80"
-              onClick={() => {
-                const idx = YEAR_OPTIONS.indexOf(selectedYear);
-                if (idx < YEAR_OPTIONS.length - 1) handleYearChange(YEAR_OPTIONS[idx + 1]);
-              }}
-              disabled={YEAR_OPTIONS.indexOf(selectedYear) >= YEAR_OPTIONS.length - 1}
-            >
-              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <div className="px-3 min-w-[64px] text-center">
-              <span className="text-[12px] font-medium text-foreground leading-none">YA {selectedYear}</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full hover:bg-background/80"
-              onClick={() => {
-                const idx = YEAR_OPTIONS.indexOf(selectedYear);
-                if (idx > 0) handleYearChange(YEAR_OPTIONS[idx - 1]);
-              }}
-              disabled={YEAR_OPTIONS.indexOf(selectedYear) <= 0}
-            >
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </Button>
-          </div>
-        </div>
+        {/* ── Header: mobile = centred picker only, desktop = 3-col grid ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 sm:gap-2">
 
-        {/* ── Desktop: 3-col grid: title | year picker | receipts button ── */}
-        <div className="hidden sm:grid grid-cols-3 items-center gap-2">
-          <div className="flex items-center gap-3">
+          {/* Left: title (desktop only) */}
+          <div className="hidden sm:flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
               <ReceiptText className="w-5 h-5" />
             </div>
@@ -590,6 +559,8 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
               <p className="text-[13px] font-normal text-muted-foreground">YA {selectedYear} • Tax Relief Assessment</p>
             </div>
           </div>
+
+          {/* Centre: pill year picker */}
           <div className="flex justify-center">
             <div className="inline-flex items-center gap-1 rounded-full bg-background/50 p-1 border border-border/60 shadow-sm">
               <Button
@@ -621,7 +592,9 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
               </Button>
             </div>
           </div>
-          <div className="flex justify-end">
+
+          {/* Right: receipts button (desktop only) */}
+          <div className="hidden sm:flex justify-end">
             <Button
               variant="outline"
               size="sm"

@@ -6,6 +6,7 @@ import {
   BadgeAlert,
   Blocks,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   FileCheck,
   FileUp,
@@ -200,6 +201,8 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
   const [flashCategoryId, setFlashCategoryId] = useState<string | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<PlannerReceipt | null>(null);
   const [pendingReceipt, setPendingReceipt] = useState<PlannerReceipt | null>(null);
+  const [receiptToDelete, setReceiptToDelete] = useState<PlannerReceipt | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isReceiptsListOpen, setIsReceiptsListOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
@@ -299,33 +302,41 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
     setOpenCategoryId(category.id);
   };
 
-  const removeReceipt = (receiptId: string) => {
+  const removeReceipt = async (receiptId: string) => {
     const receipt = receipts.find((entry) => entry.id === receiptId);
-    if (!receipt) return;
+    if (!receipt || !user) return;
 
-    const remainingReceipts = receipts.filter((entry) => entry.id !== receiptId);
-    setReceipts(remainingReceipts);
-    
-    setClaimsByYear(prev => {
-      const newYearClaims = { ...buildInitialClaims(autoAmounts)[receipt.year] };
-      
-      remainingReceipts
-        .filter(r => r.year === receipt.year)
-        .forEach(r => {
-          if (r.subItemId) {
-            const category = getPlannerDataForYear(receipt.year).find(c => c.id === r.categoryId);
-            const subItem = category?.subItems.find(s => s.id === r.subItemId);
-            if (subItem) {
-              newYearClaims[r.subItemId] = Math.min(subItem.limit, (newYearClaims[r.subItemId] || 0) + r.amount);
+    setIsDeleting(true);
+    try {
+      await ApiService.tax.deleteReceipt(receipt.id, user.id, receipt.storagePath);
+
+      const remainingReceipts = receipts.filter((entry) => entry.id !== receiptId);
+      setReceipts(remainingReceipts);
+
+      setClaimsByYear(prev => {
+        const newYearClaims = { ...buildInitialClaims(autoAmounts)[receipt.year] };
+        remainingReceipts
+          .filter(r => r.year === receipt.year)
+          .forEach(r => {
+            if (r.subItemId) {
+              const category = getPlannerDataForYear(receipt.year).find(c => c.id === r.categoryId);
+              const subItem = category?.subItems.find(s => s.id === r.subItemId);
+              if (subItem) {
+                newYearClaims[r.subItemId] = Math.min(subItem.limit, (newYearClaims[r.subItemId] || 0) + r.amount);
+              }
             }
-          }
-        });
-        
-      return {
-        ...prev,
-        [receipt.year]: newYearClaims
-      };
-    });
+          });
+        return { ...prev, [receipt.year]: newYearClaims };
+      });
+
+      toast.success("Receipt deleted");
+    } catch (error) {
+      console.error("Error deleting receipt:", error);
+      toast.error("Failed to delete receipt");
+    } finally {
+      setIsDeleting(false);
+      setReceiptToDelete(null);
+    }
   };
 
   const processFile = async (file: File) => {
@@ -533,42 +544,94 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
   return (
     <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-sm">
-      <div className="p-6 sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div className="p-6 sm:p-8 space-y-2 sm:space-y-6">
+
+        {/* ── Mobile: year picker centred on its own row ── */}
+        <div className="flex sm:hidden justify-center">
+          <div className="inline-flex items-center gap-1 rounded-full bg-background/50 p-1 border border-border/60 shadow-sm">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full hover:bg-background/80"
+              onClick={() => {
+                const idx = YEAR_OPTIONS.indexOf(selectedYear);
+                if (idx < YEAR_OPTIONS.length - 1) handleYearChange(YEAR_OPTIONS[idx + 1]);
+              }}
+              disabled={YEAR_OPTIONS.indexOf(selectedYear) >= YEAR_OPTIONS.length - 1}
+            >
+              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <div className="px-3 min-w-[64px] text-center">
+              <span className="text-[12px] font-medium text-foreground leading-none">YA {selectedYear}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full hover:bg-background/80"
+              onClick={() => {
+                const idx = YEAR_OPTIONS.indexOf(selectedYear);
+                if (idx > 0) handleYearChange(YEAR_OPTIONS[idx - 1]);
+              }}
+              disabled={YEAR_OPTIONS.indexOf(selectedYear) <= 0}
+            >
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </div>
+        </div>
+
+        {/* ── Desktop: 3-col grid: title | year picker | receipts button ── */}
+        <div className="hidden sm:grid grid-cols-3 items-center gap-2">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
               <ReceiptText className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight truncate">Tax Relief Planner</h2>
-              <p className="text-[13px] font-normal text-muted-foreground truncate">YA {selectedYear} • Tax Relief Assessment</p>
+              <h2 className="text-xl font-bold text-foreground tracking-tight">Tax Relief Planner</h2>
+              <p className="text-[13px] font-normal text-muted-foreground">YA {selectedYear} • Tax Relief Assessment</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Select value={selectedYear} onValueChange={handleYearChange}>
-              <SelectTrigger className="h-10 min-w-[140px] rounded-full border-border/60 bg-background/50 flex items-center justify-between px-4 group text-[13px] font-semibold text-foreground">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {YEAR_OPTIONS.map((year) => (
-                  <SelectItem key={year} value={year} className="text-[13px] font-medium">
-                    YA {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
+          <div className="flex justify-center">
+            <div className="inline-flex items-center gap-1 rounded-full bg-background/50 p-1 border border-border/60 shadow-sm">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full hover:bg-background/80"
+                onClick={() => {
+                  const idx = YEAR_OPTIONS.indexOf(selectedYear);
+                  if (idx < YEAR_OPTIONS.length - 1) handleYearChange(YEAR_OPTIONS[idx + 1]);
+                }}
+                disabled={YEAR_OPTIONS.indexOf(selectedYear) >= YEAR_OPTIONS.length - 1}
+              >
+                <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+              </Button>
+              <div className="px-3 min-w-[64px] text-center">
+                <span className="text-[12px] font-medium text-foreground leading-none">YA {selectedYear}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full hover:bg-background/80"
+                onClick={() => {
+                  const idx = YEAR_OPTIONS.indexOf(selectedYear);
+                  if (idx > 0) handleYearChange(YEAR_OPTIONS[idx - 1]);
+                }}
+                disabled={YEAR_OPTIONS.indexOf(selectedYear) <= 0}
+              >
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </Button>
+            </div>
+          </div>
+          <div className="flex justify-end">
             <Button
               variant="outline"
               size="sm"
-              className="h-10 rounded-full border-border/60 bg-background/50 px-4 font-medium transition-all"
+              className="h-9 rounded-full border-border/60 bg-background/50 px-4 font-medium"
               onClick={() => setIsReceiptsListOpen(true)}
             >
               <ReceiptText className="mr-2 h-4 w-4 text-emerald-600" />
-              <span className="hidden sm:inline">Receipts</span>
+              Receipts
               {yearReceipts.length > 0 && (
-                <span className="ml-1 sm:ml-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[10px] font-bold text-white">
+                <span className="ml-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[10px] font-bold text-white">
                   {yearReceipts.length}
                 </span>
               )}
@@ -576,15 +639,22 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-6">
-          <SummaryCard label="Total claimed" value={formatRM(totalClaimed)} helper={`${totalPercentage}% of max relief`} tone="green" />
-          <SummaryCard label="Remaining" value={formatRM(totalRemaining)} helper="available to claim" tone="amber" />
+        {/* ── Hero RM amount ── */}
+        <p className="sm:hidden text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest !mt-6">Total claimed</p>
+        <div className="flex items-baseline gap-3 flex-wrap mb-2">
+          <span className="text-4xl sm:text-[52px] font-medium tracking-tight leading-none text-foreground">
+            {formatRM(totalClaimed)}
+          </span>
+          <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+            {totalPercentage}% of max relief
+          </span>
         </div>
+
       </div>
 
       <hr className="border-border/60" />
 
-      <div className="p-6 sm:p-8 space-y-6 bg-secondary/5 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="p-6 sm:p-8 space-y-4 sm:space-y-6 bg-secondary/5 animate-in fade-in slide-in-from-bottom-2 duration-500">
         <div
           onDragOver={(event) => {
             event.preventDefault();
@@ -597,7 +667,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
             handleFilesAdded(event.dataTransfer.files);
           }}
           className={cn(
-            "relative rounded-[18px] border border-dashed bg-card px-6 py-8 text-center transition-colors",
+            "relative hidden sm:block rounded-[18px] border border-dashed bg-card px-6 py-8 text-center transition-colors",
             isDragActive ? "border-sky-400 bg-sky-50/80" : "border-border/80 hover:border-foreground/30 hover:bg-muted/40",
           )}
         >
@@ -631,16 +701,9 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           </div>
         ) : null}
 
-        <div className="flex items-center gap-4 pt-4">
+        <div className="flex items-center gap-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground whitespace-nowrap">Relief categories</p>
           <div className="h-[1px] flex-1 bg-border/40" />
-          <button 
-            onClick={() => setIsReceiptsListOpen(true)}
-            className="text-[12px] font-medium text-emerald-700 hover:text-emerald-800 transition-colors flex items-center gap-1.5"
-          >
-            View all scanned documents
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
         </div>
 
         <div className="space-y-1.5">
@@ -666,7 +729,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                 <button
                   type="button"
                   onClick={() => setOpenCategoryId((currentId) => (currentId === category.id ? null : category.id))}
-                  className="flex w-full items-start gap-3 px-4 py-4 text-left"
+                  className="flex w-full items-start gap-3 px-3 py-3 sm:px-4 sm:py-4 text-left"
                 >
                   <div className="w-6 pt-1 text-xs font-medium text-muted-foreground">{category.num}</div>
                   <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]", tone.icon)}>
@@ -674,10 +737,10 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[14px] font-medium tracking-[-0.02em] text-foreground">{category.name}</p>
-                    <p className="mt-0.5 text-[12px] text-muted-foreground">{category.description}</p>
+                    <p className={cn("mt-0.5 text-[12px] text-muted-foreground", !isOpen && "hidden sm:block")}>{category.description}</p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className={cn("text-[14px] font-medium", hasClaim ? tone.value : "text-muted-foreground")}>
+                    <p className={cn("text-[14px] font-medium", hasClaim ? "text-emerald-700" : "text-muted-foreground")}>
                       {hasClaim ? formatRM(categoryTotal) : "—"}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
@@ -777,23 +840,6 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           })}
         </div>
 
-        <Card className="rounded-[18px] border-border/70">
-          <CardContent className="flex flex-wrap items-center justify-between gap-4 p-6">
-            <div>
-              <p className="text-[13px] text-muted-foreground">Total estimated relief</p>
-              <p className="mt-1 text-[28px] font-medium tracking-[-0.06em] text-emerald-700">{formatRM(totalClaimed)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[12px] text-muted-foreground">Maximum available: {formatRM(totalMax)}</p>
-              <p className="mt-1 text-[12px] text-muted-foreground">
-                Source:{" "}
-                <a href={MY_TAX_SOURCE_URL} target="_blank" rel="noreferrer" className="text-sky-700 hover:text-sky-800">
-                  HASiL YA {selectedYear}
-                </a>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <Sheet open={isReceiptsListOpen} onOpenChange={setIsReceiptsListOpen}>
@@ -805,24 +851,21 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                   <ReceiptText className="h-5 w-5 text-emerald-600" />
                   Scanned Receipts
                 </SheetTitle>
-                <div className="flex items-center gap-2">
-                  <Select value={selectedYear} onValueChange={handleYearChange}>
-                    <SelectTrigger className="h-8 min-w-[100px] rounded-lg border-border/70 bg-background text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {YEAR_OPTIONS.map((year) => (
-                        <SelectItem key={year} value={year}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
-              <SheetDescription className="text-xs pt-1">
-                Historical repository for YA {selectedYear}
-              </SheetDescription>
+              <div className="flex justify-center pt-3">
+                <Select value={selectedYear} onValueChange={handleYearChange}>
+                  <SelectTrigger className="h-8 min-w-[120px] rounded-full border-border/70 bg-background text-xs font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {YEAR_OPTIONS.map((year) => (
+                      <SelectItem key={year} value={year}>
+                        YA {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </SheetHeader>
           </div>
 
@@ -908,7 +951,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                             variant="ghost" 
                             size="icon" 
                             className="h-7 w-7 rounded-full text-muted-foreground hover:text-destructive"
-                            onClick={() => removeReceipt(receipt.id)}
+                            onClick={() => setReceiptToDelete(receipt)}
                           >
                             <X className="h-3.5 w-3.5" />
                           </Button>
@@ -1011,6 +1054,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                   <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Merchant / Filename</Label>
                   <Input 
                     value={(pendingReceipt || viewingReceipt)?.name || ""}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (pendingReceipt) setPendingReceipt({ ...pendingReceipt, name: val });
@@ -1127,7 +1171,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                   disabled={saving || !(pendingReceipt || viewingReceipt)?.subItemId}
                   className="w-full rounded-xl h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20"
                 >
-                  {saving ? "Saving..." : (pendingReceipt ? "Confirm & Add to Planner" : "Save Changes")}
+                  {saving ? "Saving..." : (pendingReceipt ? "Confirm details" : "Save Changes")}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -1144,6 +1188,67 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           </div>
         </DialogContent>
       </Dialog>
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!receiptToDelete} onOpenChange={(open) => { if (!open) setReceiptToDelete(null); }}>
+        <DialogContent className="max-w-sm rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">Delete receipt?</DialogTitle>
+          </DialogHeader>
+          <p className="text-[13px] text-muted-foreground mt-1">
+            <span className="font-medium text-foreground">{receiptToDelete?.name}</span> will be permanently removed from your records and storage. This cannot be undone.
+          </p>
+          <DialogFooter className="mt-4 flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-full"
+              onClick={() => setReceiptToDelete(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1 rounded-full"
+              onClick={() => receiptToDelete && removeReceipt(receiptToDelete.id)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mobile fixed CTA — adapts based on whether receipts exist */}
+      <div className="sm:hidden fixed bottom-16 left-0 right-0 z-40 px-4 pb-3 pt-2 bg-gradient-to-t from-background via-background to-transparent">
+        <input
+          type="file"
+          multiple
+          accept="image/*,.pdf"
+          className="hidden"
+          id="mobile-receipt-input"
+          onChange={handleInputChange}
+        />
+        {yearReceipts.length > 0 ? (
+          <Button
+            onClick={() => setIsReceiptsListOpen(true)}
+            className="w-full h-12 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] gap-2 text-[15px]"
+          >
+            <ReceiptText className="w-4 h-4" />
+            View uploaded documents
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1.5 text-[11px] font-bold">
+              {yearReceipts.length}
+            </span>
+          </Button>
+        ) : (
+          <Button
+            onClick={() => document.getElementById("mobile-receipt-input")?.click()}
+            className="w-full h-12 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] gap-2 text-[15px]"
+          >
+            <Upload className="w-4 h-4" />
+            Upload Receipt
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -1161,7 +1266,7 @@ function SummaryCard({
 }) {
   return (
     <Card className="rounded-[14px] border-border/70 shadow-none">
-      <CardContent className="p-4">
+      <CardContent className="p-2.5 sm:p-4">
         <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
         <p
           className={cn(

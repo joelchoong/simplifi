@@ -173,9 +173,10 @@ export const ApiService = {
     },
 
     /**
-     * Deletes a receipt.
+     * Deletes a receipt and its file from storage.
      */
-    async deleteReceipt(receiptId: string, userId: string): Promise<void> {
+    async deleteReceipt(receiptId: string, userId: string, storagePath?: string): Promise<void> {
+      // Delete the DB record first
       const { error } = await supabase
         .from("tax_receipts")
         .delete()
@@ -183,6 +184,18 @@ export const ApiService = {
         .eq("user_id", userId);
 
       if (error) throw error;
+
+      // Delete the file from storage
+      if (storagePath) {
+        const { error: storageError } = await supabase.storage
+          .from("receipts")
+          .remove([storagePath]);
+
+        if (storageError) {
+          console.error("Storage delete error:", storageError);
+          // Don't throw — DB record is already gone, storage cleanup is best-effort
+        }
+      }
     }
   },
 

@@ -48,6 +48,7 @@ import {
   DEFAULT_FALLBACKS,
   DETECTION_KEYWORD_MAP,
   MY_TAX_PLANNER_DATA,
+  getPlannerDataForYear,
   MY_TAX_SOURCE_URL,
   PlannerCategory,
   PlannerReceipt,
@@ -58,7 +59,8 @@ import { useAuth } from "@/features/auth/data/useAuth";
 
 type ClaimsByYear = Record<AssessmentYear, Record<string, number>>;
 
-const YEAR_OPTIONS: AssessmentYear[] = ["2025", "2024"];
+const currentYear = new Date().getFullYear();
+const YEAR_OPTIONS: AssessmentYear[] = Array.from({ length: Math.max(2, currentYear - 2024 + 1) }, (_, i) => (currentYear - i).toString());
 
 const SOCSO_WAGE_CEILING = 6000;
 const SOCSO_RATE = 0.005; 
@@ -139,11 +141,12 @@ function formatRM(value: number) {
   return `RM ${Math.round(value).toLocaleString("en-MY")}`;
 }
 
-function buildInitialClaims(autoAmounts: Record<string, number> = {}): ClaimsByYear {
-  return {
-    "2025": Object.fromEntries(MY_TAX_PLANNER_DATA["2025"].flatMap((category) => category.subItems.map((subItem) => [subItem.id, autoAmounts[subItem.id] ?? 0]))),
-    "2024": Object.fromEntries(MY_TAX_PLANNER_DATA["2024"].flatMap((category) => category.subItems.map((subItem) => [subItem.id, autoAmounts[subItem.id] ?? 0]))),
-  };
+function buildInitialClaims(autoAmounts: Record<string, number> = {}, years: string[] = YEAR_OPTIONS): ClaimsByYear {
+  const claims: ClaimsByYear = {};
+  for (const year of years) {
+    claims[year] = Object.fromEntries(getPlannerDataForYear(year).flatMap((category) => category.subItems.map((subItem) => [subItem.id, autoAmounts[subItem.id] ?? 0])));
+  }
+  return claims;
 }
 
 function getTotalMax(categories: PlannerCategory[]) {
@@ -182,7 +185,7 @@ function detectAmount(fileName: string) {
 
 export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: number; age?: number }) {
   const { user } = useAuth();
-  const [selectedYear, setSelectedYear] = useState<AssessmentYear>("2025");
+  const [selectedYear, setSelectedYear] = useState<AssessmentYear>(currentYear.toString());
   const [saving, setSaving] = useState(false);
 
   const autoAmounts = useMemo(() => computeAutoAmounts(monthlyIncome, age), [monthlyIncome, age]);
@@ -205,7 +208,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
   useEffect(() => {
     setClaimsByYear((prev) => {
       const updated: ClaimsByYear = { ...prev };
-      for (const year of (["2025", "2024"] as AssessmentYear[])) {
+      for (const year of YEAR_OPTIONS) {
         updated[year] = { ...prev[year] };
         for (const [id, value] of Object.entries(autoAmounts)) {
           updated[year][id] = value;
@@ -236,7 +239,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           
           mappedReceipts.forEach(r => {
             if (r.subItemId) {
-              const category = MY_TAX_PLANNER_DATA[selectedYear].find(c => c.id === r.categoryId);
+              const category = getPlannerDataForYear(selectedYear).find(c => c.id === r.categoryId);
               const subItem = category?.subItems.find(s => s.id === r.subItemId);
               if (subItem) {
                 newYearClaims[r.subItemId] = Math.min(subItem.limit, (newYearClaims[r.subItemId] || 0) + r.amount);
@@ -256,7 +259,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
     loadReceipts();
   }, [user, selectedYear, autoAmounts]);
 
-  const categories = MY_TAX_PLANNER_DATA[selectedYear];
+  const categories = getPlannerDataForYear(selectedYear);
   const claims = claimsByYear[selectedYear];
   const totalMax = useMemo(() => getTotalMax(categories), [categories]);
   const totalClaimed = useMemo(() => categories.reduce((total, category) => total + getCategoryTotal(category, claims), 0), [categories, claims]);
@@ -310,7 +313,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
         .filter(r => r.year === receipt.year)
         .forEach(r => {
           if (r.subItemId) {
-            const category = MY_TAX_PLANNER_DATA[receipt.year].find(c => c.id === r.categoryId);
+            const category = getPlannerDataForYear(receipt.year).find(c => c.id === r.categoryId);
             const subItem = category?.subItems.find(s => s.id === r.subItemId);
             if (subItem) {
               newYearClaims[r.subItemId] = Math.min(subItem.limit, (newYearClaims[r.subItemId] || 0) + r.amount);
@@ -330,7 +333,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
     setProcessingFileName(file.name);
 
     try {
-      const nextCategories = MY_TAX_PLANNER_DATA[selectedYear];
+      const nextCategories = getPlannerDataForYear(selectedYear);
       const guessedSubItemId = detectSubItemId(file.name, nextCategories);
       const category = nextCategories.find((entry) => entry.subItems.some((subItem) => subItem.id === guessedSubItemId));
       const guessedAmount = detectAmount(file.name);
@@ -494,7 +497,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           .filter(r => r.year === viewingReceipt.year)
           .forEach(r => {
             if (r.subItemId) {
-              const category = MY_TAX_PLANNER_DATA[viewingReceipt.year].find(c => c.id === r.categoryId);
+              const category = getPlannerDataForYear(viewingReceipt.year).find(c => c.id === r.categoryId);
               const subItem = category?.subItems.find(s => s.id === r.subItemId);
               if (subItem) {
                 newYearClaims[r.subItemId] = Math.min(subItem.limit, (newYearClaims[r.subItemId] || 0) + r.amount);
@@ -544,12 +547,12 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Select value={selectedYear} onValueChange={handleYearChange}>
-              <SelectTrigger className="h-10 min-w-[140px] rounded-full border-border/60 bg-background/50 flex items-center justify-between px-4 group">
+              <SelectTrigger className="h-10 min-w-[140px] rounded-full border-border/60 bg-background/50 flex items-center justify-between px-4 group text-[13px] font-semibold text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {YEAR_OPTIONS.map((year) => (
-                  <SelectItem key={year} value={year}>
+                  <SelectItem key={year} value={year} className="text-[13px] font-medium">
                     YA {year}
                   </SelectItem>
                 ))}
@@ -797,7 +800,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
         <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col h-full overflow-hidden">
           <div className="p-6 pb-4 border-b bg-muted/30">
             <SheetHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between pr-8">
                 <SheetTitle className="text-xl font-semibold flex items-center gap-2">
                   <ReceiptText className="h-5 w-5 text-emerald-600" />
                   Scanned Receipts
@@ -823,7 +826,26 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
             </SheetHeader>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-none">
+          <div 
+            className={cn(
+              "flex-1 overflow-y-auto p-4 space-y-3 scrollbar-none transition-all",
+              isDragActive ? "bg-sky-50/50 ring-2 ring-inset ring-sky-400" : ""
+            )}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsDragActive(true);
+            }}
+            onDragLeave={() => setIsDragActive(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setIsDragActive(false);
+              const file = event.dataTransfer.files[0];
+              if (file) {
+                setIsReceiptsListOpen(false); // Close panel to show processing modal
+                processFile(file);
+              }
+            }}
+          >
             {yearReceipts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-border/50 rounded-2xl bg-secondary/5 mx-2">
                 <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center mb-3">
@@ -831,8 +853,20 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                 </div>
                 <h3 className="text-sm font-medium">No receipts for {selectedYear}</h3>
                 <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
-                  Upload documents in the main planner to see them here.
+                  Drag and drop a receipt here or click to upload.
                 </p>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="mt-4 rounded-full" 
+                  onClick={() => {
+                    setIsReceiptsListOpen(false);
+                    fileInputRef.current?.click();
+                  }}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Receipt
+                </Button>
               </div>
             ) : (
               yearReceipts.map((receipt) => {
@@ -887,7 +921,18 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
             )}
           </div>
 
-          <div className="p-4 border-t bg-secondary/5">
+          <div className="p-4 border-t bg-secondary/5 flex flex-col gap-2">
+            <Button 
+              type="button"
+              className="w-full h-11 rounded-xl shadow-sm"
+              onClick={() => {
+                setIsReceiptsListOpen(false);
+                fileInputRef.current?.click();
+              }}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload New Receipt
+            </Button>
             <Button
               variant="outline"
               className="w-full h-11 rounded-xl border-border/70 bg-background font-medium gap-2"
@@ -1018,15 +1063,15 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                     <SelectTrigger className="rounded-xl border-border/60 h-11">
                       <SelectValue placeholder="Select relief type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper" className="max-h-[300px] overflow-y-auto w-[var(--radix-select-trigger-width)]">
                       {categories.map((cat) => (
                         <div key={cat.id}>
                           <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/30">
                             {cat.name}
                           </div>
                           {cat.subItems.map((sub) => (
-                            <SelectItem key={sub.id} value={sub.id} className="text-xs pl-4" disabled={sub.auto}>
-                              {sub.label}
+                            <SelectItem key={sub.id} value={sub.id} className="text-xs pl-8" disabled={sub.auto}>
+                              {sub.name}
                             </SelectItem>
                           ))}
                         </div>

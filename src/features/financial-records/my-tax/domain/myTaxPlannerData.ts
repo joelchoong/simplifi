@@ -33,7 +33,7 @@ export interface PlannerReceipt {
 
 export const MY_TAX_SOURCE_URL = TAX_RELIEF_SOURCE_URL;
 
-export const MY_TAX_PLANNER_DATA: Record<AssessmentYear, PlannerCategory[]> = {
+export const MY_TAX_PLANNER_DATA: Record<string, PlannerCategory[]> = {
   "2025": [
     {
       id: "personal",
@@ -590,3 +590,7 @@ export const DEFAULT_FALLBACKS = [
   "insurance_life",
   "childcare_main",
 ];
+
+export const getPlannerDataForYear = (year: string): PlannerCategory[] => {
+  return MY_TAX_PLANNER_DATA[year] || MY_TAX_PLANNER_DATA[Object.keys(MY_TAX_PLANNER_DATA).sort().reverse()[0]];
+};

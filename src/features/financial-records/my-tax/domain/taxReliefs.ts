@@ -1,4 +1,4 @@
-export type AssessmentYear = "2025" | "2024";
+export type AssessmentYear = string;
 
 export interface TaxRelief {
   id: string;
@@ -538,3 +538,7 @@ export const TAX_RELIEF_SECTIONS = [
   "Protection & Savings",
   "Green & Housing",
 ] as const;
+
+export const getTaxReliefsForYear = (year: string): TaxRelief[] => {
+  return TAX_RELIEFS_BY_YEAR[year] || TAX_RELIEFS_BY_YEAR[Object.keys(TAX_RELIEFS_BY_YEAR).sort().reverse()[0]];
+};

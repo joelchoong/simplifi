@@ -73,26 +73,6 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ currentView, setCurrentVie
 
         {/* Far Right: CTA + Avatar Menu */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Mobile version */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 sm:hidden flex items-center gap-1.5 h-9 px-3"
-            onClick={() => navigate("/improve")}
-          >
-            <TrendingUp className="h-4 w-4" />
-            <span className="text-xs font-bold">Improve</span>
-          </Button>
-          {/* Desktop version */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="font-medium rounded-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hidden sm:inline-flex"
-            onClick={() => navigate("/improve")}
-          >
-            <TrendingUp className="h-4 w-4" />
-            Improve my position
-          </Button>
           <AvatarMenu
             src={avatarUrl}
             name={fullName}

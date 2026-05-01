@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shar
 import { Info, ChevronLeft, ChevronRight, RotateCcw, WalletCards } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
-import { NetWorthRecord, calculateNettIncome } from "@/features/financial-records/net-worth/domain/netWorth";
+import { NetWorthRecord, calculateNettIncome, formatMonthLabel, getPreviousMonthStart } from "@/features/financial-records/net-worth/domain/netWorth";
 import { NetWorthChart } from "./NetWorthChart";
 
 /* ── Helpers ── */
@@ -58,23 +58,38 @@ export function NetWorthSummary({
   onResetMonth,
   headerActions,
 }: NetWorthSummaryProps) {
-  if (!latestRecord) {
+  if (!latestRecord && !previousRecord) {
     return (
-      <section className="rounded-lg border border-dashed border-border/60 bg-card p-6 text-center text-sm text-muted-foreground">
-        Add this month's numbers to see your net worth, monthly change, and breakdown.
+      <section className="rounded-2xl border border-dashed border-border/60 bg-card p-12 text-center flex flex-col items-center gap-4">
+        <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 mb-2">
+          <WalletCards className="w-6 h-6" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-lg font-bold text-foreground">Welcome to Net Worth Tracking</h3>
+          <p className="text-sm text-muted-foreground max-w-[300px] mx-auto">
+            Add your first record to start tracking your financial growth and breakdowns.
+          </p>
+        </div>
+        <div className="pt-2">
+          {headerActions}
+        </div>
       </section>
     );
   }
 
-  const netWorth = latestRecord.netWorth;
-  const changeValue = monthlyChange.absolute ?? 0;
+  // If we're looking at a new month (latestRecord is null) but we have previous data
+  const displayRecord = latestRecord || previousRecord!;
+  const isBaseline = !latestRecord;
+
+  const netWorth = displayRecord.netWorth;
+  const changeValue = isBaseline ? 0 : (monthlyChange.absolute ?? 0);
   const isPositive = changeValue >= 0;
 
-  const cash = latestRecord.totalCash;
-  const investments = latestRecord.totalInvestments;
-  const property = latestRecord.totalProperty;
-  const epf = latestRecord.epfAmount || 0;
-  const debt = latestRecord.totalLiabilities;
+  const cash = displayRecord.totalCash;
+  const investments = displayRecord.totalInvestments;
+  const property = displayRecord.totalProperty;
+  const epf = displayRecord.epfAmount || 0;
+  const debt = displayRecord.totalLiabilities;
 
   const grossAssets = cash + investments + property + epf;
   const totalInvestValue = investments + property + epf;
@@ -159,10 +174,32 @@ export function NetWorthSummary({
   const yearEndItem = projectedChartData[projectedChartData.length - 1];
   const yearEndProjection = yearEndItem?.projected ?? 0;
 
-  if (!latestRecord) return null;
+  // Rendering logic below
 
   return (
     <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-sm">
+      {isBaseline && (
+        <div className="bg-emerald-50 dark:bg-emerald-500/10 border-b border-emerald-500/20 px-6 sm:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-3 w-3 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+            <div>
+              <h3 className="text-sm font-bold text-emerald-800 dark:text-emerald-300 leading-tight">
+                Welcome to {monthLabel}
+              </h3>
+              <p className="text-[13px] text-emerald-700/80 dark:text-emerald-400/80 mt-0.5">
+                Your records are pending. We've brought over your {formatMonthLabel(getPreviousMonthStart(selectedMonth))} baseline.
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 w-full sm:w-auto flex justify-end">
+            {headerActions}
+          </div>
+        </div>
+      )}
+
       {/* ════════════════════════════════════════════════════════
           1. HERO SECTION
          ════════════════════════════════════════════════════════ */}
@@ -175,7 +212,14 @@ export function NetWorthSummary({
             </div>
             <div className="min-w-0">
               <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight truncate">Net Worth Overview</h2>
-              <p className="text-[13px] font-normal text-muted-foreground truncate">YA {yearStr} • {monthLabel}</p>
+              <div className="flex items-center gap-2 mt-0.5 truncate">
+                <p className="text-[13px] font-normal text-muted-foreground truncate">YA {yearStr} • {monthLabel}</p>
+                {isBaseline && (
+                  <span className="inline-flex items-center rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 border border-amber-100/50">
+                    Baseline
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           
@@ -273,7 +317,7 @@ export function NetWorthSummary({
 
           {/* ── Right: Header Actions ── */}
           <div className="flex justify-end">
-            {headerActions && (
+            {!isBaseline && headerActions && (
               <div className="flex items-center gap-2">
                 {headerActions}
               </div>
@@ -282,11 +326,19 @@ export function NetWorthSummary({
         </div>
 
         <div className="flex items-baseline gap-3 flex-wrap mb-2">
-          <span className="text-4xl sm:text-[52px] font-medium tracking-tight leading-none text-foreground">
+          <span className={cn(
+            "text-4xl sm:text-[52px] font-medium tracking-tight leading-none text-foreground",
+            isBaseline && "opacity-60"
+          )}>
             {netWorth < 0 ? "−" : ""}
             {formatCurrency(netWorth)}
           </span>
-          {monthlyChange.absolute !== null && (
+          {isBaseline ? (
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              PENDING MAY UPDATE
+            </div>
+          ) : monthlyChange.absolute !== null && (
             <span
               className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
                 isPositive

@@ -99,13 +99,12 @@ export function FinancialRecordsPage() {
   }, [profileData, selectedRecord]);
 
   const previousMonthRecord = useMemo(() => {
-    if (!selectedRecord) return null;
     return (
       records.find(
-        (record) => record.entryMonth === getPreviousMonthStart(selectedRecord.entryMonth)
+        (record) => record.entryMonth === getPreviousMonthStart(selectedMonth)
       ) || null
     );
-  }, [records, selectedRecord]);
+  }, [records, selectedMonth]);
 
   const selectedMonthlyChange = useMemo(() => {
     if (!selectedRecord) {

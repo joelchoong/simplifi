@@ -119,6 +119,101 @@ export const ApiService = {
   },
 
   tax: {
-    // We can add tax-related API calls here next
+    /**
+     * Fetches all receipts for a specific user and year.
+     */
+    async fetchReceipts(userId: string, year: number): Promise<any[]> {
+      const { data, error } = await supabase
+        .from("tax_receipts")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("tax_year", year)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    /**
+     * Saves a new receipt record. This will trigger the Make.com automation.
+     */
+    async saveReceipt(payload: {
+      user_id: string;
+      file_name: string;
+      storage_path: string;
+      tax_year: number;
+      amount?: number;
+      category_id?: string;
+      sub_item_id?: string;
+    }): Promise<any> {
+      const { data, error } = await supabase
+        .from("tax_receipts")
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    /**
+     * Updates an existing receipt.
+     */
+    async updateReceipt(receiptId: string, userId: string, updates: any): Promise<void> {
+      const { error } = await supabase
+        .from("tax_receipts")
+        .update(updates)
+        .eq("id", receiptId)
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Supabase Update Error:", error);
+        throw new Error(error.message || "Failed to update record");
+      }
+    },
+
+    /**
+     * Deletes a receipt.
+     */
+    async deleteReceipt(receiptId: string, userId: string): Promise<void> {
+      const { error } = await supabase
+        .from("tax_receipts")
+        .delete()
+        .eq("id", receiptId)
+        .eq("user_id", userId);
+
+      if (error) throw error;
+    }
+  },
+
+  storage: {
+    /**
+     * Uploads a receipt file to the storage bucket.
+     * Returns the public path/URL for the file.
+     */
+    async uploadReceipt(file: File, userId: string): Promise<string> {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${userId}/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('receipts')
+        .upload(filePath, file);
+
+      if (error) throw error;
+      return filePath;
+    },
+
+    /**
+     * Gets a temporary signed URL for a private file.
+     */
+    async createSignedUrl(path: string): Promise<string | null> {
+      const { data, error } = await supabase.storage
+        .from('receipts')
+        .createSignedUrl(path, 3600); // 1 hour expiry
+      
+      if (error) return null;
+      return data.signedUrl;
+    }
   }
 };

@@ -209,6 +209,17 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    const handleUpload = () => fileInputRef.current?.click();
+    const handleViewList = () => setIsReceiptsListOpen(true);
+    window.addEventListener('simplifi-open-upload-receipts', handleUpload);
+    window.addEventListener('simplifi-open-tax-receipts-list', handleViewList);
+    return () => {
+      window.removeEventListener('simplifi-open-upload-receipts', handleUpload);
+      window.removeEventListener('simplifi-open-tax-receipts-list', handleViewList);
+    };
+  }, []);
+
+  useEffect(() => {
     setClaimsByYear((prev) => {
       const updated: ClaimsByYear = { ...prev };
       for (const year of YEAR_OPTIONS) {
@@ -1191,37 +1202,6 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
         </DialogContent>
       </Dialog>
 
-      {/* Mobile fixed CTA — adapts based on whether receipts exist */}
-      <div className="sm:hidden fixed bottom-16 left-0 right-0 z-40 px-4 pb-3 pt-2 bg-gradient-to-t from-background via-background to-transparent">
-        <input
-          type="file"
-          multiple
-          accept="image/*,.pdf"
-          className="hidden"
-          id="mobile-receipt-input"
-          onChange={handleInputChange}
-        />
-        {yearReceipts.length > 0 ? (
-          <Button
-            onClick={() => setIsReceiptsListOpen(true)}
-            className="w-full h-12 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] gap-2 text-[15px]"
-          >
-            <ReceiptText className="w-4 h-4" />
-            View uploaded documents
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1.5 text-[11px] font-bold">
-              {yearReceipts.length}
-            </span>
-          </Button>
-        ) : (
-          <Button
-            onClick={() => document.getElementById("mobile-receipt-input")?.click()}
-            className="w-full h-12 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] gap-2 text-[15px]"
-          >
-            <Upload className="w-4 h-4" />
-            Upload Receipt
-          </Button>
-        )}
-      </div>
     </div>
   );
 }

@@ -46,6 +46,14 @@ export function FinancialRecordsPage() {
     setSearchParams({ tab: view });
   };
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Listen for header action events
+  useEffect(() => {
+    const handleOpenSheet = () => setSheetOpen(true);
+    window.addEventListener('simplifi-open-update-records', handleOpenSheet);
+    return () => window.removeEventListener('simplifi-open-update-records', handleOpenSheet);
+  }, []);
+
   const { profileData, loading: profileLoading } = useProfileData();
   const {
     loading,
@@ -259,19 +267,6 @@ export function FinancialRecordsPage() {
 
       {currentView === "my-tax" && (
         <MyTaxView monthlyIncome={profileData.monthlyIncome} age={profileData.age} />
-      )}
-
-      {/* ── Mobile Footer CTA (Net Worth only) ── */}
-      {currentView === "net-worth" && !loading && !profileLoading && (
-        <div className="sm:hidden fixed bottom-16 left-0 right-0 z-40 px-4 pb-3 pt-2 bg-gradient-to-t from-background via-background to-transparent">
-          <Button
-            onClick={() => setSheetOpen(true)}
-            className="w-full h-12 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] gap-2 text-[15px]"
-          >
-            <Edit3 className="w-4 h-4" />
-            Update Records
-          </Button>
-        </div>
       )}
     </div>
   );

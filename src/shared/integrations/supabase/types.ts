@@ -56,6 +56,48 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_receipts: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          file_name: string
+          id: string
+          metadata: Json
+          storage_path: string
+          sub_item_id: string | null
+          tax_year: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          file_name: string
+          id?: string
+          metadata?: Json
+          storage_path: string
+          sub_item_id?: string | null
+          tax_year: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          file_name?: string
+          id?: string
+          metadata?: Json
+          storage_path?: string
+          sub_item_id?: string | null
+          tax_year?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null

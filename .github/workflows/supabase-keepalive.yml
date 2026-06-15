@@ -1,0 +1,48 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # Runs daily at 12:10 AM Malaysia time (UTC+8).
+    - cron: "10 16 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping Supabase REST API
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL || 'https://kcddiucedwlnlhfibuss.supabase.co' }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.SUPABASE_PUBLISHABLE_KEY || vars.SUPABASE_ANON_KEY || vars.SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImtjZGRpdWNlZHdsbmxoZmlidXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzcyNDgsImV4cCI6MjA4NTk1MzI0OH0.ZlXlLH_TOlDJjVAdtkgCsEBv0WF-1MTa0xVQs0kiYbo' }}
+
+    steps:
+      - name: Check Supabase configuration
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "SUPABASE_URL is missing."
+            exit 1
+          fi
+
+          if [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY is missing."
+            exit 1
+          fi
+
+      - name: Ping REST API
+        run: |
+          status_code="$(
+            curl --silent --show-error \
+              --output /tmp/supabase-keepalive.json \
+              --write-out "%{http_code}" \
+              --get "$SUPABASE_URL/rest/v1/" \
+              --header "apikey: $SUPABASE_ANON_KEY" \
+              --header "Authorization: Bearer $SUPABASE_ANON_KEY"
+          )"
+
+          echo "Supabase responded with HTTP $status_code."
+
+          if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 500 ]; then
+            echo "Keep-alive ping failed."
+            cat /tmp/supabase-keepalive.json
+            exit 1
+          fi

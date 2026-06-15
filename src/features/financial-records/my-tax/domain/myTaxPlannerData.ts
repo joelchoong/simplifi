@@ -29,6 +29,7 @@ export interface PlannerReceipt {
   subItemId: string;
   amount: number;
   dataUrl?: string;
+  storagePath?: string;
 }
 
 export const MY_TAX_SOURCE_URL = TAX_RELIEF_SOURCE_URL;
@@ -560,27 +561,27 @@ export const MY_TAX_PLANNER_DATA: Record<string, PlannerCategory[]> = {
   ],
 };
 
-export const DETECTION_KEYWORD_MAP: Array<{ keys: string[]; subItemId: string }> = [
-  { keys: ["klinik", "clinic", "hospital", "doktor", "doctor", "pharmacy", "farmasi"], subItemId: "parents_medical" },
-  { keys: ["dental", "dentist", "gigi"], subItemId: "medical_dental" },
-  { keys: ["vaccine", "vaccination", "vaksin"], subItemId: "medical_vaccination" },
-  { keys: ["checkup", "check-up", "medical exam", "screening"], subItemId: "screening_checkup" },
-  { keys: ["mental", "therapy", "therapist", "psych"], subItemId: "screening_mental" },
-  { keys: ["covid", "antigen", "pcr"], subItemId: "screening_covid" },
-  { keys: ["course", "kursus", "training", "upskill", "certificate", "diploma", "degree", "master", "university", "college"], subItemId: "education_upskill" },
-  { keys: ["book", "buku", "journal", "magazine", "newspaper"], subItemId: "lifestyle_books" },
-  { keys: ["laptop", "computer", "tablet", "smartphone", "phone", "pc"], subItemId: "lifestyle_device" },
-  { keys: ["internet", "wifi", "unifi", "maxis", "celcom", "digi"], subItemId: "lifestyle_internet" },
-  { keys: ["gym", "fitness", "badminton", "futsal", "sports"], subItemId: "sports_gym" },
-  { keys: ["nursery", "childcare", "kindergarten", "tadika"], subItemId: "childcare_main" },
-  { keys: ["insurance", "takaful", "premium"], subItemId: "insurance_life" },
-  { keys: ["epf", "kwsp"], subItemId: "insurance_epf" },
-  { keys: ["socso", "perkeso"], subItemId: "socso_main" },
-  { keys: ["sspn"], subItemId: "sspn_main" },
-  { keys: ["charger", "charging", "ev"], subItemId: "ev_charging" },
-  { keys: ["compost"], subItemId: "ev_composting" },
-  { keys: ["home loan", "housing", "mortgage"], subItemId: "housing_loan_500" },
-];
+export const DETECTION_KEYWORD_MAP: Record<string, string[]> = {
+  parents_medical: ["klinik", "clinic", "hospital", "doktor", "doctor", "pharmacy", "farmasi"],
+  medical_dental: ["dental", "dentist", "gigi"],
+  medical_vaccination: ["vaccine", "vaccination", "vaksin"],
+  screening_checkup: ["checkup", "check-up", "medical exam", "screening"],
+  screening_mental: ["mental", "therapy", "therapist", "psych"],
+  screening_covid: ["covid", "antigen", "pcr"],
+  education_upskill: ["course", "kursus", "training", "upskill", "certificate", "diploma", "degree", "master", "university", "college"],
+  lifestyle_books: ["book", "buku", "journal", "magazine", "newspaper"],
+  lifestyle_device: ["laptop", "computer", "tablet", "smartphone", "phone", "pc"],
+  lifestyle_internet: ["internet", "wifi", "unifi", "maxis", "celcom", "digi"],
+  sports_gym: ["gym", "fitness", "badminton", "futsal", "sports"],
+  childcare_main: ["nursery", "childcare", "kindergarten", "tadika"],
+  insurance_life: ["insurance", "takaful", "premium"],
+  insurance_epf: ["epf", "kwsp"],
+  socso_main: ["socso", "perkeso"],
+  sspn_main: ["sspn"],
+  ev_charging: ["charger", "charging", "ev"],
+  ev_composting: ["compost"],
+  housing_loan_500: ["home loan", "housing", "mortgage"],
+};
 
 export const DEFAULT_FALLBACKS = [
   "parents_medical",

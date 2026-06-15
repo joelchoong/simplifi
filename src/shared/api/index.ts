@@ -1,4 +1,5 @@
 import { supabase } from "@/shared/integrations/supabase/client";
+import type { Tables, TablesInsert, TablesUpdate } from "@/shared/integrations/supabase/types";
 import { 
   NetWorthRecord, 
   NetWorthFormValues, 
@@ -6,6 +7,10 @@ import {
   normaliseNetWorthValues,
   normaliseEntryMonth 
 } from "@/features/financial-records/net-worth/domain/netWorth";
+
+type TaxReceiptRow = Tables<"tax_receipts">;
+type TaxReceiptInsert = TablesInsert<"tax_receipts">;
+type TaxReceiptUpdate = TablesUpdate<"tax_receipts">;
 
 /**
  * ApiService Abstraction Layer
@@ -122,7 +127,7 @@ export const ApiService = {
     /**
      * Fetches all receipts for a specific user and year.
      */
-    async fetchReceipts(userId: string, year: number): Promise<any[]> {
+    async fetchReceipts(userId: string, year: number): Promise<TaxReceiptRow[]> {
       const { data, error } = await supabase
         .from("tax_receipts")
         .select("*")
@@ -137,15 +142,7 @@ export const ApiService = {
     /**
      * Saves a new receipt record. This will trigger the Make.com automation.
      */
-    async saveReceipt(payload: {
-      user_id: string;
-      file_name: string;
-      storage_path: string;
-      tax_year: number;
-      amount?: number;
-      category_id?: string;
-      sub_item_id?: string;
-    }): Promise<any> {
+    async saveReceipt(payload: TaxReceiptInsert): Promise<TaxReceiptRow> {
       const { data, error } = await supabase
         .from("tax_receipts")
         .insert(payload)
@@ -159,7 +156,7 @@ export const ApiService = {
     /**
      * Updates an existing receipt.
      */
-    async updateReceipt(receiptId: string, userId: string, updates: any): Promise<void> {
+    async updateReceipt(receiptId: string, userId: string, updates: TaxReceiptUpdate): Promise<void> {
       const { error } = await supabase
         .from("tax_receipts")
         .update(updates)
@@ -167,7 +164,7 @@ export const ApiService = {
         .eq("user_id", userId);
 
       if (error) {
-        console.error("Supabase Update Error:", error);
+        console.warn("Supabase Update Error:", error);
         throw new Error(error.message || "Failed to update record");
       }
     },
@@ -192,7 +189,7 @@ export const ApiService = {
           .remove([storagePath]);
 
         if (storageError) {
-          console.error("Storage delete error:", storageError);
+          console.warn("Storage delete error:", storageError);
           // Don't throw — DB record is already gone, storage cleanup is best-effort
         }
       }

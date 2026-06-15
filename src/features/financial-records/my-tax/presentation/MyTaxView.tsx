@@ -179,9 +179,13 @@ function detectSubItemId(fileName: string, categories: PlannerCategory[]) {
 }
 
 function detectAmount(fileName: string) {
-  const match = fileName.match(/(\d+[\._]\d{2})|(\d+)/);
+  const match = fileName.match(/(\d+[._]\d{2})|(\d+)/);
   if (match) return Number.parseFloat(match[0].replace("_", ".")) || 0;
   return 0;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
 }
 
 export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: number; age?: number }) {
@@ -267,7 +271,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           };
         });
       } catch (error) {
-        console.error("Error loading receipts:", error);
+        console.warn("Error loading receipts:", error);
       }
     };
     loadReceipts();
@@ -342,7 +346,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
       toast.success("Receipt deleted");
     } catch (error) {
-      console.error("Error deleting receipt:", error);
+      console.warn("Error deleting receipt:", error);
       toast.error("Failed to delete receipt");
     } finally {
       setIsDeleting(false);
@@ -379,7 +383,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error("Error processing file:", error);
+      console.warn("Error processing file:", error);
       toast.error("Failed to upload receipt");
       setProcessingFileName(null);
     }
@@ -436,7 +440,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
       window.setTimeout(() => setFlashCategoryId(null), 800);
       toast.success("Receipt saved successfully");
     } catch (error) {
-      console.error("Error saving receipt:", error);
+      console.warn("Error saving receipt:", error);
       toast.error("Failed to save receipt");
     } finally {
       setSaving(false);
@@ -477,7 +481,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
       URL.revokeObjectURL(url);
       toast.success("All receipts exported successfully");
     } catch (error) {
-      console.error("Export failed:", error);
+      console.warn("Export failed:", error);
       toast.error("Failed to export receipts");
     } finally {
       setIsExporting(false);
@@ -535,9 +539,9 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
       toast.success("Receipt updated successfully");
       setViewingReceipt(null);
-    } catch (error: any) {
-      console.error("Error updating receipt:", error);
-      toast.error(`Save failed: ${error.message || "Unknown error"}`);
+    } catch (error) {
+      console.warn("Error updating receipt:", error);
+      toast.error(`Save failed: ${getErrorMessage(error)}`);
     } finally {
       setSaving(false);
     }

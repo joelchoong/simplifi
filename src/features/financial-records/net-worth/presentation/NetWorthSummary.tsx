@@ -328,19 +328,11 @@ export function NetWorthSummary({
         {/* Mobile-only: subtle context label for the figure */}
         <p className="sm:hidden text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest !mt-6">Your net worth</p>
         <div className="flex items-baseline gap-3 flex-wrap mb-2">
-          <span className={cn(
-            "text-4xl sm:text-[52px] font-medium tracking-tight leading-none text-foreground",
-            isBaseline && "opacity-60"
-          )}>
+          <span className="text-4xl sm:text-[52px] font-medium tracking-tight leading-none text-foreground">
             {netWorth < 0 ? "−" : ""}
             {formatCurrency(netWorth)}
           </span>
-          {isBaseline ? (
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              PENDING MAY UPDATE
-            </div>
-          ) : monthlyChange.absolute !== null && (
+          {!isBaseline && monthlyChange.absolute !== null && (
             <span
               className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
                 isPositive

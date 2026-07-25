@@ -36,7 +36,6 @@ import {
   CheckCircle2,
   Ban,
   Clock,
-  SlidersHorizontal,
   EyeOff,
 } from "lucide-react";
 import JSZip from "jszip";
@@ -45,14 +44,12 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/shared/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/shared/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/components/ui/sheet";
 import { Label } from "@/shared/components/ui/label";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
 import {
-  DEFAULT_FALLBACKS,
   DETECTION_KEYWORD_MAP,
-  MY_TAX_PLANNER_DATA,
   getPlannerDataForYear,
   MY_TAX_SOURCE_URL,
   PlannerCategory,
@@ -194,6 +191,10 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
+function getPreferenceStorageKey(userId: string | undefined, year: AssessmentYear) {
+  return `simplifi_na_categories_${userId || "guest"}_${year}`;
+}
+
 export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: number; age?: number }) {
   const { user } = useAuth();
   const [selectedYear, setSelectedYear] = useState<AssessmentYear>(currentYear.toString());
@@ -202,7 +203,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
   const [naCategoryIds, setNaCategoryIds] = useState<Set<string>>(() => {
     try {
-      const key = `simplifi_na_categories_${user?.id || "guest"}`;
+      const key = getPreferenceStorageKey(user?.id, selectedYear);
       const stored = localStorage.getItem(key);
       return stored ? new Set(JSON.parse(stored)) : new Set<string>();
     } catch {
@@ -212,24 +213,22 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
   useEffect(() => {
     try {
-      const key = `simplifi_na_categories_${user?.id || "guest"}`;
+      const key = getPreferenceStorageKey(user?.id, selectedYear);
       const stored = localStorage.getItem(key);
-      if (stored) {
-        setNaCategoryIds(new Set(JSON.parse(stored)));
-      }
+      setNaCategoryIds(stored ? new Set(JSON.parse(stored)) : new Set<string>());
     } catch {
       // ignore
     }
-  }, [user?.id]);
+  }, [selectedYear, user?.id]);
 
   useEffect(() => {
     try {
-      const key = `simplifi_na_categories_${user?.id || "guest"}`;
+      const key = getPreferenceStorageKey(user?.id, selectedYear);
       localStorage.setItem(key, JSON.stringify(Array.from(naCategoryIds)));
     } catch (err) {
       console.warn("Failed to save N/A category settings", err);
     }
-  }, [naCategoryIds, user?.id]);
+  }, [naCategoryIds, selectedYear, user?.id]);
 
   const toggleNaCategory = (categoryId: string, event?: React.MouseEvent) => {
     if (event) event.stopPropagation();
@@ -244,13 +243,14 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
       }
       const categoryArray = Array.from(next);
       try {
-        const key = `simplifi_na_categories_${user?.id || "guest"}`;
+        const key = getPreferenceStorageKey(user?.id, selectedYear);
         localStorage.setItem(key, JSON.stringify(categoryArray));
       } catch (err) {
         console.warn("Failed to save N/A category to localStorage", err);
       }
       if (user) {
-        ApiService.tax.saveNaCategories(user.id, Number(selectedYear), categoryArray).catch((err) => {
+        const allCategoryIds = getPlannerDataForYear(selectedYear).map((category) => category.id);
+        ApiService.tax.saveNaCategories(user.id, Number(selectedYear), categoryArray, allCategoryIds).catch((err) => {
           console.warn("Failed to sync N/A categories to Supabase", err);
         });
       }
@@ -309,10 +309,10 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
         // Sync cloud N/A settings from Supabase
         const cloudNa = await ApiService.tax.fetchNaCategories(user.id, Number(selectedYear));
-        if (cloudNa && Array.isArray(cloudNa)) {
+        if (Array.isArray(cloudNa)) {
           setNaCategoryIds(new Set(cloudNa));
           try {
-            const key = `simplifi_na_categories_${user.id}`;
+            const key = getPreferenceStorageKey(user.id, selectedYear);
             localStorage.setItem(key, JSON.stringify(cloudNa));
           } catch {
             // ignore
@@ -320,7 +320,6 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
         }
 
         const mappedReceipts = data
-          .filter(r => r.category_id !== "system_setting")
           .map(r => ({
             id: r.id,
             name: r.file_name,
@@ -375,7 +374,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
   const yearReceipts = receipts.filter((receipt) => receipt.year === selectedYear);
 
   const filterCounts = useMemo(() => {
-    let all = categories.length;
+    const all = categories.length;
     let remaining = 0;
     let utilised = 0;
     let na = 0;
@@ -428,7 +427,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
     }));
   };
 
-  const applyManualClaim = async (category: PlannerCategory, subItemId: string, limit: number) => {
+  const applyManualClaim = (category: PlannerCategory, subItemId: string, limit: number) => {
     const rawValue = Number.parseFloat(pendingValues[subItemId] || "0");
     if (!rawValue || rawValue <= 0) return;
 
@@ -438,48 +437,11 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
     const allowed = Math.min(rawValue, subRemaining, categoryRemaining);
     if (allowed <= 0) return;
 
-    if (!user) {
-      toast.error("Please sign in to save tax claims.");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const subItem = category.subItems.find((s) => s.id === subItemId);
-      const label = subItem ? subItem.label : category.title;
-
-      const newRecord = await ApiService.tax.saveReceipt({
-        user_id: user.id,
-        tax_year: Number(selectedYear),
-        file_name: `Manual Entry: ${label}`,
-        storage_path: "manual",
-        amount: allowed,
-        category_id: category.id,
-        sub_item_id: subItemId,
-      });
-
-      const newPlannerReceipt: PlannerReceipt = {
-        id: newRecord.id,
-        name: newRecord.file_name,
-        amount: Number(newRecord.amount),
-        categoryId: newRecord.category_id,
-        subItemId: newRecord.sub_item_id,
-        year: String(newRecord.tax_year) as AssessmentYear,
-        storagePath: newRecord.storage_path,
-      };
-
-      setReceipts((prev) => [newPlannerReceipt, ...prev]);
-      updateClaim(subItemId, Math.min(limit, currentClaim + allowed));
-      setPendingValues((previous) => ({ ...previous, [subItemId]: "" }));
-      setActiveInputId(null);
-      setOpenCategoryId(category.id);
-      toast.success("Manual claim saved to Supabase");
-    } catch (error) {
-      console.error("Failed to save manual claim:", error);
-      toast.error("Failed to save manual claim");
-    } finally {
-      setSaving(false);
-    }
+    updateClaim(subItemId, Math.min(limit, currentClaim + allowed));
+    setPendingValues((previous) => ({ ...previous, [subItemId]: "" }));
+    setActiveInputId(null);
+    setOpenCategoryId(category.id);
+    toast.success("Manual claim added");
   };
 
   const removeReceipt = async (receiptId: string) => {

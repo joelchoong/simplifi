@@ -11,6 +11,8 @@ import {
 type TaxReceiptRow = Tables<"tax_receipts">;
 type TaxReceiptInsert = TablesInsert<"tax_receipts">;
 type TaxReceiptUpdate = TablesUpdate<"tax_receipts">;
+type TaxCategoryPreferenceRow = Tables<"tax_category_preferences">;
+type TaxCategoryPreferenceInsert = TablesInsert<"tax_category_preferences">;
 
 /**
  * ApiService Abstraction Layer
@@ -195,58 +197,69 @@ export const ApiService = {
       }
     },
 
+    async fetchCategoryPreferences(userId: string, year: number): Promise<TaxCategoryPreferenceRow[]> {
+      const { data, error } = await supabase
+        .from("tax_category_preferences")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("tax_year", year)
+        .order("category_id", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+
     /**
      * Fetches saved N/A category IDs for a user and tax year from Supabase.
      */
-    async fetchNaCategories(userId: string, year: number): Promise<string[] | null> {
+    async fetchNaCategories(userId: string, year: number): Promise<string[]> {
       const { data, error } = await supabase
-        .from("tax_receipts")
-        .select("metadata")
+        .from("tax_category_preferences")
+        .select("*")
         .eq("user_id", userId)
         .eq("tax_year", year)
-        .eq("category_id", "system_setting")
-        .limit(1)
-        .maybeSingle();
+        .eq("status", "na");
 
-      if (error || !data) return null;
-      const metadata = data.metadata as { na_categories?: string[] };
-      return metadata?.na_categories || null;
+      if (error) throw error;
+      const preferences = data || [];
+      return preferences
+        .map((preference) => preference.category_id);
     },
 
     /**
      * Saves user's N/A category IDs to Supabase.
      */
-    async saveNaCategories(userId: string, year: number, categoryIds: string[]): Promise<void> {
-      const { data } = await supabase
-        .from("tax_receipts")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("tax_year", year)
-        .eq("category_id", "system_setting")
-        .limit(1)
-        .maybeSingle();
+    async saveCategoryPreferences(userId: string, year: number, categories: Array<{ categoryId: string; status: "active" | "na" }>): Promise<void> {
+      if (!categories.length) return;
 
-      const metadata = { na_categories: categoryIds };
+      const payload: TaxCategoryPreferenceInsert[] = categories.map((category) => ({
+        user_id: userId,
+        tax_year: year,
+        category_id: category.categoryId,
+        status: category.status,
+      }));
 
-      if (data?.id) {
-        await supabase
-          .from("tax_receipts")
-          .update({ metadata })
-          .eq("id", data.id)
-          .eq("user_id", userId);
-      } else {
-        await supabase
-          .from("tax_receipts")
-          .insert({
-            user_id: userId,
-            tax_year: year,
-            file_name: "__SETTING_NA_CATEGORIES__",
-            storage_path: "system",
-            amount: 0,
-            category_id: "system_setting",
-            metadata,
-          });
-      }
+      const { error } = await supabase
+        .from("tax_category_preferences")
+        .upsert(payload, { onConflict: "user_id,tax_year,category_id" });
+
+      if (error) throw error;
+    },
+
+    async saveNaCategories(userId: string, year: number, categoryIds: string[], allCategoryIds: string[]): Promise<void> {
+      const naCategoryIds = new Set(categoryIds);
+      const categories = allCategoryIds.map((categoryId) => ({
+        user_id: userId,
+        tax_year: year,
+        category_id: categoryId,
+        status: naCategoryIds.has(categoryId) ? "na" : "active",
+      }));
+
+      const { error } = await supabase
+        .from("tax_category_preferences")
+        .upsert(categories, { onConflict: "user_id,tax_year,category_id" });
+
+      if (error) throw error;
     }
   },
 

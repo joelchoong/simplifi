@@ -98,6 +98,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_category_preferences: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          status: string
+          tax_year: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          tax_year: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          tax_year?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null

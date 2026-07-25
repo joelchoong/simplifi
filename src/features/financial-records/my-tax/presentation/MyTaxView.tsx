@@ -58,8 +58,10 @@ import {
 import { AssessmentYear } from "@/features/financial-records/my-tax/domain/taxReliefs";
 import { ApiService } from "@/shared/api";
 import { useAuth } from "@/features/auth/data/useAuth";
+import type { Tables } from "@/shared/integrations/supabase/types";
 
 type ClaimsByYear = Record<AssessmentYear, Record<string, number>>;
+type TaxReceiptRow = Tables<"tax_receipts">;
 
 const currentYear = new Date().getFullYear();
 const YEAR_OPTIONS: AssessmentYear[] = Array.from({ length: Math.max(2, currentYear - 2024 + 1) }, (_, i) => (currentYear - i).toString());
@@ -195,6 +197,39 @@ function getPreferenceStorageKey(userId: string | undefined, year: AssessmentYea
   return `simplifi_na_categories_${userId || "guest"}_${year}`;
 }
 
+function mapReceiptRow(row: TaxReceiptRow): PlannerReceipt {
+  return {
+    id: row.id,
+    name: row.file_name,
+    amount: Number(row.amount),
+    categoryId: row.category_id || "",
+    subItemId: row.sub_item_id || "",
+    year: String(row.tax_year) as AssessmentYear,
+    storagePath: row.storage_path,
+  };
+}
+
+function buildClaimsFromReceipts(year: AssessmentYear, receipts: PlannerReceipt[], autoAmounts: Record<string, number>) {
+  const yearClaims = { ...buildInitialClaims(autoAmounts)[year] };
+
+  receipts
+    .filter((receipt) => receipt.year === year)
+    .forEach((receipt) => {
+      if (!receipt.subItemId) return;
+
+      const category = getPlannerDataForYear(year).find((entry) => entry.id === receipt.categoryId);
+      const subItem = category?.subItems.find((entry) => entry.id === receipt.subItemId);
+      if (!subItem) return;
+
+      yearClaims[receipt.subItemId] = Math.min(
+        subItem.limit,
+        (yearClaims[receipt.subItemId] || 0) + receipt.amount,
+      );
+    });
+
+  return yearClaims;
+}
+
 export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: number; age?: number }) {
   const { user } = useAuth();
   const [selectedYear, setSelectedYear] = useState<AssessmentYear>(currentYear.toString());
@@ -319,34 +354,13 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           }
         }
 
-        const mappedReceipts = data
-          .map(r => ({
-            id: r.id,
-            name: r.file_name,
-            amount: Number(r.amount),
-            categoryId: r.category_id,
-            subItemId: r.sub_item_id,
-            year: String(r.tax_year) as AssessmentYear,
-            storagePath: r.storage_path
-          }));
+        const mappedReceipts = data.map(mapReceiptRow);
         setReceipts(mappedReceipts);
 
         setClaimsByYear(prev => {
-          const newYearClaims = { ...buildInitialClaims(autoAmounts)[selectedYear] };
-          
-          mappedReceipts.forEach(r => {
-            if (r.subItemId) {
-              const category = getPlannerDataForYear(selectedYear).find(c => c.id === r.categoryId);
-              const subItem = category?.subItems.find(s => s.id === r.subItemId);
-              if (subItem) {
-                newYearClaims[r.subItemId] = Math.min(subItem.limit, (newYearClaims[r.subItemId] || 0) + r.amount);
-              }
-            }
-          });
-          
           return {
             ...prev,
-            [selectedYear]: newYearClaims
+            [selectedYear]: buildClaimsFromReceipts(selectedYear, mappedReceipts, autoAmounts)
           };
         });
       } catch (error) {
@@ -455,21 +469,10 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
       const remainingReceipts = receipts.filter((entry) => entry.id !== receiptId);
       setReceipts(remainingReceipts);
 
-      setClaimsByYear(prev => {
-        const newYearClaims = { ...buildInitialClaims(autoAmounts)[receipt.year] };
-        remainingReceipts
-          .filter(r => r.year === receipt.year)
-          .forEach(r => {
-            if (r.subItemId) {
-              const category = getPlannerDataForYear(receipt.year).find(c => c.id === r.categoryId);
-              const subItem = category?.subItems.find(s => s.id === r.subItemId);
-              if (subItem) {
-                newYearClaims[r.subItemId] = Math.min(subItem.limit, (newYearClaims[r.subItemId] || 0) + r.amount);
-              }
-            }
-          });
-        return { ...prev, [receipt.year]: newYearClaims };
-      });
+      setClaimsByYear(prev => ({
+        ...prev,
+        [receipt.year]: buildClaimsFromReceipts(receipt.year, remainingReceipts, autoAmounts),
+      }));
 
       toast.success("Receipt deleted");
     } catch (error) {
@@ -492,20 +495,37 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
       const guessedAmount = detectAmount(file.name);
 
       const filePath = await ApiService.storage.uploadReceipt(file, user.id);
+      const savedReceipt = await ApiService.tax.saveReceipt({
+        user_id: user.id,
+        file_name: file.name,
+        storage_path: filePath,
+        tax_year: Number(selectedYear),
+        amount: guessedAmount,
+        category_id: category?.id || null,
+        sub_item_id: guessedSubItemId || null,
+        metadata: {
+          review_status: "draft",
+          detected_from: "filename",
+        },
+      });
+
+      const persistedReceipt = mapReceiptRow(savedReceipt);
+      setReceipts((previous) => [persistedReceipt, ...previous]);
+
+      if (persistedReceipt.subItemId) {
+        setClaimsByYear((previous) => ({
+          ...previous,
+          [selectedYear]: buildClaimsFromReceipts(selectedYear, [persistedReceipt, ...receipts], autoAmounts),
+        }));
+      }
 
       const reader = new FileReader();
       reader.onload = (e) => {
         const dataUrl = e.target?.result as string;
         setProcessingFileName(null);
         setPendingReceipt({
-          id: crypto.randomUUID(),
-          year: selectedYear,
-          name: file.name,
-          categoryId: category?.id || "", 
-          subItemId: guessedSubItemId || "",
-          amount: guessedAmount,
+          ...persistedReceipt,
           dataUrl,
-          storagePath: filePath,
         });
       };
       reader.readAsDataURL(file);

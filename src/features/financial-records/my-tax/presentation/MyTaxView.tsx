@@ -301,7 +301,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
     }));
   };
 
-  const applyManualClaim = (category: PlannerCategory, subItemId: string, limit: number) => {
+  const applyManualClaim = async (category: PlannerCategory, subItemId: string, limit: number) => {
     const rawValue = Number.parseFloat(pendingValues[subItemId] || "0");
     if (!rawValue || rawValue <= 0) return;
 
@@ -311,10 +311,48 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
     const allowed = Math.min(rawValue, subRemaining, categoryRemaining);
     if (allowed <= 0) return;
 
-    updateClaim(subItemId, Math.min(limit, currentClaim + allowed));
-    setPendingValues((previous) => ({ ...previous, [subItemId]: "" }));
-    setActiveInputId(null);
-    setOpenCategoryId(category.id);
+    if (!user) {
+      toast.error("Please sign in to save tax claims.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const subItem = category.subItems.find((s) => s.id === subItemId);
+      const label = subItem ? subItem.label : category.title;
+
+      const newRecord = await ApiService.tax.saveReceipt({
+        user_id: user.id,
+        tax_year: Number(selectedYear),
+        file_name: `Manual Entry: ${label}`,
+        storage_path: "manual",
+        amount: allowed,
+        category_id: category.id,
+        sub_item_id: subItemId,
+      });
+
+      const newPlannerReceipt: PlannerReceipt = {
+        id: newRecord.id,
+        name: newRecord.file_name,
+        amount: Number(newRecord.amount),
+        categoryId: newRecord.category_id,
+        subItemId: newRecord.sub_item_id,
+        year: String(newRecord.tax_year) as AssessmentYear,
+        storagePath: newRecord.storage_path,
+      };
+
+      setReceipts((prev) => [newPlannerReceipt, ...prev]);
+      updateClaim(subItemId, Math.min(limit, currentClaim + allowed));
+      setPendingValues((previous) => ({ ...previous, [subItemId]: "" }));
+      setActiveInputId(null);
+      setOpenCategoryId(category.id);
+      toast.success("Manual claim saved to Supabase");
+    } catch (error) {
+      console.error("Failed to save manual claim:", error);
+      toast.error("Failed to save manual claim");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const removeReceipt = async (receiptId: string) => {

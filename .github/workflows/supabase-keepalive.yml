@@ -2,13 +2,16 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    # Runs daily at 12:10 AM Malaysia time (UTC+8).
+    # Runs daily at 16:10 UTC (12:10 AM Malaysia time, UTC+8)
     - cron: "10 16 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   ping:
-    name: Ping Supabase REST API
+    name: Ping Supabase & Maintain Repo Activity
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -16,6 +19,12 @@ jobs:
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.SUPABASE_PUBLISHABLE_KEY || vars.SUPABASE_ANON_KEY || vars.SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImtjZGRpdWNlZHdsbmxoZmlidXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzcyNDgsImV4cCI6MjA4NTk1MzI0OH0.ZlXlLH_TOlDJjVAdtkgCsEBv0WF-1MTa0xVQs0kiYbo' }}
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
       - name: Check Supabase configuration
         run: |
           if [ -z "$SUPABASE_URL" ]; then
@@ -24,7 +33,7 @@ jobs:
           fi
 
           if [ -z "$SUPABASE_ANON_KEY" ]; then
-            echo "SUPABASE_ANON_KEY or SUPABASE_PUBLISHABLE_KEY is missing."
+            echo "SUPABASE_ANON_KEY is missing."
             exit 1
           fi
 
@@ -34,15 +43,39 @@ jobs:
             curl --silent --show-error \
               --output /tmp/supabase-keepalive.json \
               --write-out "%{http_code}" \
-              --get "$SUPABASE_URL/rest/v1/" \
+              --get "$SUPABASE_URL/rest/v1/profiles?select=id&limit=1" \
               --header "apikey: $SUPABASE_ANON_KEY" \
               --header "Authorization: Bearer $SUPABASE_ANON_KEY"
           )"
 
-          echo "Supabase responded with HTTP $status_code."
+          echo "Supabase REST API responded with HTTP $status_code."
 
-          if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 500 ]; then
+          if [ "$status_code" -ne 200 ]; then
             echo "Keep-alive ping failed."
             cat /tmp/supabase-keepalive.json
             exit 1
+          fi
+
+      - name: Auto-Touch Keepalive File (Monthly)
+        run: |
+          DAY_OF_MONTH=$(date +%d)
+          IS_MANUAL="${{ github.event_name }}"
+
+          if [ "$DAY_OF_MONTH" = "01" ] || [ "$IS_MANUAL" = "workflow_dispatch" ]; then
+            echo "Updating keepalive timestamp to maintain GitHub activity..."
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > .keepalive
+            
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            
+            git add .keepalive
+            if ! git diff --cached --quiet; then
+              git commit -m "chore(keepalive): update heartbeat timestamp [skip ci]"
+              git push
+              echo "Pushed keepalive commit to GitHub."
+            else
+              echo "No changes to commit."
+            fi
+          else
+            echo "Skipping git commit (not 1st day of month)."
           fi

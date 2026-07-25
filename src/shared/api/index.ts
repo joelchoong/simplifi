@@ -193,6 +193,60 @@ export const ApiService = {
           // Don't throw — DB record is already gone, storage cleanup is best-effort
         }
       }
+    },
+
+    /**
+     * Fetches saved N/A category IDs for a user and tax year from Supabase.
+     */
+    async fetchNaCategories(userId: string, year: number): Promise<string[] | null> {
+      const { data, error } = await supabase
+        .from("tax_receipts")
+        .select("metadata")
+        .eq("user_id", userId)
+        .eq("tax_year", year)
+        .eq("category_id", "system_setting")
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      const metadata = data.metadata as { na_categories?: string[] };
+      return metadata?.na_categories || null;
+    },
+
+    /**
+     * Saves user's N/A category IDs to Supabase.
+     */
+    async saveNaCategories(userId: string, year: number, categoryIds: string[]): Promise<void> {
+      const { data } = await supabase
+        .from("tax_receipts")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("tax_year", year)
+        .eq("category_id", "system_setting")
+        .limit(1)
+        .maybeSingle();
+
+      const metadata = { na_categories: categoryIds };
+
+      if (data?.id) {
+        await supabase
+          .from("tax_receipts")
+          .update({ metadata })
+          .eq("id", data.id)
+          .eq("user_id", userId);
+      } else {
+        await supabase
+          .from("tax_receipts")
+          .insert({
+            user_id: userId,
+            tax_year: year,
+            file_name: "__SETTING_NA_CATEGORIES__",
+            storage_path: "system",
+            amount: 0,
+            category_id: "system_setting",
+            metadata,
+          });
+      }
     }
   },
 

@@ -32,8 +32,12 @@ import {
   Download,
   Loader2,
   ReceiptText,
-  Info,
   Image as ImageIcon,
+  CheckCircle2,
+  Ban,
+  Clock,
+  SlidersHorizontal,
+  EyeOff,
 } from "lucide-react";
 import JSZip from "jszip";
 import { Button } from "@/shared/components/ui/button";
@@ -184,6 +188,8 @@ function detectAmount(fileName: string) {
   return 0;
 }
 
+type CategoryFilter = "all" | "remaining" | "utilised" | "na";
+
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
 }
@@ -192,6 +198,65 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
   const { user } = useAuth();
   const [selectedYear, setSelectedYear] = useState<AssessmentYear>(currentYear.toString());
   const [saving, setSaving] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("remaining");
+
+  const [naCategoryIds, setNaCategoryIds] = useState<Set<string>>(() => {
+    try {
+      const key = `simplifi_na_categories_${user?.id || "guest"}`;
+      const stored = localStorage.getItem(key);
+      return stored ? new Set(JSON.parse(stored)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const key = `simplifi_na_categories_${user?.id || "guest"}`;
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        setNaCategoryIds(new Set(JSON.parse(stored)));
+      }
+    } catch {
+      // ignore
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    try {
+      const key = `simplifi_na_categories_${user?.id || "guest"}`;
+      localStorage.setItem(key, JSON.stringify(Array.from(naCategoryIds)));
+    } catch (err) {
+      console.warn("Failed to save N/A category settings", err);
+    }
+  }, [naCategoryIds, user?.id]);
+
+  const toggleNaCategory = (categoryId: string, event?: React.MouseEvent) => {
+    if (event) event.stopPropagation();
+    setNaCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+        toast.success("Category status updated to Applicable");
+      } else {
+        next.add(categoryId);
+        toast.info("Category marked as Not Applicable (N/A)");
+      }
+      const categoryArray = Array.from(next);
+      try {
+        const key = `simplifi_na_categories_${user?.id || "guest"}`;
+        localStorage.setItem(key, JSON.stringify(categoryArray));
+      } catch (err) {
+        console.warn("Failed to save N/A category to localStorage", err);
+      }
+      if (user) {
+        ApiService.tax.saveNaCategories(user.id, Number(selectedYear), categoryArray).catch((err) => {
+          console.warn("Failed to sync N/A categories to Supabase", err);
+        });
+      }
+      return next;
+    });
+  };
 
   const autoAmounts = useMemo(() => computeAutoAmounts(monthlyIncome, age), [monthlyIncome, age]);
 
@@ -241,15 +306,30 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
       if (!user) return;
       try {
         const data = await ApiService.tax.fetchReceipts(user.id, Number(selectedYear));
-        const mappedReceipts = data.map(r => ({
-          id: r.id,
-          name: r.file_name,
-          amount: Number(r.amount),
-          categoryId: r.category_id,
-          subItemId: r.sub_item_id,
-          year: String(r.tax_year) as AssessmentYear,
-          storagePath: r.storage_path
-        }));
+
+        // Sync cloud N/A settings from Supabase
+        const cloudNa = await ApiService.tax.fetchNaCategories(user.id, Number(selectedYear));
+        if (cloudNa && Array.isArray(cloudNa)) {
+          setNaCategoryIds(new Set(cloudNa));
+          try {
+            const key = `simplifi_na_categories_${user.id}`;
+            localStorage.setItem(key, JSON.stringify(cloudNa));
+          } catch {
+            // ignore
+          }
+        }
+
+        const mappedReceipts = data
+          .filter(r => r.category_id !== "system_setting")
+          .map(r => ({
+            id: r.id,
+            name: r.file_name,
+            amount: Number(r.amount),
+            categoryId: r.category_id,
+            subItemId: r.sub_item_id,
+            year: String(r.tax_year) as AssessmentYear,
+            storagePath: r.storage_path
+          }));
         setReceipts(mappedReceipts);
 
         setClaimsByYear(prev => {
@@ -279,11 +359,58 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
   const categories = getPlannerDataForYear(selectedYear);
   const claims = claimsByYear[selectedYear];
-  const totalMax = useMemo(() => getTotalMax(categories), [categories]);
-  const totalClaimed = useMemo(() => categories.reduce((total, category) => total + getCategoryTotal(category, claims), 0), [categories, claims]);
+
+  const activeCategories = useMemo(
+    () => categories.filter((category) => !naCategoryIds.has(category.id)),
+    [categories, naCategoryIds]
+  );
+
+  const totalMax = useMemo(() => getTotalMax(activeCategories), [activeCategories]);
+  const totalClaimed = useMemo(
+    () => activeCategories.reduce((total, category) => total + getCategoryTotal(category, claims), 0),
+    [activeCategories, claims]
+  );
   const totalRemaining = Math.max(0, totalMax - totalClaimed);
   const totalPercentage = totalMax > 0 ? Math.round((totalClaimed / totalMax) * 100) : 0;
   const yearReceipts = receipts.filter((receipt) => receipt.year === selectedYear);
+
+  const filterCounts = useMemo(() => {
+    let all = categories.length;
+    let remaining = 0;
+    let utilised = 0;
+    let na = 0;
+
+    categories.forEach((cat) => {
+      const isNa = naCategoryIds.has(cat.id);
+      const catTotal = getCategoryTotal(cat, claims);
+      const catCap = getCategoryCap(cat);
+
+      if (isNa) {
+        na++;
+      } else if (catCap > 0 && catTotal >= catCap) {
+        utilised++;
+      } else {
+        remaining++;
+      }
+    });
+
+    return { all, remaining, utilised, na };
+  }, [categories, claims, naCategoryIds]);
+
+  const filteredCategories = useMemo(() => {
+    return categories.filter((cat) => {
+      const isNa = naCategoryIds.has(cat.id);
+      const catTotal = getCategoryTotal(cat, claims);
+      const catCap = getCategoryCap(cat);
+      const isUtilised = !isNa && catCap > 0 && catTotal >= catCap;
+      const isRemaining = !isNa && (catCap === 0 || catTotal < catCap);
+
+      if (categoryFilter === "na") return isNa;
+      if (categoryFilter === "utilised") return isUtilised;
+      if (categoryFilter === "remaining") return isRemaining;
+      return true; // "all"
+    });
+  }, [categories, claims, naCategoryIds, categoryFilter]);
 
   const handleYearChange = (nextYear: string) => {
     setSelectedYear(nextYear as AssessmentYear);
@@ -727,54 +854,163 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
           </div>
         ) : null}
 
-        <div className="flex items-center gap-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground whitespace-nowrap">Relief categories</p>
-          <div className="h-[1px] flex-1 bg-border/40" />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground whitespace-nowrap">
+              Relief categories
+            </p>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setCategoryFilter("all")}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer",
+                  categoryFilter === "all"
+                    ? "bg-foreground text-background shadow-xs"
+                    : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                All <span className="opacity-70">({filterCounts.all})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCategoryFilter("remaining")}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer",
+                  categoryFilter === "remaining"
+                    ? "bg-sky-600 text-white shadow-xs"
+                    : "bg-sky-500/10 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 hover:bg-sky-500/20"
+                )}
+              >
+                Has Remaining <span className="opacity-80">({filterCounts.remaining})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCategoryFilter("utilised")}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer",
+                  categoryFilter === "utilised"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 hover:bg-emerald-500/20"
+                )}
+              >
+                Fully Utilised <span className="opacity-80">({filterCounts.utilised})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCategoryFilter("na")}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer",
+                  categoryFilter === "na"
+                    ? "bg-slate-700 text-white dark:bg-slate-300 dark:text-slate-900 shadow-xs"
+                    : "bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400 hover:bg-slate-500/20"
+                )}
+              >
+                Not Applicable <span className="opacity-80">({filterCounts.na})</span>
+              </button>
+            </div>
+          </div>
+          <div className="h-[1px] w-full bg-border/40" />
         </div>
 
         <div className="space-y-1.5">
-          {categories.map((category) => {
-            const tone = toneClasses[category.tone];
-            const categoryTotal = getCategoryTotal(category, claims);
-            const categoryCap = getCategoryCap(category);
-            const progress = categoryCap > 0 ? Math.min(100, (categoryTotal / categoryCap) * 100) : 0;
-            const Icon = iconMap[category.icon as keyof typeof iconMap];
-            const isOpen = openCategoryId === category.id;
-            const hasClaim = categoryTotal > 0;
-            const isFlashing = flashCategoryId === category.id;
+          {filteredCategories.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border/80 bg-card p-8 text-center">
+              <p className="text-sm font-medium text-foreground">No categories found</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {categoryFilter === "na"
+                  ? "Click 'Set N/A' on any category to mark it as not applicable to your tax situation."
+                  : "Try selecting another filter tab above."}
+              </p>
+            </div>
+          ) : (
+            filteredCategories.map((category) => {
+              const tone = toneClasses[category.tone];
+              const categoryTotal = getCategoryTotal(category, claims);
+              const categoryCap = getCategoryCap(category);
+              const isNa = naCategoryIds.has(category.id);
+              const isUtilised = !isNa && categoryCap > 0 && categoryTotal >= categoryCap;
+              const isRemaining = !isNa && (categoryCap === 0 || categoryTotal < categoryCap);
+              const progress = categoryCap > 0 ? Math.min(100, (categoryTotal / categoryCap) * 100) : 0;
+              const Icon = iconMap[category.icon as keyof typeof iconMap];
+              const isOpen = openCategoryId === category.id;
+              const hasClaim = categoryTotal > 0;
+              const isFlashing = flashCategoryId === category.id;
 
-            return (
-              <Card
-                key={`${selectedYear}-${category.id}`}
-                className={cn(
-                  "overflow-hidden rounded-2xl border border-border/70 shadow-none transition-colors",
-                  hasClaim && "border-border",
-                  isFlashing && tone.flash,
-                )}
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenCategoryId((currentId) => (currentId === category.id ? null : category.id))}
-                  className="flex w-full items-start gap-3 px-3 py-3 sm:px-4 sm:py-4 text-left"
+              return (
+                <Card
+                  key={`${selectedYear}-${category.id}`}
+                  className={cn(
+                    "overflow-hidden rounded-2xl border border-border/70 shadow-none transition-all",
+                    isNa && "opacity-60 bg-muted/30 border-dashed",
+                    hasClaim && !isNa && "border-border",
+                    isFlashing && tone.flash,
+                  )}
                 >
-                  <div className="w-6 pt-1 text-xs font-medium text-muted-foreground">{category.num}</div>
-                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]", tone.icon)}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[14px] font-medium tracking-[-0.02em] text-foreground">{category.name}</p>
-                    <p className={cn("mt-0.5 text-[12px] text-muted-foreground", !isOpen && "hidden sm:block")}>{category.description}</p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className={cn("text-[14px] font-medium", hasClaim ? "text-emerald-700" : "text-muted-foreground")}>
-                      {hasClaim ? formatRM(categoryTotal) : "—"}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      / {formatRM(categoryCap)}
-                    </p>
-                  </div>
-                  <ChevronDown className={cn("mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform", isOpen && "rotate-180")} />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenCategoryId((currentId) => (currentId === category.id ? null : category.id))}
+                    className="flex w-full items-start gap-3 px-3 py-3 sm:px-4 sm:py-4 text-left"
+                  >
+                    <div className="w-6 pt-1 text-xs font-medium text-muted-foreground">{category.num}</div>
+                    <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]", isNa ? "bg-muted text-muted-foreground" : tone.icon)}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className={cn("text-[14px] font-medium tracking-[-0.02em]", isNa ? "text-muted-foreground line-through decoration-slate-400" : "text-foreground")}>
+                          {category.name}
+                        </p>
+
+                        {/* Status Badge */}
+                        {isNa ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/10 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                            <Ban className="h-3 w-3" /> N/A
+                          </span>
+                        ) : isUtilised ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                            <CheckCircle2 className="h-3 w-3" /> Fully Utilised
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:text-sky-400 border border-sky-500/20">
+                            <Clock className="h-3 w-3" /> Has Remaining
+                          </span>
+                        )}
+
+                        {/* Toggle N/A Button */}
+                        <span
+                          role="button"
+                          onClick={(e) => toggleNaCategory(category.id, e)}
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors px-1.5 py-0.5 rounded hover:bg-muted"
+                          title={isNa ? "Set back to Applicable" : "Mark category as Not Applicable"}
+                        >
+                          {isNa ? (
+                            <>
+                              <Eye className="h-3 w-3 text-emerald-600" /> Enable
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="h-3 w-3" /> Set N/A
+                            </>
+                          )}
+                        </span>
+                      </div>
+                      <p className={cn("mt-0.5 text-[12px] text-muted-foreground", !isOpen && "hidden sm:block")}>{category.description}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className={cn("text-[14px] font-medium", isNa ? "text-muted-foreground" : hasClaim ? "text-emerald-700" : "text-muted-foreground")}>
+                        {isNa ? "N/A" : hasClaim ? formatRM(categoryTotal) : "—"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        / {formatRM(categoryCap)}
+                      </p>
+                    </div>
+                    <ChevronDown className={cn("mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform", isOpen && "rotate-180")} />
+                  </button>
 
                 {hasClaim ? (
                   <div className="mx-4 h-0.5 overflow-hidden rounded-full bg-muted">
@@ -863,7 +1099,8 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                 ) : null}
               </Card>
             );
-          })}
+          })
+        )}
         </div>
 
       </div>
@@ -1134,7 +1371,7 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
                       <SelectValue placeholder="Select relief type" />
                     </SelectTrigger>
                     <SelectContent position="popper" className="max-h-[300px] overflow-y-auto w-[var(--radix-select-trigger-width)]">
-                      {categories.map((cat) => (
+                      {categories.filter((cat) => !naCategoryIds.has(cat.id)).map((cat) => (
                         <div key={cat.id}>
                           <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/30">
                             {cat.name}

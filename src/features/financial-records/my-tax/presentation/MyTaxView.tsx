@@ -549,38 +549,27 @@ export function MyTaxView({ monthlyIncome = 0, age = 30 }: { monthlyIncome?: num
 
     setSaving(true);
     try {
-      await ApiService.tax.saveReceipt({
-        user_id: user.id,
-        file_name: pendingReceipt.name,
-        storage_path: pendingReceipt.storagePath || "",
-        tax_year: Number(selectedYear),
+      // The receipt was already inserted during processFile — update it with
+      // the user's confirmed category/amount instead of inserting a duplicate.
+      await ApiService.tax.updateReceipt(pendingReceipt.id, user.id, {
         amount: pendingReceipt.amount,
         category_id: pendingReceipt.categoryId,
         sub_item_id: pendingReceipt.subItemId,
       });
 
-      setClaimsByYear((previous) => {
-        const currentYearClaims = previous[selectedYear];
-        const currentClaim = currentYearClaims[subItem.id] || 0;
-        return {
-          ...previous,
-          [selectedYear]: {
-            ...currentYearClaims,
-            [subItem.id]: Math.min(subItem.limit, currentClaim + pendingReceipt.amount),
-          },
-        };
-      });
+      // Update local receipts state with the confirmed values
+      const updatedReceipts = receipts.map((r) =>
+        r.id === pendingReceipt.id
+          ? { ...pendingReceipt, dataUrl: undefined }
+          : r
+      );
+      setReceipts(updatedReceipts);
 
-      const updatedReceipts = await ApiService.tax.fetchReceipts(user.id, Number(selectedYear));
-      setReceipts(updatedReceipts.map(r => ({
-        id: r.id,
-        name: r.file_name,
-        amount: Number(r.amount),
-        categoryId: r.category_id,
-        subItemId: r.sub_item_id,
-        year: String(r.tax_year) as AssessmentYear,
-        storagePath: r.storage_path
-      })));
+      // Rebuild claims from the full receipt list for consistency
+      setClaimsByYear((previous) => ({
+        ...previous,
+        [selectedYear]: buildClaimsFromReceipts(selectedYear, updatedReceipts, autoAmounts),
+      }));
 
       setOpenCategoryId(category.id);
       setFlashCategoryId(category.id);

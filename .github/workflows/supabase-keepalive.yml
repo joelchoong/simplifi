@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 5
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL || 'https://kcddiucedwlnlhfibuss.supabase.co' }}
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.SUPABASE_PUBLISHABLE_KEY || vars.SUPABASE_ANON_KEY || vars.SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImtjZGRpdWNlZHdsbmxoZmlidXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzcyNDgsImV4cCI6MjA4NTk1MzI0OH0.ZlXlLH_TOlDJjVAdtkgCsEBv0WF-1MTa0xVQs0kiYbo' }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.SUPABASE_PUBLISHABLE_KEY || vars.SUPABASE_ANON_KEY || vars.SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjZGRpdWNlZHdsbmxoZmlidXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzcyNDgsImV4cCI6MjA4NTk1MzI0OH0.ZlXlLH_TOlDJjVAdtkgCsEBv0WF-1MTa0xVQs0kiYbo' }}
 
     steps:
       - name: Checkout Repository
